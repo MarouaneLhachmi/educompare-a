@@ -1303,6 +1303,27 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     body { padding-bottom: 68px; }
 }
 
+/* ================= 9bis. RETOUR ENSEIGNANT (mode ombre) ================= */
+.retour-widget {
+    display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+    margin-top: 8px;
+}
+.retour-widget-libelle { font-size: .75rem; color: var(--text-3); margin-right: 2px; }
+.retour-bouton {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text-2);
+    font-size: .74rem; cursor: pointer; transition: all .15s ease;
+}
+.retour-bouton:hover { background: var(--surface-3); color: var(--text); }
+.retour-bouton.actif { background: var(--gradient-soft); color: var(--brand-500); border-color: transparent; }
+.retour-bouton.actif[data-sens="negatif"] { background: var(--danger-soft); color: var(--danger); }
+.retour-bouton:disabled { opacity: .6; cursor: default; }
+.retour-confirmation {
+    font-size: .74rem; color: var(--ok); opacity: 0; transition: opacity .2s ease;
+}
+.retour-confirmation.visible { opacity: 1; }
+
 /* ================= 10. ACCESSIBILITÉ ET IMPRESSION ===================== */
 :focus-visible { outline: 3px solid var(--brand-400); outline-offset: 2px; border-radius: 4px; }
 
@@ -1317,7 +1338,8 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
 }
 
 @media print {
-    .fond-anime, .entete, .pied, .nav-mobile, .zone-flash, .btn, .barre-laterale { display: none !important; }
+    .fond-anime, .entete, .pied, .nav-mobile, .zone-flash, .btn, .barre-laterale,
+    .retour-widget { display: none !important; }
     body { background: #fff; color: #000; }
     .carte { box-shadow: none; border: 1px solid #ccc; background: #fff; break-inside: avoid; }
     main { padding: 0; }

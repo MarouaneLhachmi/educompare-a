@@ -228,6 +228,17 @@
 
                     <p class="petit muet" style="margin:0">{{ etape.justification }}</p>
 
+                    <div class="retour-widget"
+                         data-retour="{{ url_for('main.deposer_retour', analyse_id=r.id) }}"
+                         data-retour-type="pertinence_recommandation"
+                         data-retour-cle="{{ etape.cle }}">
+                        <span class="retour-widget-libelle">Cette recommandation est-elle utile ?</span>
+                        <button type="button" class="retour-bouton" data-valeur="utile">✓ utile</button>
+                        <button type="button" class="retour-bouton" data-valeur="deja_faite">déjà fait</button>
+                        <button type="button" class="retour-bouton" data-sens="negatif" data-valeur="hors_sujet">hors sujet</button>
+                        <span class="retour-confirmation"></span>
+                    </div>
+
                     {% if contenu %}
                     <div class="accordeon" style="margin-top:var(--sp-3)">
                         <button class="accordeon-tete" type="button">
@@ -259,6 +270,15 @@
                                 {% if exercice.reponse %}
                                 <div class="exercice-reponse"><strong>Réponse attendue :</strong> {{ exercice.reponse }}</div>
                                 {% endif %}
+                                <div class="retour-widget"
+                                     data-retour="{{ url_for('main.deposer_retour', analyse_id=r.id) }}"
+                                     data-retour-type="qualite_exercice"
+                                     data-retour-cle="{{ etape.cle }}::exercice:{{ loop.index0 }}">
+                                    <span class="retour-widget-libelle">Cet exercice est-il juste ?</span>
+                                    <button type="button" class="retour-bouton" data-valeur="juste">✓ juste</button>
+                                    <button type="button" class="retour-bouton" data-sens="negatif" data-valeur="faux">✗ faux</button>
+                                    <span class="retour-confirmation"></span>
+                                </div>
                             </div>
                             {% endfor %}
                             {% endif %}
@@ -565,6 +585,15 @@
                                         <td class="td-num">{{ (n.suffisance * 100) | round }} %</td>
                                         <td>
                                             <span class="badge badge-{{ n.statut | classe_statut }}">{{ n.libelle_ecart }}</span>
+                                            <div class="retour-widget"
+                                                 data-retour="{{ url_for('main.deposer_retour', analyse_id=r.id) }}"
+                                                 data-retour-type="couverture_notion"
+                                                 data-retour-cle="{{ n.cle_notion }}">
+                                                <span class="retour-widget-libelle">Ce diagnostic est-il exact ?</span>
+                                                <button type="button" class="retour-bouton" data-valeur="confirme">✓ oui</button>
+                                                <button type="button" class="retour-bouton" data-sens="negatif" data-valeur="infirme">✗ non</button>
+                                                <span class="retour-confirmation"></span>
+                                            </div>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -1068,9 +1097,26 @@
                             <tr><td><strong>Agent 7 — Évaluation</strong></td><td>{{ r.modele_evaluation.algorithme }}</td></tr>
                             <tr><td><strong>Agent 8 — Recommandations</strong></td><td>{{ r.parcours.moteur if r.parcours_disponible else 'priorisation déterministe' }}</td></tr>
                             <tr><td><strong>Agent 9 — Rapport final</strong></td><td>{{ 'Synthèse générée par modèle de langage' if r.agent9.synthese_generee_par_ia else 'Synthèse par gabarit' }}</td></tr>
+                            {% if r.referentiel_version %}
+                            <tr><td><strong>Socle de connaissances</strong></td>
+                                <td>
+                                    <code class="mono petit">{{ r.referentiel_version }}</code>
+                                    <span class="badge badge-{{ 'ok' if r.referentiel_officiel else 'moyen' }}">
+                                        {{ 'texte officiel' if r.referentiel_officiel else 'référentiel reconstitué' }}
+                                    </span>
+                                </td></tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
+                {% if r.referentiel_version and not r.referentiel_officiel %}
+                <p class="aide" style="margin-top:var(--sp-3)">
+                    Les notions de comparaison paraphrasent les grandes lignes des programmes
+                    officiels ; ce n'est pas leur texte intégral. Les résultats ci-dessus sont
+                    bornés par cette approximation. Deux analyses ne sont comparables entre
+                    elles que si elles portent la même version de socle.
+                </p>
+                {% endif %}
             </div>
 
             <!-- Benchmark du planificateur -->

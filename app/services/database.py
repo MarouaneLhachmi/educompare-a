@@ -18,6 +18,7 @@ Ce module expose :
 
 import threading
 import uuid
+from collections import Counter
 from datetime import datetime, timezone
 
 from app.config import Config
@@ -367,3 +368,63 @@ def lister_evenements(limite: int = 50) -> list[dict]:
     documents = [dict(d) for d in get_db()["evenements"].find({})]
     documents.sort(key=lambda d: str(d.get("horodatage") or ""), reverse=True)
     return documents[:limite]
+
+
+# ---------------------------------------------------------------------------
+# Depot : retours enseignants (boucle de retour, phase 1.2 du plan de
+# transition — mode ombre : on collecte, le comportement du systeme ne change
+# pas encore)
+# ---------------------------------------------------------------------------
+
+TYPES_RETOUR = {"couverture_notion", "pertinence_recommandation", "qualite_exercice"}
+
+
+def _collection_retours():
+    return get_db()["retours"]
+
+
+def enregistrer_retour(analyse_id: str, type_retour: str, cle_notion: str,
+                       valeur: str, utilisateur_id: str | None) -> dict:
+    """
+    Enregistre une etiquette produite par un enseignant en train de lire son
+    rapport. `cle_notion` identifie ce sur quoi porte le retour : une notion
+    du referentiel (« FR::Fractions... »), une etape de parcours (« rang:3 »)
+    ou un exercice (« rang:3::exercice:1 ») selon `type_retour`.
+
+    Aucune verification de coherence n'est faite ici au-dela du type : c'est
+    la matiere premiere brute du retour, pas encore une decision.
+    """
+    if type_retour not in TYPES_RETOUR:
+        raise ValueError(f"Type de retour inconnu : {type_retour}")
+    if not cle_notion:
+        raise ValueError("Un retour doit porter sur une cible identifiee.")
+
+    document = {
+        "_id": str(uuid.uuid4()),
+        "analyse_id": analyse_id,
+        "type": type_retour,
+        "cle_notion": cle_notion,
+        "valeur": valeur,
+        "utilisateur_id": utilisateur_id,
+        "horodatage": _maintenant(),
+    }
+    _collection_retours().insert_one(document)
+    return document
+
+
+def lister_retours(analyse_id: str | None = None) -> list[dict]:
+    filtre = {"analyse_id": analyse_id} if analyse_id else {}
+    documents = [dict(d) for d in _collection_retours().find(filtre)]
+    documents.sort(key=lambda d: str(d.get("horodatage") or ""), reverse=True)
+    return documents
+
+
+def compter_retours() -> dict:
+    """Volume accumule, pour la supervision : c'est le seul effet visible
+    du mode ombre tant que la bascule (~300 etiquettes) n'est pas activee."""
+    documents = list(_collection_retours().find({}))
+    par_type = Counter(d.get("type") for d in documents)
+    return {
+        "total": len(documents),
+        "par_type": {t: par_type.get(t, 0) for t in sorted(TYPES_RETOUR)},
+    }

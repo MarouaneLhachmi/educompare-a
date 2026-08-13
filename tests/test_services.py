@@ -16,6 +16,7 @@ from app.services import (
     empreintes,
     gemini_client,
     pedagogie,
+    profils_analyses,
     referentiels,
     synthese_extractive,
 )
@@ -86,6 +87,54 @@ class TestBaseEnMemoire:
         assert database.compter_analyses() == 0
 
 
+class TestRetoursEnseignant:
+    """
+    Boucle de retour enseignant (plan de transition, phase 1.2), mode ombre :
+    on collecte, rien d'autre ne change. Ces tests protegent la collecte
+    elle-meme — la bascule sur ces donnees viendra plus tard.
+    """
+
+    def test_enregistrement_d_un_retour(self):
+        database.enregistrer_retour(
+            "a1", "couverture_notion", "FR::Fractions", "confirme", "u1"
+        )
+        retours = database.lister_retours("a1")
+        assert len(retours) == 1
+        assert retours[0]["type"] == "couverture_notion"
+        assert retours[0]["cle_notion"] == "FR::Fractions"
+        assert retours[0]["valeur"] == "confirme"
+
+    def test_retour_anonyme_accepte(self):
+        """Le mode démonstration sans compte doit pouvoir déposer un retour."""
+        database.enregistrer_retour("a1", "qualite_exercice", "u001::exercice:0",
+                                    "juste", utilisateur_id=None)
+        assert database.lister_retours("a1")[0]["utilisateur_id"] is None
+
+    def test_type_de_retour_inconnu_refuse(self):
+        with pytest.raises(ValueError):
+            database.enregistrer_retour("a1", "type_invalide", "FR::x", "oui", "u1")
+
+    def test_cible_manquante_refusee(self):
+        with pytest.raises(ValueError):
+            database.enregistrer_retour("a1", "couverture_notion", "", "confirme", "u1")
+
+    def test_lister_retours_filtre_par_analyse(self):
+        database.enregistrer_retour("a1", "couverture_notion", "FR::x", "confirme", "u1")
+        database.enregistrer_retour("a2", "couverture_notion", "FR::y", "infirme", "u1")
+        assert len(database.lister_retours("a1")) == 1
+        assert len(database.lister_retours()) == 2
+
+    def test_compter_retours_par_type(self):
+        database.enregistrer_retour("a1", "couverture_notion", "FR::x", "confirme", "u1")
+        database.enregistrer_retour("a1", "couverture_notion", "FR::y", "infirme", "u1")
+        database.enregistrer_retour("a1", "pertinence_recommandation", "FR::z", "utile", "u1")
+        volume = database.compter_retours()
+        assert volume["total"] == 3
+        assert volume["par_type"]["couverture_notion"] == 2
+        assert volume["par_type"]["pertinence_recommandation"] == 1
+        assert volume["par_type"]["qualite_exercice"] == 0
+
+
 # ---------------------------------------------------------------------------
 # referentiels — base de connaissances
 # ---------------------------------------------------------------------------
@@ -144,6 +193,161 @@ class TestReferentiels:
         )
         assert stats["nb_notions"] == total
         assert stats["nb_referentiels"] == len(referentiels.cles_disponibles())
+
+
+class TestVersionnageReferentiels:
+    """
+    Versionnage des referentiels (plan de transition, phase 1.1).
+
+    L'enjeu n'est pas technique mais probatoire : tant qu'une analyse ne dit
+    pas sur quel socle de connaissances elle a ete produite, ses resultats ne
+    sont ni reproductibles ni comparables entre eux.
+    """
+
+    def test_chaque_pays_declare_une_version_courante(self):
+        codes = referentiels.codes_pays()
+        assert codes
+        for code in codes:
+            assert referentiels.version_courante(code)
+
+    def test_chaque_version_courante_est_publiee_au_manifeste(self):
+        for code in referentiels.codes_pays():
+            publiees = {v["version"] for v in referentiels.versions_disponibles(code)}
+            assert referentiels.version_courante(code) in publiees, (
+                f"{code} : la version courante n'est pas dans la liste publiée"
+            )
+
+    def test_charger_sans_version_resout_vers_la_courante(self):
+        code = referentiels.codes_pays()[0]
+        implicite = referentiels.charger(code)
+        explicite = referentiels.charger(code, referentiels.version_courante(code))
+        assert implicite == explicite
+
+    def test_version_inconnue_leve(self):
+        code = referentiels.codes_pays()[0]
+        with pytest.raises(FileNotFoundError):
+            referentiels.charger(code, "version-qui-n-existe-pas")
+
+    def test_chaque_version_declare_sa_nature(self):
+        """
+        Un référentiel reconstitué ne doit jamais pouvoir passer pour le
+        texte officiel : la nature est déclarée, pas déduite.
+        """
+        for code in referentiels.codes_pays():
+            nature = referentiels.charger(code)["_meta"]["nature"]
+            assert nature in {referentiels.NATURE_RECONSTITUE,
+                             referentiels.NATURE_OFFICIEL}
+
+    def test_un_referentiel_reconstitue_porte_son_avertissement(self):
+        for code in referentiels.codes_pays():
+            meta = referentiels.charger(code)["_meta"]
+            if meta["nature"] == referentiels.NATURE_RECONSTITUE:
+                assert meta.get("avertissement"), (
+                    f"{code} : version reconstituée sans avertissement explicite"
+                )
+
+    def test_signature_couvre_tous_les_pays_du_referentiel(self):
+        cle = referentiels.cle_pour("Mathématiques", "Dernière année du primaire")
+        signature = referentiels.signature_versions(cle)
+        attendus = {p["code"] for p in referentiels.pays_du_referentiel(cle)}
+        assert set(signature["par_pays"]) == attendus
+        assert signature["signature"]
+
+    def test_signature_restreinte_aux_pays_demandes(self):
+        cle = referentiels.cle_pour("Mathématiques", "Dernière année du primaire")
+        signature = referentiels.signature_versions(cle, ["FR"])
+        assert set(signature["par_pays"]) == {"FR"}
+        assert signature["signature"].startswith("FR:")
+
+    def test_signature_deterministe(self):
+        cle = referentiels.cle_pour("Mathématiques", "Dernière année du primaire")
+        assert (referentiels.signature_versions(cle)["signature"]
+                == referentiels.signature_versions(cle)["signature"])
+
+    def test_signature_signale_un_socle_non_officiel(self):
+        """État actuel du projet : aucun référentiel n'est encore officiel."""
+        cle = referentiels.cle_pour("Mathématiques", "Dernière année du primaire")
+        signature = referentiels.signature_versions(cle)
+        assert signature["entierement_officiel"] is False
+        assert referentiels.NATURE_RECONSTITUE in signature["natures"]
+
+    def test_les_notions_portent_leur_version(self):
+        cle = referentiels.cle_pour("Mathématiques", "Dernière année du primaire")
+        for notion in referentiels.notions_a_plat(cle):
+            assert notion["version"]
+
+    def test_statistiques_exposent_la_provenance_par_pays(self):
+        stats = referentiels.statistiques()
+        assert len(stats["sources"]) == len(referentiels.codes_pays())
+        assert stats["nb_officiels"] + stats["nb_reconstitues"] == len(stats["sources"])
+        for source in stats["sources"]:
+            assert source["version"]
+            assert source["nature"]
+
+
+class TestComparabiliteTrajectoire:
+    """
+    Une note ne veut rien dire hors du socle de connaissances qui l'a
+    produite. La trajectoire doit donc se restreindre aux analyses partageant
+    la version de la plus recente — sans quoi une revision du referentiel se
+    lirait comme une evolution du travail de l'enseignant.
+    """
+
+    @staticmethod
+    def _analyse(identifiant: str, note: float, version: str, jour: int) -> dict:
+        return {
+            "id": identifiant,
+            "statut": "TERMINEE",
+            "resume_note_globale": note,
+            "referentiel_version": version,
+            "date_creation": f"{jour:02d}/01/2026 10:00",
+            "date_creation_iso": f"2026-01-{jour:02d}T10:00:00",
+        }
+
+    def test_les_analyses_d_une_autre_version_sont_ecartees(self):
+        analyses = [
+            self._analyse("v1a", 40, "FR:1.0", 1),
+            self._analyse("v1b", 42, "FR:1.0", 2),
+            self._analyse("v2a", 70, "FR:2.0", 3),
+            self._analyse("v2b", 72, "FR:2.0", 4),
+            self._analyse("v2c", 74, "FR:2.0", 5),
+            self._analyse("v2d", 76, "FR:2.0", 6),
+        ]
+        trajectoire = profils_analyses.trajectoire(analyses)
+        assert trajectoire["version_referentiel"] == "FR:2.0"
+        assert trajectoire["nb_ecartees_autre_version"] == 2
+        assert trajectoire["nb_points"] == 4
+        # Sans le filtrage, le saut 42 -> 70 ferait apparaitre une pente
+        # spectaculaire qui ne serait qu'un changement de referentiel.
+        assert trajectoire["pente_par_analyse"] < 5
+
+    def test_une_seule_version_ne_perd_aucune_analyse(self):
+        analyses = [self._analyse(f"a{i}", 50 + i, "FR:1.0", i + 1) for i in range(5)]
+        trajectoire = profils_analyses.trajectoire(analyses)
+        assert trajectoire["nb_ecartees_autre_version"] == 0
+        assert trajectoire["nb_points"] == 5
+
+    def test_trop_peu_de_points_comparables_desactive_la_tendance(self):
+        """
+        Cinq analyses au total, mais une seule sur la version courante : il
+        n'y a pas de tendance à lire, et le dire vaut mieux que l'inventer.
+        """
+        analyses = [self._analyse(f"v1{i}", 50, "FR:1.0", i + 1) for i in range(4)]
+        analyses.append(self._analyse("v2a", 80, "FR:2.0", 9))
+        trajectoire = profils_analyses.trajectoire(analyses)
+        assert trajectoire["applique"] is False
+        assert trajectoire["nb_ecartees_autre_version"] == 4
+
+    def test_analyses_sans_version_restent_comparables_entre_elles(self):
+        """Les analyses antérieures au versionnage ne doivent pas disparaître."""
+        analyses = [
+            {"id": f"a{i}", "statut": "TERMINEE", "resume_note_globale": 50 + i,
+             "date_creation_iso": f"2026-01-0{i + 1}T10:00:00"}
+            for i in range(4)
+        ]
+        trajectoire = profils_analyses.trajectoire(analyses)
+        assert trajectoire["applique"] is True
+        assert trajectoire["nb_points"] == 4
 
 
 # ---------------------------------------------------------------------------

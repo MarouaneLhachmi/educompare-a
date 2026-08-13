@@ -334,6 +334,28 @@ class TestChaineEnModeDegrade:
         assert analyse["duree_analyse_s"] > 0
         assert analyse["durees_agents"]
 
+    def test_chaque_analyse_trace_son_socle_de_connaissances(self, analyses_du_corpus):
+        """
+        Un resultat sans la version du referentiel qui l'a produit n'est ni
+        reproductible ni comparable. La trace doit exister sur toute analyse
+        aboutie, et couvrir exactement les pays interroges.
+        """
+        from app.services import referentiels
+
+        for nom, analyse in analyses_du_corpus.items():
+            if analyse["statut"] != "TERMINEE":
+                continue
+            assert analyse.get("referentiel_version"), f"{nom} : socle non tracé"
+            par_pays = analyse["referentiel_versions_par_pays"]
+            attendus = {
+                p["code"]
+                for p in referentiels.pays_du_referentiel(analyse["referentiel_utilise"])
+            }
+            assert set(par_pays) == attendus, f"{nom} : pays manquants dans la signature"
+            assert analyse["referentiel_officiel"] is False, (
+                f"{nom} : un référentiel se déclare officiel alors qu'aucun ne l'est encore"
+            )
+
 
 # ---------------------------------------------------------------------------
 # Restitution

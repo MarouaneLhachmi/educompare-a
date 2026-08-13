@@ -36,15 +36,45 @@
 
             <div class="grille g-3" style="margin-bottom:var(--sp-5)">
                 <section class="carte reveler">
-                    <h3 class="carte-titre"><span class="ic">🗄️</span> Base de connaissances</h3>
+                    <div class="ligne-espace" style="margin-bottom:6px">
+                        <h3 class="carte-titre" style="margin:0"><span class="ic">🗄️</span> Base de connaissances</h3>
+                        <span class="badge badge-{{ 'ok' if d.base_connaissances.nb_reconstitues == 0 else 'moyen' }}">
+                            {{ d.base_connaissances.nb_officiels }}/{{ d.base_connaissances.nb_officiels + d.base_connaissances.nb_reconstitues }} officiels
+                        </span>
+                    </div>
                     <ul class="liste-nue petit">
                         <li class="ligne-espace"><span>Référentiels (matière/niveau)</span><strong>{{ d.base_connaissances.nb_referentiels }}</strong></li>
                         <li class="ligne-espace"><span>Pays couverts</span><strong>{{ d.base_connaissances.nb_pays }}</strong></li>
                         <li class="ligne-espace"><span>Notions indexables</span><strong>{{ d.base_connaissances.nb_notions }}</strong></li>
                     </ul>
-                    <div style="margin-top:var(--sp-3)">
-                        {% for pays in d.base_connaissances.pays %}<span class="etiquette">{{ pays }}</span>{% endfor %}
+                    <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                        <table class="tableau">
+                            <thead><tr><th>Pays</th><th>Version</th><th>Nature</th><th style="text-align:right">Notions</th></tr></thead>
+                            <tbody>
+                                {% for s in d.base_connaissances.sources %}
+                                <tr>
+                                    <td>{{ s.drapeau }} {{ s.pays }}</td>
+                                    <td><code class="mono petit">{{ s.version }}</code></td>
+                                    <td>
+                                        <span class="badge badge-{{ 'ok' if s.nature == 'officiel' else 'moyen' }}">
+                                            {{ 'texte officiel' if s.nature == 'officiel' else 'reconstitué' }}
+                                        </span>
+                                    </td>
+                                    <td class="td-num">{{ s.nb_notions }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
+                    {% if d.base_connaissances.nb_reconstitues %}
+                    <p class="aide" style="margin-top:8px">
+                        Les référentiels « reconstitués » paraphrasent les grandes lignes des
+                        programmes officiels : ce n'est pas leur texte intégral. Toute la chaîne
+                        en aval — couverture, écarts, note — est bornée par cette approximation.
+                        Le remplacement par le texte officiel relu constituera la version 2.0
+                        (plan de transition, phase 1.1).
+                    </p>
+                    {% endif %}
                 </section>
 
                 <section class="carte reveler">
@@ -70,6 +100,28 @@
                         <div class="barre-remplissage barre-ok" data-pct="{{ d.llm.taux_succes_pct }}"></div>
                     </div>
                     <p class="petit muet" style="margin-top:6px">Taux de succès : {{ d.llm.taux_succes_pct }} %</p>
+                </section>
+
+                <section class="carte reveler">
+                    <div class="ligne-espace" style="margin-bottom:6px">
+                        <h3 class="carte-titre" style="margin:0"><span class="ic">🗳️</span> Retour enseignant</h3>
+                        <span class="badge badge-info">mode ombre</span>
+                    </div>
+                    <ul class="liste-nue petit">
+                        <li class="ligne-espace"><span>Étiquettes collectées</span><strong>{{ d.retours.total }}</strong></li>
+                        <li class="ligne-espace"><span>Couverture de notion</span><strong>{{ d.retours.par_type.couverture_notion }}</strong></li>
+                        <li class="ligne-espace"><span>Pertinence de recommandation</span><strong>{{ d.retours.par_type.pertinence_recommandation }}</strong></li>
+                        <li class="ligne-espace"><span>Qualité d'exercice</span><strong>{{ d.retours.par_type.qualite_exercice }}</strong></li>
+                    </ul>
+                    <div class="barre barre-fine" style="margin-top:var(--sp-3)">
+                        <div class="barre-remplissage barre-ok" data-pct="{{ (100 * d.retours.par_type.couverture_notion / 300) | round(1) if d.retours.par_type.couverture_notion < 300 else 100 }}"></div>
+                    </div>
+                    <p class="petit muet" style="margin-top:6px">
+                        Bascule de <code class="mono">couverture_clf</code> sur données réelles envisagée à
+                        partir de ~300 étiquettes de couverture (plan de transition, phase 1.2) —
+                        {{ d.retours.par_type.couverture_notion }}/300 pour l'instant. Aucun comportement
+                        du système n'est encore modifié par ces retours.
+                    </p>
                 </section>
             </div>
 

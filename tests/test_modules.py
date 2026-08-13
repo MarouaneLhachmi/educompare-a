@@ -256,6 +256,76 @@ class TestCloisonnementHttp:
         assert "autrui" not in corps
 
 
+class TestRetourEnseignantHttp:
+    """
+    Route de la boucle de retour (plan de transition, phase 1.2, mode ombre) :
+    l'accès suit exactement la même règle de cloisonnement que la lecture du
+    rapport, puisqu'on ne peut pas commenter une notion qu'on n'a pas le
+    droit de voir.
+    """
+
+    def _corps(self, **surcharge):
+        corps = {"type": "couverture_notion", "cle_notion": "FR::Fractions",
+                "valeur": "confirme"}
+        corps.update(surcharge)
+        return corps
+
+    def test_le_proprietaire_peut_deposer_un_retour(self, client, utilisateur_figee,
+                                                    connecter):
+        connecter(utilisateur_figee)
+        _analyse_de(utilisateur_figee["id"])
+        reponse = client.post(f"/rapport/an01/retour", json=self._corps())
+        assert reponse.status_code == 200
+        assert reponse.get_json()["ok"] is True
+        assert database.lister_retours("an01")[0]["utilisateur_id"] == utilisateur_figee["id"]
+
+    def test_un_tiers_ne_peut_pas_deposer_de_retour(self, client, utilisateur_figee,
+                                                    connecter, creer_utilisateur):
+        creer_utilisateur(AUTRE_UTILISATEUR)
+        connecter(utilisateur_figee)
+        _analyse_de(AUTRE_UTILISATEUR["id"])
+        reponse = client.post(f"/rapport/an01/retour", json=self._corps())
+        assert reponse.status_code == 403
+        assert database.lister_retours("an01") == []
+
+    def test_analyse_inconnue(self, client, utilisateur_figee, connecter):
+        connecter(utilisateur_figee)
+        reponse = client.post("/rapport/inexistante/retour", json=self._corps())
+        assert reponse.status_code == 404
+
+    def test_type_invalide_rejete(self, client, utilisateur_figee, connecter):
+        connecter(utilisateur_figee)
+        _analyse_de(utilisateur_figee["id"])
+        reponse = client.post("/rapport/an01/retour",
+                              json=self._corps(type="type_qui_n_existe_pas"))
+        assert reponse.status_code == 400
+        assert database.lister_retours("an01") == []
+
+    def test_cle_notion_manquante_rejetee(self, client, utilisateur_figee, connecter):
+        connecter(utilisateur_figee)
+        _analyse_de(utilisateur_figee["id"])
+        reponse = client.post("/rapport/an01/retour", json=self._corps(cle_notion=""))
+        assert reponse.status_code == 400
+
+    def test_corps_absent_rejete(self, client, utilisateur_figee, connecter):
+        connecter(utilisateur_figee)
+        _analyse_de(utilisateur_figee["id"])
+        reponse = client.post("/rapport/an01/retour")
+        assert reponse.status_code == 400
+
+    def test_le_retour_n_altere_pas_l_analyse(self, client, utilisateur_figee, connecter):
+        """
+        Propriété centrale du mode ombre : déposer une étiquette ne doit rien
+        changer à l'analyse elle-même.
+        """
+        connecter(utilisateur_figee)
+        avant = _analyse_de(utilisateur_figee["id"])
+        client.post("/rapport/an01/retour", json=self._corps())
+        apres = database.analyse_par_id("an01")
+        assert apres["statut"] == avant["statut"]
+        assert "retours" not in apres
+
+
 class TestPagesPubliques:
 
     def test_accueil_accessible_sans_compte(self, client):

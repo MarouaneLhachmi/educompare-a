@@ -8,3 +8,5 @@ uploads/*
 outputs/*
 !outputs/.gitkeep
 sample_data/
+.claude/
+dossier_passation.pdf

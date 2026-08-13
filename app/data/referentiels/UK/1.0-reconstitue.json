@@ -1,0 +1,126 @@
+{
+  "_meta": {
+    "code": "UK",
+    "pays": "Royaume-Uni",
+    "drapeau": "🇬🇧",
+    "version": "1.0-reconstitue",
+    "nature": "reconstitue",
+    "source_officielle": "https://www.gov.uk/government/collections/national-curriculum",
+    "url_source": null,
+    "date_releve": null,
+    "relu_par": null,
+    "avertissement": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes du programme officiel, a vocation de demonstration. Ce n'est pas le texte officiel : toute conclusion tiree de cette version est bornee par cette approximation.",
+    "nb_referentiels": 3,
+    "nb_notions": 23,
+    "provenance": "Migre depuis app/data/referentiels_etrangers.json (version 2.0)"
+  },
+  "referentiels": {
+    "Mathématiques - Dernière année du primaire": {
+      "referentiel": "National Curriculum — Key Stage 2, Year 6",
+      "notions": [
+        {
+          "intitule": "Place value up to 10 000 000",
+          "descriptif": "Read, write, order and compare numbers up to ten million and determine the value of each digit."
+        },
+        {
+          "intitule": "Fractions, decimals and percentages",
+          "descriptif": "Convert between fractions, decimals and percentages and use them to solve problems in context."
+        },
+        {
+          "intitule": "Long multiplication and long division",
+          "descriptif": "Multiply four-digit numbers by two-digit numbers and divide using the formal long division method with remainders."
+        },
+        {
+          "intitule": "Ratio and proportion",
+          "descriptif": "Solve problems involving relative sizes, scale factors, unequal sharing and simple percentage comparison."
+        },
+        {
+          "intitule": "Algebra: simple formulae and equations",
+          "descriptif": "Use simple formulae, generate and describe linear number sequences and find pairs of numbers satisfying an equation."
+        },
+        {
+          "intitule": "Properties of 2D and 3D shapes",
+          "descriptif": "Classify shapes by their properties, build 3D shapes from nets and recognise angles in triangles and quadrilaterals."
+        },
+        {
+          "intitule": "Perimeter, area and volume",
+          "descriptif": "Calculate the area of triangles and parallelograms and the volume of cubes and cuboids using standard units."
+        },
+        {
+          "intitule": "Measurement and unit conversion",
+          "descriptif": "Convert between metric units and between miles and kilometres, and use measures in problem solving."
+        },
+        {
+          "intitule": "Statistics: pie charts and line graphs",
+          "descriptif": "Interpret and construct pie charts and line graphs, and calculate and interpret the mean as an average."
+        },
+        {
+          "intitule": "Coordinates in four quadrants",
+          "descriptif": "Describe positions on the full coordinate grid and draw or translate simple shapes on the axes."
+        },
+        {
+          "intitule": "Multi-step word problem solving",
+          "descriptif": "Solve problems requiring several operations, choose an appropriate strategy and justify the answer."
+        },
+        {
+          "intitule": "Mental arithmetic and estimation",
+          "descriptif": "Perform mental calculations with large numbers and use estimation and rounding to check answers."
+        }
+      ]
+    },
+    "Sciences - Dernière année du primaire": {
+      "referentiel": "National Curriculum Science — Key Stage 2, Year 6",
+      "notions": [
+        {
+          "intitule": "Living things and their habitats",
+          "descriptif": "Classify living things into broad groups according to observable characteristics and similarities."
+        },
+        {
+          "intitule": "Animals including humans",
+          "descriptif": "Describe the circulatory system, the impact of diet, exercise and lifestyle on the human body."
+        },
+        {
+          "intitule": "Evolution and inheritance",
+          "descriptif": "Recognise that living things produce offspring that vary and that adaptation may lead to evolution."
+        },
+        {
+          "intitule": "Light and how we see",
+          "descriptif": "Explain that light travels in straight lines and use this to explain shadows and reflection."
+        },
+        {
+          "intitule": "Electricity and simple circuits",
+          "descriptif": "Compare the brightness of lamps with the voltage of cells and use recognised circuit symbols."
+        },
+        {
+          "intitule": "Working scientifically",
+          "descriptif": "Plan enquiries, take accurate measurements, record data and report findings with conclusions and causal relationships."
+        }
+      ]
+    },
+    "Français - Dernière année du primaire": {
+      "referentiel": "National Curriculum English — Key Stage 2, Year 6",
+      "notions": [
+        {
+          "intitule": "Reading comprehension and inference",
+          "descriptif": "Draw inferences from a text, justify them with evidence and summarise ideas across paragraphs."
+        },
+        {
+          "intitule": "Writing composition for different purposes",
+          "descriptif": "Plan, draft, evaluate and edit writing, selecting form and register appropriate to audience and purpose."
+        },
+        {
+          "intitule": "Vocabulary, grammar and punctuation",
+          "descriptif": "Use passive voice, subjunctive forms, semicolons, colons and hyphens accurately in extended writing."
+        },
+        {
+          "intitule": "Spelling patterns and word families",
+          "descriptif": "Spell words with silent letters, homophones and common prefixes and suffixes correctly."
+        },
+        {
+          "intitule": "Spoken language and debate",
+          "descriptif": "Participate in discussions, presentations and debates, using standard English and justifying opinions."
+        }
+      ]
+    }
+  }
+}

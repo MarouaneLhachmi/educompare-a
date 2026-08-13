@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "description": "Index des referentiels pedagogiques etrangers. Chaque pays est verse dans son propre dossier et versionne independamment : c'est le programme officiel d'un pays qui est revise, et il l'est pour toutes ses matieres a la fois.",
+    "schema": "app/data/referentiels/<CODE_PAYS>/<version>.json"
+  },
+  "pays": [
+    {
+      "code": "CA",
+      "pays": "Canada (Ontario)",
+      "version_courante": "1.0-reconstitue"
+    },
+    {
+      "code": "FI",
+      "pays": "Finlande",
+      "version_courante": "1.0-reconstitue"
+    },
+    {
+      "code": "FR",
+      "pays": "France",
+      "version_courante": "1.0-reconstitue"
+    },
+    {
+      "code": "UK",
+      "pays": "Royaume-Uni",
+      "version_courante": "1.0-reconstitue"
+    },
+    {
+      "code": "US",
+      "pays": "États-Unis",
+      "version_courante": "1.0-reconstitue"
+    }
+  ]
+}

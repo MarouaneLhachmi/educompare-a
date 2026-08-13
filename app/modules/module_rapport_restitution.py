@@ -141,6 +141,14 @@ def build_report_context(analyse: dict) -> dict:
         key=lambda p: p["taux_couverture_pct"],
         reverse=True,
     )
+    # `cle_notion` identifie une notion sans ambiguite entre pays homonymes
+    # (« Proportionnalité » existe dans plusieurs referentiels) : c'est la
+    # cle utilisee en interne par les agents 5 et 6, et celle sur laquelle
+    # s'appuiera la boucle de retour enseignant pour rattacher une etiquette
+    # a la notion exacte qu'elle corrige.
+    for p in pays:
+        for n in p.get("notions", []):
+            n.setdefault("cle_notion", f"{n['code']}::{n['notion']}")
     contexte["referentiels"] = pays
     contexte["nb_referentiels"] = len(pays)
 

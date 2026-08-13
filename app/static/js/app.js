@@ -596,6 +596,60 @@
     }
 
     /* ------------------------------------------------------------------ */
+    /* Retour enseignant (mode ombre) : dépose une étiquette sans quitter  */
+    /* la page ni changer quoi que ce soit au rapport affiché.             */
+    /* ------------------------------------------------------------------ */
+    function initRetours() {
+        const widgets = $$("[data-retour]");
+        if (!widgets.length) return;
+
+        widgets.forEach((widget) => {
+            const url = widget.getAttribute("data-retour");
+            const type = widget.getAttribute("data-retour-type");
+            const cleNotion = widget.getAttribute("data-retour-cle");
+            const confirmation = $(".retour-confirmation", widget);
+            let enCours = false;
+
+            $$(".retour-bouton", widget).forEach((bouton) => {
+                bouton.addEventListener("click", async () => {
+                    if (enCours) return;
+                    enCours = true;
+                    $$(".retour-bouton", widget).forEach((b) => (b.disabled = true));
+
+                    try {
+                        const reponse = await fetch(url, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                type,
+                                cle_notion: cleNotion,
+                                valeur: bouton.getAttribute("data-valeur"),
+                            }),
+                        });
+                        if (!reponse.ok) throw new Error("statut " + reponse.status);
+
+                        $$(".retour-bouton", widget).forEach((b) => b.classList.remove("actif"));
+                        bouton.classList.add("actif");
+                        if (confirmation) {
+                            confirmation.textContent = "Merci, c'est noté.";
+                            confirmation.classList.add("visible");
+                        }
+                    } catch (erreur) {
+                        if (confirmation) {
+                            confirmation.textContent = "Échec de l'envoi, réessayez.";
+                            confirmation.style.color = "var(--danger)";
+                            confirmation.classList.add("visible");
+                        }
+                    } finally {
+                        $$(".retour-bouton", widget).forEach((b) => (b.disabled = false));
+                        enCours = false;
+                    }
+                });
+            });
+        });
+    }
+
+    /* ------------------------------------------------------------------ */
     /* Écran de suivi : interrogation périodique de l'avancement           */
     /* ------------------------------------------------------------------ */
     function initSuivi() {
@@ -757,6 +811,7 @@
         initFiltreTableau();
         initSelecteurPays();
         initConfirmations();
+        initRetours();
         initSuivi();
         filetDeSecurite();
     }

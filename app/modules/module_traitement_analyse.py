@@ -209,11 +209,21 @@ def _executer_pipeline(analyse: dict, pdf_path: str) -> dict:
     analyse["referentiel_utilise"] = cle_referentiel
     analyse["nb_notions_referentiel"] = len(notions)
 
+    # Socle de connaissances effectivement utilise. Sans cette trace, deux
+    # analyses menees sur des versions differentes du referentiel seraient
+    # comparees comme si elles partageaient la meme reference.
+    signature = referentiels.signature_versions(cle_referentiel, codes_pays)
+    analyse["referentiel_version"] = signature["signature"]
+    analyse["referentiel_versions_par_pays"] = signature["par_pays"]
+    analyse["referentiel_officiel"] = signature["entierement_officiel"]
+
     _journaliser(
         analyse_id,
         "info",
         f"Référentiel « {cle_referentiel} » chargé : {len(notions)} notions issues de "
-        f"{len({n['code'] for n in notions})} pays.",
+        f"{len({n['code'] for n in notions})} pays "
+        f"({'texte officiel' if signature['entierement_officiel'] else 'jeu reconstitué'}, "
+        f"version {signature['signature']}).",
     )
 
     resultats: dict = {}

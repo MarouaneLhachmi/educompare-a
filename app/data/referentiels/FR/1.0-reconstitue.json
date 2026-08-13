@@ -1,0 +1,134 @@
+{
+  "_meta": {
+    "code": "FR",
+    "pays": "France",
+    "drapeau": "🇫🇷",
+    "version": "1.0-reconstitue",
+    "nature": "reconstitue",
+    "source_officielle": "https://eduscol.education.fr/",
+    "url_source": null,
+    "date_releve": null,
+    "relu_par": null,
+    "avertissement": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes du programme officiel, a vocation de demonstration. Ce n'est pas le texte officiel : toute conclusion tiree de cette version est bornee par cette approximation.",
+    "nb_referentiels": 3,
+    "nb_notions": 25,
+    "provenance": "Migre depuis app/data/referentiels_etrangers.json (version 2.0)"
+  },
+  "referentiels": {
+    "Mathématiques - Dernière année du primaire": {
+      "referentiel": "Programme de cycle 3 — CM2 (Éducation nationale)",
+      "notions": [
+        {
+          "intitule": "Nombres entiers jusqu'au milliard",
+          "descriptif": "Lire, écrire, décomposer et comparer les grands nombres entiers, comprendre la valeur positionnelle des chiffres."
+        },
+        {
+          "intitule": "Fractions simples et nombres décimaux",
+          "descriptif": "Comprendre les fractions comme partage, les placer sur une droite graduée, passer des fractions décimales aux nombres à virgule."
+        },
+        {
+          "intitule": "Opérations sur les nombres décimaux",
+          "descriptif": "Additionner, soustraire, multiplier et diviser des nombres décimaux, poser les opérations et estimer un ordre de grandeur."
+        },
+        {
+          "intitule": "Proportionnalité",
+          "descriptif": "Reconnaître une situation de proportionnalité, utiliser le coefficient, les pourcentages, les échelles et le passage à l'unité."
+        },
+        {
+          "intitule": "Figures planes usuelles",
+          "descriptif": "Décrire, construire et reconnaître carré, rectangle, losange, triangle et cercle, connaître leurs propriétés et leurs axes de symétrie."
+        },
+        {
+          "intitule": "Périmètres et aires",
+          "descriptif": "Calculer le périmètre et l'aire du carré, du rectangle et du triangle, distinguer les deux grandeurs."
+        },
+        {
+          "intitule": "Solides et volumes",
+          "descriptif": "Reconnaître cube et pavé droit, réaliser des patrons, découvrir la notion de volume et l'unité litre / centimètre cube."
+        },
+        {
+          "intitule": "Grandeurs et mesures",
+          "descriptif": "Utiliser et convertir les unités de longueur, masse, contenance, aire et durée, résoudre des problèmes de conversion."
+        },
+        {
+          "intitule": "Organisation et gestion de données",
+          "descriptif": "Lire, interpréter et construire tableaux, diagrammes en bâtons et graphiques, calculer une moyenne simple."
+        },
+        {
+          "intitule": "Résolution de problèmes à plusieurs étapes",
+          "descriptif": "Modéliser un énoncé, planifier une suite de calculs, vérifier la vraisemblance du résultat et communiquer sa démarche."
+        },
+        {
+          "intitule": "Initiation à la pensée algébrique",
+          "descriptif": "Trouver un nombre manquant dans une égalité, exprimer une règle générale à partir d'une suite de nombres."
+        },
+        {
+          "intitule": "Repérage et déplacement dans l'espace",
+          "descriptif": "Se repérer sur un quadrillage, utiliser des coordonnées, décrire un déplacement et programmer un trajet."
+        }
+      ]
+    },
+    "Sciences - Dernière année du primaire": {
+      "referentiel": "Sciences et technologie — cycle 3 (CM2)",
+      "notions": [
+        {
+          "intitule": "Matière, mouvement, énergie et information",
+          "descriptif": "Décrire les états et les changements d'état de la matière, identifier des sources et des formes d'énergie."
+        },
+        {
+          "intitule": "Le vivant, sa diversité et ses fonctions",
+          "descriptif": "Classer les êtres vivants, décrire la nutrition, la respiration et la reproduction des organismes."
+        },
+        {
+          "intitule": "Matériaux et objets techniques",
+          "descriptif": "Identifier les fonctions d'un objet technique, décrire son fonctionnement et les matériaux qui le composent."
+        },
+        {
+          "intitule": "La planète Terre et les êtres vivants",
+          "descriptif": "Situer la Terre dans le système solaire, décrire les mouvements terrestres, les saisons et les phénomènes météorologiques."
+        },
+        {
+          "intitule": "Éducation à l'environnement et développement durable",
+          "descriptif": "Identifier l'impact des activités humaines, comprendre le recyclage et la préservation des ressources."
+        },
+        {
+          "intitule": "Démarche d'investigation scientifique",
+          "descriptif": "Formuler une hypothèse, concevoir une expérience, observer, mesurer et interpréter des résultats."
+        }
+      ]
+    },
+    "Français - Dernière année du primaire": {
+      "referentiel": "Français — cycle 3 (CM2)",
+      "notions": [
+        {
+          "intitule": "Compréhension de textes littéraires",
+          "descriptif": "Comprendre un texte narratif long, identifier personnages, intentions et implicites, justifier son interprétation."
+        },
+        {
+          "intitule": "Lecture de textes documentaires",
+          "descriptif": "Prélever et mettre en relation des informations dans un document composite, y compris numérique."
+        },
+        {
+          "intitule": "Écriture de textes variés",
+          "descriptif": "Rédiger un récit, une description ou un texte argumentatif structuré, en plusieurs jets, avec relecture."
+        },
+        {
+          "intitule": "Grammaire : classes et fonctions",
+          "descriptif": "Identifier les classes de mots, les fonctions sujet, complément d'objet et compléments circonstanciels."
+        },
+        {
+          "intitule": "Conjugaison et système verbal",
+          "descriptif": "Conjuguer aux temps de l'indicatif, comprendre la valeur des temps et respecter la concordance."
+        },
+        {
+          "intitule": "Orthographe grammaticale et lexicale",
+          "descriptif": "Maîtriser les accords dans le groupe nominal et avec le verbe, enrichir et orthographier le lexique."
+        },
+        {
+          "intitule": "Expression orale et écoute",
+          "descriptif": "Prendre la parole en continu, participer à un débat régulé, écouter et reformuler le propos d'autrui."
+        }
+      ]
+    }
+  }
+}

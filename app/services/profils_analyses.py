@@ -185,11 +185,25 @@ def trajectoire(analyses: list[dict]) -> dict:
     tout modele plus riche capterait du bruit. Le coefficient de
     determination est restitue tel quel — c'est lui qui dit si la tendance
     merite d'etre lue.
+
+    La serie est restreinte aux analyses partageant la **meme version de
+    referentiel** que la plus recente. Une note ne veut rien dire hors du
+    socle de connaissances qui l'a produite : melanger deux versions ferait
+    passer une revision du referentiel pour une evolution du travail de
+    l'enseignant.
     """
     ordonnees = sorted(
         [a for a in analyses if a.get("statut") == "TERMINEE"],
         key=lambda a: str(a.get("date_creation_iso") or ""),
     )
+
+    version_reference = ordonnees[-1].get("referentiel_version") if ordonnees else None
+    comparables = [
+        a for a in ordonnees if a.get("referentiel_version") == version_reference
+    ]
+    nb_ecartees = len(ordonnees) - len(comparables)
+    ordonnees = comparables
+
     notes = [float(a.get("resume_note_globale") or 0) for a in ordonnees]
 
     if len(notes) < MIN_ANALYSES_TENDANCE:
@@ -199,6 +213,8 @@ def trajectoire(analyses: list[dict]) -> dict:
                 f"{len(notes)} analyse(s) — minimum {MIN_ANALYSES_TENDANCE} "
                 f"pour estimer une tendance"
             ),
+            "version_referentiel": version_reference,
+            "nb_ecartees_autre_version": nb_ecartees,
             "points": [
                 {"rang": i + 1, "note": n, "date": a.get("date_creation")}
                 for i, (n, a) in enumerate(zip(notes, ordonnees))
@@ -222,6 +238,8 @@ def trajectoire(analyses: list[dict]) -> dict:
         "applique": True,
         "algorithme": "régression linéaire sur la suite des notes",
         "nb_points": len(notes),
+        "version_referentiel": version_reference,
+        "nb_ecartees_autre_version": nb_ecartees,
         "pente_par_analyse": round(float(pente), 2),
         "r2": round(r2, 3),
         "ecart_type_residus": round(ecart_type, 2),

@@ -272,4 +272,9 @@ def tableau_de_bord_administrateur() -> dict:
         "base_donnees": database.statut_connexion(),
         "registre_modeles": model_registry.etat(),
         "resume_modeles": model_registry.resume(),
+        # Boucle de retour enseignant (plan de transition, phase 1.2) : en
+        # mode ombre, ce volume est le seul effet visible du dispositif tant
+        # que le seuil de bascule (~300 etiquettes de couverture) n'est pas
+        # atteint.
+        "retours": database.compter_retours(),
     }

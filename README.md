@@ -288,7 +288,7 @@ educompare_prototype/
     │   ├── gemini_client.py     # client LLM partagé (JSON tolérant, journalisation)
     │   ├── database.py          # MongoDB + repli mémoire compatible pymongo
     │   ├── vector_store.py      # FAISS + repli NumPy exact
-    │   ├── referentiels.py      # base de connaissances des programmes étrangers
+    │   ├── referentiels.py      # base de connaissances des programmes étrangers (versionnée par pays)
     │   ├── model_registry.py    # registre des 6 modèles + chaîne de replis
     │   ├── reranking.py         # cross-encodeur partagé (agents 6 et 8)
     │   ├── pedagogie.py         # taxonomie de Bloom, lisibilité, progression
@@ -300,7 +300,7 @@ educompare_prototype/
     │   ├── synthese_extractive.py   # TextRank + MMR, sans modèle de langage
     │   ├── anomalies_connexion.py   # IsolationForest + règles de sécurité
     │   └── profils_analyses.py  # KMeans, trajectoire, k plus proches voisins
-    ├── data/referentiels_etrangers.json
+    ├── data/referentiels/       # un dossier par pays, une version figée par fichier
     ├── templates/               # 13 pages Jinja2
     └── static/
         ├── css/design.css       # design system
@@ -356,6 +356,10 @@ back-office administrateur.
 
 - **Base de connaissances réduite** : les référentiels étrangers sont un jeu pédagogique
   reconstitué à partir des grandes lignes des programmes officiels, pas leur texte intégral.
+  Cette limite est désormais **déclarée dans les données elles-mêmes** (`_meta.nature` à
+  `reconstitue`, version `1.0-reconstitue`) et restituée dans le rapport comme dans le
+  back-office ; le dépôt d'un texte officiel relu constituera une version `2.0-officiel`.
+  Voir [`app/data/referentiels/README.md`](app/data/referentiels/README.md).
 - **Modèle d'évaluation (agent 7)** : aucun corpus de cours annotés par des experts n'étant
   disponible à ce stade, l'ensemble est entraîné sur un jeu **synthétique** dérivé de la
   grille d'évaluation experte. Les onze indicateurs, eux, sont bien mesurés sur le document.

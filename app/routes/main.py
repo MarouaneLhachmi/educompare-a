@@ -231,6 +231,44 @@ def rapport_pdf(analyse_id):
     return send_file(chemin, as_attachment=True, download_name=nom)
 
 
+@bp.route("/rapport/<analyse_id>/retour", methods=["POST"])
+def deposer_retour(analyse_id):
+    """
+    Boucle de retour enseignant (plan de transition, phase 1.2), **mode
+    ombre** : l'etiquette est enregistree, mais rien dans le comportement du
+    systeme n'en depend encore. La bascule effective (reentrainement de
+    `couverture_clf`) n'aura lieu qu'une fois un volume suffisant accumule —
+    voir `module_historique_dashboard`.
+
+    Repond en JSON, appelee par une requete fetch() depuis le rapport ; ne
+    redirige jamais pour ne pas perdre la position de lecture de la page.
+    """
+    analyse = database.analyse_par_id(analyse_id)
+    if analyse is None:
+        return jsonify({"erreur": "Analyse introuvable."}), 404
+    if not module_auth_securite.peut_consulter_analyse(analyse):
+        return jsonify({"erreur": "Accès refusé."}), 403
+
+    donnees = request.get_json(silent=True) or {}
+    type_retour = str(donnees.get("type", "")).strip()
+    cle_notion = str(donnees.get("cle_notion", "")).strip()
+    valeur = str(donnees.get("valeur", "")).strip()
+
+    if type_retour not in database.TYPES_RETOUR or not cle_notion or not valeur:
+        return jsonify({"erreur": "Retour incomplet."}), 400
+
+    utilisateur = module_auth_securite.utilisateur_courant()
+    database.enregistrer_retour(
+        analyse_id, type_retour, cle_notion, valeur,
+        utilisateur["id"] if utilisateur else None,
+    )
+    database.journaliser(
+        "retour_enseignant", utilisateur["id"] if utilisateur else None,
+        {"analyse_id": analyse_id, "type": type_retour},
+    )
+    return jsonify({"ok": True})
+
+
 # ---------------------------------------------------------------------------
 # Pages d'information
 # ---------------------------------------------------------------------------
