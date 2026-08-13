@@ -1,0 +1,33 @@
+# --- Couche applicative (Flask) ---
+Flask>=3.0.3
+python-dotenv>=1.0.1
+Werkzeug>=3.0.3
+
+# --- Authentification (OAuth 2.0 / OpenID Connect — compte Google) ---
+Authlib>=1.3.0
+requests>=2.32.0
+
+# --- Couche base de donnees (MongoDB) ---
+pymongo>=4.8.0
+
+# --- Agent 1 : extraction PDF ---
+pypdf>=4.3.1
+
+# --- Agents 4 et 7 : apprentissage automatique / profond ---
+sentence-transformers>=3.0.1
+scikit-learn>=1.6.1
+numpy>=2.0.0
+
+# --- Agent 5 : base vectorielle ---
+faiss-cpu>=1.8.0
+
+# --- Agents generatifs (2, 6, 7, 8, 9) : API Gemini ---
+google-genai>=1.2.0
+
+# --- Module Rapport et Restitution : export PDF ---
+fpdf2>=2.7.9
+
+# --- Optionnel : OCR pour les PDF scannes (Agent 1) ---
+# Necessite egalement Tesseract et Poppler installes sur le systeme.
+# pytesseract>=0.3.13
+# pdf2image>=1.17.0

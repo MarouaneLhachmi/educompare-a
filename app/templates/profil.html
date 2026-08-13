@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block titre %}Mon profil — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur" style="max-width:900px">
+
+    <section class="carte carte-vedette anim-monter" style="margin-bottom:var(--sp-5)">
+        <div class="ligne" style="gap:var(--sp-5)">
+            <span class="avatar avatar-lg" style="background:rgba(255,255,255,.22)">
+                {% if utilisateur.photo %}<img src="{{ utilisateur.photo }}" alt="">{% else %}{{ utilisateur.nom | initiales }}{% endif %}
+            </span>
+            <div>
+                <h1 style="margin-bottom:4px">{{ utilisateur.nom }}</h1>
+                <p style="margin:0">{{ utilisateur.email }}</p>
+                <span class="badge" style="background:rgba(255,255,255,.22);color:#fff;margin-top:8px">
+                    {{ 'Administrateur' if utilisateur.role == 'administrateur' else 'Utilisateur' }}
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <div class="grille g-2" style="margin-bottom:var(--sp-5)">
+        <section class="carte reveler">
+            <h2 class="carte-titre"><span class="ic">🪪</span> Informations du compte</h2>
+            <ul class="liste-nue petit" style="margin-top:var(--sp-2)">
+                <li class="ligne-espace"><span>Identifiant interne</span><strong class="mono">{{ utilisateur.id }}</strong></li>
+                <li class="ligne-espace"><span>Fournisseur d'identité</span><strong>{{ utilisateur.fournisseur }}</strong></li>
+                <li class="ligne-espace"><span>Rôle</span><strong>{{ utilisateur.role }}</strong></li>
+                <li class="ligne-espace"><span>Compte actif</span><strong>{{ 'oui' if utilisateur.actif else 'non' }}</strong></li>
+                <li class="ligne-espace"><span>Connexions</span><strong>{{ utilisateur.nb_connexions or 1 }}</strong></li>
+            </ul>
+            <p class="aide" style="margin-top:var(--sp-4)">
+                Aucun mot de passe n'est stocké par la plateforme : l'authentification est entièrement
+                déléguée au fournisseur d'identité (Module Authentification et Sécurité).
+            </p>
+        </section>
+
+        <section class="carte reveler">
+            <h2 class="carte-titre"><span class="ic">📊</span> Mon activité</h2>
+            <div class="grille g-2" style="gap:var(--sp-3);margin-top:var(--sp-2)">
+                <div class="tuile-stat" style="padding:var(--sp-3)">
+                    <div class="tuile-stat-libelle">Analyses</div>
+                    <div class="tuile-stat-valeur" style="font-size:1.6rem"><span data-compteur="{{ d.nb_analyses }}">0</span></div>
+                </div>
+                <div class="tuile-stat" style="padding:var(--sp-3)">
+                    <div class="tuile-stat-libelle">Note moyenne</div>
+                    <div class="tuile-stat-valeur" style="font-size:1.6rem"><span data-compteur="{{ d.note_moyenne }}" data-decimales="1">0</span></div>
+                </div>
+                <div class="tuile-stat" style="padding:var(--sp-3)">
+                    <div class="tuile-stat-libelle">Meilleure note</div>
+                    <div class="tuile-stat-valeur" style="font-size:1.6rem"><span data-compteur="{{ d.meilleure_note }}" data-decimales="1">0</span></div>
+                </div>
+                <div class="tuile-stat" style="padding:var(--sp-3)">
+                    <div class="tuile-stat-libelle">Recommandations</div>
+                    <div class="tuile-stat-valeur" style="font-size:1.6rem"><span data-compteur="{{ d.total_recommandations }}">0</span></div>
+                </div>
+            </div>
+            <a class="btn btn-secondaire btn-bloc btn-sm" href="{{ url_for('dashboard.historique') }}" style="margin-top:var(--sp-4)">Voir mon historique</a>
+        </section>
+    </div>
+
+    <section class="carte reveler">
+        <h2 class="carte-titre"><span class="ic">🔒</span> Données et confidentialité</h2>
+        <ul class="liste-puces petit muet">
+            <li>Les supports déposés sont conservés sur le serveur applicatif afin de permettre la régénération des rapports.</li>
+            <li>La suppression d'une analyse depuis l'historique supprime également le fichier déposé correspondant.</li>
+            <li>Les contenus transmis au modèle de langage se limitent aux titres, mots-clés et extraits nécessaires à l'analyse.</li>
+            <li>Un administrateur peut consulter l'ensemble des analyses de la plateforme à des fins de supervision.</li>
+        </ul>
+        <a class="btn btn-danger btn-sm" href="{{ url_for('auth.deconnexion') }}">Se déconnecter</a>
+    </section>
+</div>
+{% endblock %}

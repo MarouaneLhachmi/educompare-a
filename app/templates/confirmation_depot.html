@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block titre %}Vérification du document — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur" style="max-width:840px">
+
+    <section class="carte anim-monter">
+        <span class="badge badge-moyen">Module Dépôt et Gestion des Documents · triage automatique</span>
+        <h1 style="margin:var(--sp-3) 0 6px">Ce document mérite une vérification</h1>
+        <p class="muet petit" style="margin:0">
+            {{ document.nom_original }} · {{ document.taille_lisible }} ·
+            {{ triage.apercu.nb_pages }} page(s) · {{ triage.apercu.nb_mots }} mots lus
+        </p>
+
+        <div class="pile" style="margin-top:var(--sp-5);gap:10px">
+            {% for alerte in triage.alertes %}
+            <div class="carte" style="box-shadow:none;padding:var(--sp-4);
+                background:{{ 'var(--danger-soft)' if alerte.niveau == 'erreur' else 'var(--warn-soft)' if alerte.niveau == 'alerte' else 'var(--info-soft)' }};
+                border-color:transparent;border-left:3px solid {{ 'var(--danger)' if alerte.niveau == 'erreur' else 'var(--warn)' if alerte.niveau == 'alerte' else 'var(--info)' }}">
+                <strong class="petit">
+                    {%- if alerte.niveau == 'erreur' %}⚠ Problème bloquant
+                    {%- elif alerte.niveau == 'alerte' %}⚠ Point de vigilance
+                    {%- else %}ℹ Information{% endif -%}
+                </strong>
+                <p style="margin:6px 0 0">{{ alerte.message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <hr class="separateur">
+
+        <h3 style="font-size:1rem">Ce que les modèles ont mesuré</h3>
+        <div class="grille g-3" style="margin-top:var(--sp-3)">
+            {% if triage.triage.applique %}
+            <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-4)">
+                <div class="tuile-stat-libelle">Nature du document</div>
+                <div style="font-size:1.1rem;font-weight:700;margin:6px 0;
+                    color:{{ 'var(--ok)' if triage.triage.est_support_de_cours else 'var(--warn)' }}">
+                    {{ 'Support de cours' if triage.triage.est_support_de_cours else 'Hors périmètre' }}
+                </div>
+                <div class="petit muet">
+                    {{ triage.triage.modele }}<br>
+                    score {{ '%+.3f' % triage.triage.score }} · appris sur
+                    {{ triage.triage.nb_observations }} textes pédagogiques
+                </div>
+            </div>
+            {% endif %}
+
+            {% if triage.matiere.applique %}
+            <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-4)">
+                <div class="tuile-stat-libelle">Matière détectée</div>
+                <div style="font-size:1.1rem;font-weight:700;margin:6px 0">{{ triage.matiere.predite }}</div>
+                <div class="petit muet">
+                    {{ (triage.matiere.confiance * 100) | round }} % de confiance ·
+                    exactitude du modèle {{ (triage.matiere.exactitude_validation * 100) | round if triage.matiere.exactitude_validation }} %
+                </div>
+                <div style="margin-top:8px">
+                    {% for c in triage.matiere.classement %}
+                    <div class="ligne-barre" style="padding:3px 0">
+                        <span class="libelle petit">{{ c.matiere }}</span>
+                        <span class="barre barre-fine">
+                            <span class="barre-remplissage" data-pct="{{ (c.probabilite * 100) | round(1) }}" style="display:block"></span>
+                        </span>
+                        <span class="valeur">{{ (c.probabilite * 100) | round }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if triage.doublon.applique %}
+            <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-4)">
+                <div class="tuile-stat-libelle">Documents déjà analysés</div>
+                <div style="font-size:1.1rem;font-weight:700;margin:6px 0">
+                    {{ triage.doublon.proches | length }} proche(s)
+                </div>
+                <div class="petit muet">
+                    {{ triage.doublon.algorithme }}<br>
+                    {{ triage.doublon.nb_candidats_compares }} document(s) comparé(s)
+                </div>
+                {% for p in triage.doublon.proches %}
+                <div class="petit" style="margin-top:8px">
+                    <strong>{{ p.similarite * 100 | round }} %</strong> — {{ p.nom_fichier }}<br>
+                    <a href="{{ url_for('main.rapport', analyse_id=p.analyse_id) }}">voir le rapport du {{ p.date }}</a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        {% if triage.extrait %}
+        <h3 style="font-size:1rem;margin-top:var(--sp-5)">Début du texte extrait</h3>
+        <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-3)">
+            <p class="petit muet mono" style="margin:0">{{ triage.extrait[:340] }}…</p>
+        </div>
+        {% endif %}
+
+        <div class="ligne" style="margin-top:var(--sp-5)">
+            <form method="post" action="{{ url_for('main.analyser_confirmer') }}">
+                <button class="btn btn-primaire" type="submit">
+                    <span class="ic">✓</span> Lancer l'analyse quand même
+                </button>
+            </form>
+            <a class="btn btn-secondaire" href="{{ url_for('main.accueil') }}">Déposer un autre document</a>
+        </div>
+
+        <p class="aide" style="margin-top:var(--sp-4)">
+            Ces modèles sont entraînés sur les données de cette instance et ne prétendent pas
+            arbitrer votre travail. Ils signalent, vous décidez.
+        </p>
+    </section>
+</div>
+{% endblock %}

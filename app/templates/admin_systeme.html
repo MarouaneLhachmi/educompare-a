@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block titre %}Supervision technique — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+    <div class="mise-en-page-console">
+
+        <aside class="barre-laterale">
+            <div class="barre-laterale-titre">Administration</div>
+            <a href="{{ url_for('admin.tableau_de_bord') }}"><span class="ic">🛡️</span> Vue d'ensemble</a>
+            <a href="{{ url_for('admin.utilisateurs') }}"><span class="ic">👥</span> Utilisateurs</a>
+            <a href="{{ url_for('admin.analyses') }}"><span class="ic">🗂️</span> Toutes les analyses</a>
+            <a class="actif" href="{{ url_for('admin.systeme') }}"><span class="ic">⚙️</span> Supervision technique</a>
+            <a href="{{ url_for('admin.modeles') }}"><span class="ic">🩺</span> Supervision des modèles</a>
+        </aside>
+
+        <div>
+            <h1 class="anim-monter" style="margin-bottom:var(--sp-5)">Supervision technique</h1>
+
+            <!-- Composants -->
+            <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+                <h2 class="carte-titre"><span class="ic">🩺</span> État des couches</h2>
+                <div class="grille g-auto" style="margin-top:var(--sp-3)">
+                    {% for c in d.sante %}
+                    <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-4)">
+                        <div class="ligne-espace" style="margin-bottom:6px">
+                            <strong class="petit">{{ c.composant }}</strong>
+                            <span class="badge badge-{{ 'ok' if c.etat == 'operationnel' else 'moyen' if c.etat == 'degrade' else 'ko' }} badge-pulse">{{ c.etat | replace('_',' ') }}</span>
+                        </div>
+                        <p class="petit muet" style="margin:0">{{ c.detail }}</p>
+                        <p class="petit" style="margin:6px 0 0;opacity:.65">{{ c.couche }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <div class="grille g-3" style="margin-bottom:var(--sp-5)">
+                <section class="carte reveler">
+                    <h3 class="carte-titre"><span class="ic">🗄️</span> Base de connaissances</h3>
+                    <ul class="liste-nue petit">
+                        <li class="ligne-espace"><span>Référentiels (matière/niveau)</span><strong>{{ d.base_connaissances.nb_referentiels }}</strong></li>
+                        <li class="ligne-espace"><span>Pays couverts</span><strong>{{ d.base_connaissances.nb_pays }}</strong></li>
+                        <li class="ligne-espace"><span>Notions indexables</span><strong>{{ d.base_connaissances.nb_notions }}</strong></li>
+                    </ul>
+                    <div style="margin-top:var(--sp-3)">
+                        {% for pays in d.base_connaissances.pays %}<span class="etiquette">{{ pays }}</span>{% endfor %}
+                    </div>
+                </section>
+
+                <section class="carte reveler">
+                    <h3 class="carte-titre"><span class="ic">💾</span> Stockage</h3>
+                    <ul class="liste-nue petit">
+                        <li class="ligne-espace"><span>Documents déposés</span><strong>{{ d.stockage.documents_deposes }}</strong></li>
+                        <li class="ligne-espace"><span>Poids des dépôts</span><strong>{{ d.stockage.poids_depots }}</strong></li>
+                        <li class="ligne-espace"><span>Rapports générés</span><strong>{{ d.stockage.rapports_generes }}</strong></li>
+                        <li class="ligne-espace"><span>Poids des rapports</span><strong>{{ d.stockage.poids_rapports }}</strong></li>
+                        <li class="ligne-espace"><span>Limite par fichier</span><strong>{{ d.stockage.limite_par_fichier }}</strong></li>
+                    </ul>
+                </section>
+
+                <section class="carte reveler">
+                    <h3 class="carte-titre"><span class="ic">🤖</span> Modèle de langage</h3>
+                    <ul class="liste-nue petit">
+                        <li class="ligne-espace"><span>Modèle</span><strong class="mono">{{ d.llm.modele }}</strong></li>
+                        <li class="ligne-espace"><span>Appels totaux</span><strong>{{ d.llm.appels_total }}</strong></li>
+                        <li class="ligne-espace"><span>Réussis / échoués</span><strong>{{ d.llm.appels_reussis }} / {{ d.llm.appels_echoues }}</strong></li>
+                        <li class="ligne-espace"><span>Latence moyenne</span><strong>{{ d.llm.latence_moyenne_ms }} ms</strong></li>
+                    </ul>
+                    <div class="barre barre-fine" style="margin-top:var(--sp-3)">
+                        <div class="barre-remplissage barre-ok" data-pct="{{ d.llm.taux_succes_pct }}"></div>
+                    </div>
+                    <p class="petit muet" style="margin-top:6px">Taux de succès : {{ d.llm.taux_succes_pct }} %</p>
+                </section>
+            </div>
+
+            <!-- Registre des modèles d'apprentissage -->
+            <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+                <div class="carte-entete">
+                    <h2 class="carte-titre"><span class="ic">🧠</span> Registre des modèles d'apprentissage</h2>
+                    <span class="badge badge-neutre">
+                        {{ d.resume_modeles.nb_disponibles }}/{{ d.resume_modeles.nb_modeles }} disponibles ·
+                        {{ d.resume_modeles.nb_en_repli }} en repli
+                    </span>
+                </div>
+                <p class="petit muet">
+                    Modèles téléchargés ou entraînés hors ligne. Chacun dispose d'un repli :
+                    son absence dégrade la finesse de l'analyse, jamais son aboutissement.
+                    Déposez les artefacts issus des notebooks dans
+                    <code class="mono">{{ d.resume_modeles.dossier_artefacts }}</code>.
+                </p>
+                <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                    <table class="tableau">
+                        <thead><tr><th>Modèle</th><th>Agent</th><th>Nature</th><th>État</th><th>Repli si absent</th></tr></thead>
+                        <tbody>
+                            {% for m in d.registre_modeles %}
+                            <tr>
+                                <td>
+                                    <strong class="petit">{{ m.libelle }}</strong><br>
+                                    <span class="petit muet">{{ m.role }}</span>
+                                    {% if m.chemin_attendu %}<br><span class="petit mono muet">{{ m.chemin_attendu }}</span>{% endif %}
+                                </td>
+                                <td class="petit">{{ m.agent }}</td>
+                                <td><span class="badge {{ 'badge-marque' if 'Deep' in m.type or 'renforcement' in m.type else 'badge-info' }}">{{ m.type }}</span></td>
+                                <td>
+                                    <span class="badge badge-{{ 'ok' if m.statut == 'actif' else 'info' if m.statut in ['disponible','non_sollicite'] else 'moyen' }}">
+                                        {{ m.statut | replace('_', ' ') }}
+                                    </span><br>
+                                    <span class="petit muet">{{ m.detail }}</span>
+                                </td>
+                                <td class="petit muet">{{ m.repli }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Catalogue des agents -->
+            <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+                <h2 class="carte-titre"><span class="ic">🧩</span> Catalogue des agents déployés</h2>
+                <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                    <table class="tableau">
+                        <thead><tr><th>#</th><th>Agent</th><th>Nature</th><th>Technologie</th><th>Rôle</th></tr></thead>
+                        <tbody>
+                            {% for a in d.catalogue_agents %}
+                            <tr>
+                                <td class="mono">{{ a.numero }}</td>
+                                <td><strong>{{ a.icone }} {{ a.nom }}</strong><br><span class="petit muet mono">{{ a.module }}</span></td>
+                                <td><span class="badge {{ 'badge-marque' if a.nature in ['Deep Learning','Machine Learning'] else 'badge-info' if a.nature == 'Hybride' else 'badge-neutre' }}">{{ a.nature }}</span></td>
+                                <td class="petit">{{ a.technologie }}</td>
+                                <td class="petit muet">{{ a.description }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Journal d'événements -->
+            <section class="carte reveler">
+                <h2 class="carte-titre"><span class="ic">🧾</span> Journal d'activité</h2>
+                {% if d.evenements %}
+                <div class="chronologie" style="margin-top:var(--sp-4)">
+                    {% for e in d.evenements %}
+                    <div class="chronologie-item {{ 'ko' if 'supprim' in e.type else 'ok' if 'connexion' in e.type else '' }}">
+                        <div class="ligne" style="gap:10px">
+                            <strong class="petit">{{ e.type | replace('_', ' ') | capitalize }}</strong>
+                            <span class="chronologie-heure">{{ e.horodatage }}</span>
+                        </div>
+                        <div class="petit muet mono">{{ e.details }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="vide"><div class="vide-icone">🧾</div>Aucun événement enregistré pour le moment.</div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

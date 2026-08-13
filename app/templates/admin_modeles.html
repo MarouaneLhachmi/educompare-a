@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block titre %}Supervision des modèles — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+    <div class="mise-en-page-console">
+
+        <aside class="barre-laterale">
+            <div class="barre-laterale-titre">Administration</div>
+            <a href="{{ url_for('admin.tableau_de_bord') }}"><span class="ic">🛡️</span> Vue d'ensemble</a>
+            <a href="{{ url_for('admin.utilisateurs') }}"><span class="ic">👥</span> Utilisateurs</a>
+            <a href="{{ url_for('admin.analyses') }}"><span class="ic">🗂️</span> Toutes les analyses</a>
+            <a href="{{ url_for('admin.systeme') }}"><span class="ic">⚙️</span> Supervision technique</a>
+            <a class="actif" href="{{ url_for('admin.modeles') }}"><span class="ic">🩺</span> Supervision des modèles</a>
+        </aside>
+
+        <div>
+            <section class="ligne-espace anim-monter" style="margin-bottom:var(--sp-5)">
+                <div>
+                    <span class="badge badge-marque">Module 6 · Supervision des Modèles</span>
+                    <h1 style="margin:var(--sp-3) 0 4px">Dérive et santé des modèles</h1>
+                    <p class="muet petit" style="margin:0">
+                        Un modèle ne tombe pas en panne : il se dégrade silencieusement quand les
+                        données changent. Ce module mesure cet écart avant qu'il ne fausse les analyses.
+                    </p>
+                </div>
+                <form method="post" action="{{ url_for('admin.reentrainer_modeles') }}"
+                      data-confirmer="Réentraîner tous les modèles de modules sur le corpus courant ?">
+                    <button class="btn btn-secondaire" type="submit">
+                        <span class="ic">🔄</span> Tout réentraîner
+                    </button>
+                </form>
+            </section>
+
+            <!-- Résumé -->
+            <section class="grille g-4 reveler" style="margin-bottom:var(--sp-5)">
+                <div class="tuile-stat">
+                    <div class="tuile-stat-ic">🧠</div>
+                    <div class="tuile-stat-libelle">Modèles déclarés</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ d.resume.modeles_total }}">0</span></div>
+                    <div class="tuile-stat-detail">{{ d.inventaire.nb_agents }} côté agents · {{ d.inventaire.nb_modules }} côté modules</div>
+                </div>
+                <div class="tuile-stat">
+                    <div class="tuile-stat-ic">✅</div>
+                    <div class="tuile-stat-libelle">Actifs en mémoire</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ d.resume.modeles_actifs }}">0</span></div>
+                    <div class="tuile-stat-detail">chargés dans ce processus</div>
+                </div>
+                <div class="tuile-stat">
+                    <div class="tuile-stat-ic">📉</div>
+                    <div class="tuile-stat-libelle">Dérives significatives</div>
+                    <div class="tuile-stat-valeur" style="color:{{ 'var(--danger)' if d.resume.derives_significatives else 'var(--ok)' }}">
+                        <span data-compteur="{{ d.resume.derives_significatives }}">0</span>
+                    </div>
+                    <div class="tuile-stat-detail">grandeurs ayant dérivé</div>
+                </div>
+                <div class="tuile-stat">
+                    <div class="tuile-stat-ic">🔄</div>
+                    <div class="tuile-stat-libelle">À réentraîner</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ d.resume.a_reentrainer }}">0</span></div>
+                    <div class="tuile-stat-detail">{{ d.resume.en_amorcage }} encore en amorçage</div>
+                </div>
+            </section>
+
+            <!-- Dérive -->
+            <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+                <div class="carte-entete">
+                    <h2 class="carte-titre"><span class="ic">📊</span> Dérive des données</h2>
+                    {% if d.derive.applique %}
+                    <span class="badge badge-neutre">{{ d.derive.methode }}</span>
+                    {% endif %}
+                </div>
+
+                {% if d.derive.applique %}
+                <p class="petit muet">
+                    Comparaison des {{ d.derive.nb_reference }} analyses les plus anciennes aux
+                    {{ d.derive.nb_courant }} plus récentes. Seuils du PSI :
+                    &lt; {{ d.derive.seuils_psi.stable }} stable,
+                    &lt; {{ d.derive.seuils_psi.modere }} modérée, au-delà significative.
+                </p>
+                <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                    <table class="tableau">
+                        <thead>
+                            <tr>
+                                <th>Grandeur surveillée</th><th style="text-align:right">PSI</th>
+                                <th>Niveau</th><th style="text-align:right">Moyenne avant</th>
+                                <th style="text-align:right">Moyenne après</th>
+                                <th style="text-align:right">Variation</th><th>Kolmogorov-Smirnov</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for g in d.derive.grandeurs %}
+                            <tr>
+                                <td class="petit"><strong>{{ g.libelle }}</strong></td>
+                                <td class="td-num">{{ g.psi if g.psi is not none else '—' }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 'ok' if g.niveau == 'stable' else 'moyen' if g.niveau == 'moderee' else 'ko' if g.niveau == 'significative' else 'neutre' }}">
+                                        {{ g.niveau }}
+                                    </span>
+                                </td>
+                                <td class="td-num">{{ g.moyenne_reference }}</td>
+                                <td class="td-num">{{ g.moyenne_courante }}</td>
+                                <td class="td-num" style="color:{{ 'var(--danger)' if g.variation_pct and g.variation_pct|abs > 25 else 'inherit' }}">
+                                    {{ '%+g' % g.variation_pct if g.variation_pct is not none else '—' }} %
+                                </td>
+                                <td class="petit muet">
+                                    {% if g.ks.applique %}
+                                    p = {{ g.ks.p_valeur }}
+                                    {% if g.ks.distributions_differentes %}<span class="badge badge-moyen">différentes</span>{% endif %}
+                                    {% else %}—{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="petit" style="margin-top:var(--sp-3);color:{{ 'var(--danger)' if d.derive.nb_derives_significatives else 'var(--ok)' }}">
+                    {{ d.derive.verdict }}
+                </p>
+                <p class="aide">
+                    Ce module mesure la dérive des <strong>entrées</strong>, pas la qualité des
+                    prédictions — cela exigerait des étiquettes dont le système ne dispose pas.
+                    C'est un signal précoce, pas une preuve de dégradation.
+                </p>
+                {% else %}
+                <div class="vide"><div class="vide-icone">📉</div>{{ d.derive.motif }}</div>
+                {% endif %}
+            </section>
+
+            <!-- Modèles des modules -->
+            <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+                <h2 class="carte-titre"><span class="ic">⚗️</span> Modèles entraînés localement</h2>
+                <p class="petit muet">
+                    Ces modèles apprennent sur les données de cette instance. Ils n'utilisent aucun
+                    modèle de langage et se reconstruisent à la demande.
+                </p>
+                {% if d.inventaire.modeles_modules %}
+                <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                    <table class="tableau">
+                        <thead>
+                            <tr><th>Modèle</th><th>Source des données</th><th style="text-align:right">Observations</th>
+                                <th style="text-align:right">Âge</th><th>État</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            {% for m in d.inventaire.modeles_modules %}
+                            <tr>
+                                <td class="petit mono">{{ m.nom }}</td>
+                                <td class="petit muet">{{ m.source_donnees }}</td>
+                                <td class="td-num">{{ m.nb_observations }}</td>
+                                <td class="td-num">{{ m.age_heures }} h</td>
+                                <td>
+                                    {% if m.erreur %}<span class="badge badge-ko">erreur</span>
+                                    {% elif not m.actif %}<span class="badge badge-moyen">inactif</span>
+                                    {% elif m.amorcage %}<span class="badge badge-moyen">amorçage</span>
+                                    {% else %}<span class="badge badge-ok">opérationnel</span>{% endif %}
+                                </td>
+                                <td>
+                                    <form method="post" action="{{ url_for('admin.reentrainer_modeles') }}">
+                                        <input type="hidden" name="modele" value="{{ m.nom }}">
+                                        <button class="btn btn-fantome btn-sm" type="submit">Réentraîner</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="vide" style="padding:var(--sp-5)">
+                    Aucun modèle de module n'a encore été sollicité dans ce processus.
+                    Ils se chargent à leur première utilisation.
+                </div>
+                {% endif %}
+
+                {% if d.inventaire.a_reentrainer %}
+                <div class="carte" style="background:var(--warn-soft);border-color:transparent;box-shadow:none;padding:var(--sp-3);margin-top:var(--sp-3)">
+                    <strong class="petit">Modèles à réentraîner</strong>
+                    <ul class="liste-puces petit muet" style="margin:6px 0 0">
+                        {% for m in d.inventaire.a_reentrainer %}
+                        <li><strong>{{ m.nom }}</strong> — {{ m.raisons | join(', ') }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Connexions atypiques -->
+            <section class="carte reveler">
+                <div class="carte-entete">
+                    <h2 class="carte-titre"><span class="ic">🔐</span> Connexions atypiques</h2>
+                    <span class="badge badge-neutre">Module 1 · {{ connexions.methode or 'amorçage' }}</span>
+                </div>
+                {% if connexions.applique %}
+                <p class="petit muet">
+                    {{ connexions.nb_atypiques }} connexion(s) signalée(s) sur
+                    {{ connexions.nb_connexions }} ({{ connexions.part_atypique_pct }} %).
+                    Aucune n'est bloquée : ce sont des cas à relire.
+                </p>
+                <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                    <table class="tableau">
+                        <thead><tr><th>Date</th><th>Compte</th><th style="text-align:right">Risque</th>
+                            <th style="text-align:right">Délai</th><th style="text-align:right">Cadence 24 h</th>
+                            <th>Détecté par</th></tr></thead>
+                        <tbody>
+                            {% for c in connexions.connexions %}
+                            <tr>
+                                <td class="petit mono">{{ c.date }}</td>
+                                <td class="petit muet">{{ c.utilisateur_id[:12] }}</td>
+                                <td class="td-num" style="color:{{ 'var(--danger)' if c.risque >= 75 else 'var(--warn)' }}">{{ c.risque }}</td>
+                                <td class="td-num">{{ (c.delai_s / 3600) | round(1) }} h</td>
+                                <td class="td-num">{{ c.cadence_24h }}</td>
+                                <td class="petit">
+                                    <span class="badge badge-{{ 'ko' if 'règle' in c.detecte_par else 'moyen' }}">{{ c.detecte_par }}</span>
+                                    {% for r in c.regles_declenchees %}<br><span class="muet">{{ r.libelle }}</span>{% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="vide" style="padding:var(--sp-5)">
+                    <div class="vide-icone">🔐</div>
+                    {{ connexions.motif }}
+                </div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

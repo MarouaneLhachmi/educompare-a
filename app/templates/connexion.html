@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block titre %}Connexion — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur" style="max-width:1020px">
+    <div class="grille g-2" style="align-items:stretch;gap:var(--sp-6)">
+
+        <!-- Argumentaire -->
+        <section class="carte carte-vedette anim-monter" style="display:flex;flex-direction:column;justify-content:center">
+            <span class="badge" style="background:rgba(255,255,255,.2);color:#fff;align-self:flex-start">Espace personnel</span>
+            <h1 style="margin-top:var(--sp-4)">Votre espace d'analyse pédagogique</h1>
+            <p>Retrouvez l'historique complet de vos analyses, suivez l'évolution de vos notes d'alignement et téléchargez vos rapports à tout moment.</p>
+            <ul class="liste-nue" style="margin-top:var(--sp-3)">
+                <li style="border-color:rgba(255,255,255,.18)">📊 Tableau de bord personnel et progression</li>
+                <li style="border-color:rgba(255,255,255,.18)">🗂️ Historique filtrable de toutes vos analyses</li>
+                <li style="border-color:rgba(255,255,255,.18)">📑 Rapports PDF conservés et re-téléchargeables</li>
+                <li style="border:0">🔐 Authentification déléguée à Google — aucun mot de passe stocké</li>
+            </ul>
+        </section>
+
+        <!-- Formulaire -->
+        <section class="carte anim-monter d-2">
+            <h2 class="carte-titre"><span class="ic">🔐</span> Se connecter</h2>
+            <p class="petit muet">Module Authentification et Sécurité — OAuth 2.0 / OpenID Connect.</p>
+
+            {% if google_actif %}
+            <a class="btn btn-google btn-bloc btn-lg" href="{{ url_for('auth.connexion_google', suivant=suivant) }}" style="margin-top:var(--sp-4)">
+                <svg viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.7 1.22 9.19 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.77 24c0-1.6.27-3.15.76-4.59l-7.98-6.19A23.94 23.94 0 0 0 0 24c0 3.88.93 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.17 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                Continuer avec Google
+            </a>
+            {% else %}
+            <div class="carte" style="background:var(--warn-soft);border-color:rgba(245,158,11,.35);margin-top:var(--sp-4)">
+                <strong class="petit">⚠ Connexion Google non configurée</strong>
+                <p class="petit muet" style="margin:6px 0 0">
+                    Renseignez <code class="mono">GOOGLE_CLIENT_ID</code> et <code class="mono">GOOGLE_CLIENT_SECRET</code>
+                    dans le fichier <code class="mono">.env</code> pour activer l'authentification Google.
+                    En attendant, utilisez la connexion de démonstration ci-dessous.
+                </p>
+            </div>
+            {% endif %}
+
+            {% if demo_login_actif %}
+            <hr class="separateur">
+            <h3 style="font-size:.95rem">Connexion de démonstration</h3>
+            <p class="petit muet">Sans Google — prévue pour la soutenance et les tests locaux.</p>
+            <form method="post" action="{{ url_for('auth.connexion_demonstration') }}">
+                <input type="hidden" name="suivant" value="{{ suivant }}">
+                <div class="champ">
+                    <label for="email">Adresse e-mail</label>
+                    <input class="saisie" type="email" id="email" name="email" required placeholder="prenom.nom@exemple.ma">
+                </div>
+                <div class="champ">
+                    <label for="nom">Nom affiché <span class="muet">(facultatif)</span></label>
+                    <input class="saisie" type="text" id="nom" name="nom" placeholder="Prénom Nom">
+                </div>
+                <div class="champ">
+                    <label for="role">Rôle souhaité</label>
+                    <select class="saisie" id="role" name="role">
+                        <option value="utilisateur">Utilisateur — dépose et consulte ses cours</option>
+                        <option value="administrateur">Administrateur — accès au back-office</option>
+                    </select>
+                    <p class="aide">
+                        Le rôle administrateur n'est accordé qu'aux adresses listées dans
+                        <code class="mono">ADMIN_EMAILS</code>, ou au tout premier compte créé sur l'instance.
+                    </p>
+                </div>
+                <button class="btn btn-secondaire btn-bloc" type="submit">Entrer en mode démonstration</button>
+            </form>
+            {% endif %}
+
+            <p class="aide" style="margin-top:var(--sp-4)">
+                Vous pouvez aussi <a href="{{ url_for('main.accueil') }}">analyser un cours sans compte</a> :
+                le rapport reste accessible via son lien, mais n'est pas conservé dans un historique personnel.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}

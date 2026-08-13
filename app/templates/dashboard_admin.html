@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block titre %}Back-office — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+    <div class="mise-en-page-console">
+
+        <aside class="barre-laterale">
+            <div class="barre-laterale-titre">Administration</div>
+            <a class="actif" href="{{ url_for('admin.tableau_de_bord') }}"><span class="ic">🛡️</span> Vue d'ensemble</a>
+            <a href="{{ url_for('admin.utilisateurs') }}"><span class="ic">👥</span> Utilisateurs</a>
+            <a href="{{ url_for('admin.analyses') }}"><span class="ic">🗂️</span> Toutes les analyses</a>
+            <a href="{{ url_for('admin.systeme') }}"><span class="ic">⚙️</span> Supervision technique</a>
+            <a href="{{ url_for('admin.modeles') }}"><span class="ic">🩺</span> Supervision des modèles</a>
+            <div class="barre-laterale-titre" style="margin-top:var(--sp-4)">Mon espace</div>
+            <a href="{{ url_for('dashboard.tableau_de_bord') }}"><span class="ic">📊</span> Tableau de bord</a>
+        </aside>
+
+        <div>
+            <section class="ligne-espace anim-monter" style="margin-bottom:var(--sp-5)">
+                <div>
+                    <span class="badge badge-marque">Rôle administrateur</span>
+                    <h1 style="margin:var(--sp-3) 0 4px">Vue d'ensemble de la plateforme</h1>
+                    <p class="muet petit" style="margin:0">
+                        Persistance : <strong>{{ 'MongoDB' if d.base_donnees.disponible else 'repli mémoire' }}</strong>
+                        {% if d.base_donnees.disponible %} · base « {{ d.base_donnees.base }} »{% endif %}
+                    </p>
+                </div>
+                <a class="btn btn-secondaire" href="{{ url_for('admin.systeme') }}"><span class="ic">⚙️</span> Supervision technique</a>
+            </section>
+
+            <!-- Indicateurs -->
+            <section class="grille g-4" style="margin-bottom:var(--sp-5)">
+                <div class="tuile-stat reveler">
+                    <div class="tuile-stat-ic">👥</div>
+                    <div class="tuile-stat-libelle">Comptes</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ d.nb_utilisateurs }}">0</span></div>
+                    <div class="tuile-stat-detail">{{ d.nb_administrateurs }} administrateur(s) · {{ d.nb_comptes_actifs }} actif(s)</div>
+                </div>
+                <div class="tuile-stat reveler">
+                    <div class="tuile-stat-ic">📈</div>
+                    <div class="tuile-stat-libelle">Analyses</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ d.nb_analyses }}">0</span></div>
+                    <div class="tuile-stat-detail">{{ d.nb_terminees }} terminées · {{ d.nb_echecs }} échec(s)</div>
+                </div>
+                <div class="tuile-stat reveler">
+                    <div class="tuile-stat-ic">✅</div>
+                    <div class="tuile-stat-libelle">Taux de réussite</div>
+                    <div class="tuile-stat-valeur texte-degrade"><span data-compteur="{{ d.taux_reussite_pct }}" data-decimales="1" data-suffixe="%">0</span></div>
+                    <div class="tuile-stat-detail">pipeline mené à terme</div>
+                </div>
+                <div class="tuile-stat reveler">
+                    <div class="tuile-stat-ic">⏱️</div>
+                    <div class="tuile-stat-libelle">Durée moyenne</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ d.duree_moyenne_s }}" data-decimales="1" data-suffixe=" s">0</span></div>
+                    <div class="tuile-stat-detail">pour les 9 agents</div>
+                </div>
+            </section>
+
+            <!-- Santé des composants -->
+            <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+                <h2 class="carte-titre"><span class="ic">🩺</span> Santé des composants</h2>
+                <div class="grille g-auto" style="margin-top:var(--sp-3)">
+                    {% for composant in d.sante %}
+                    <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-4)">
+                        <div class="ligne-espace" style="margin-bottom:6px">
+                            <strong class="petit">{{ composant.composant }}</strong>
+                            <span class="badge badge-{{ 'ok' if composant.etat == 'operationnel' else 'moyen' if composant.etat == 'degrade' else 'ko' }} badge-pulse">
+                                {{ composant.etat | replace('_', ' ') }}
+                            </span>
+                        </div>
+                        <p class="petit muet" style="margin:0">{{ composant.detail }}</p>
+                        <p class="petit muet" style="margin:6px 0 0;opacity:.7">{{ composant.couche }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <div class="grille g-2-1" style="margin-bottom:var(--sp-5)">
+                <!-- Activité -->
+                <section class="carte reveler">
+                    <h2 class="carte-titre"><span class="ic">📊</span> Analyses sur 21 jours</h2>
+                    {% set maxi = (d.serie_temporelle | map(attribute='valeur') | max) or 1 %}
+                    <div class="histogramme" style="height:110px">
+                        {% for point in d.serie_temporelle %}
+                        <div class="colonne" data-valeur="{{ point.valeur }}"
+                             style="height:{{ (point.valeur / maxi * 100) if point.valeur else 3 }}%;animation-delay:{{ loop.index0 * 0.04 }}s"
+                             title="{{ point.date }} : {{ point.valeur }}"></div>
+                        {% endfor %}
+                    </div>
+                    <div class="ligne-espace petit muet" style="margin-top:8px">
+                        <span>{{ d.serie_temporelle[0].date }}</span><span>{{ d.serie_temporelle[-1].date }}</span>
+                    </div>
+                </section>
+
+                <!-- Usage LLM -->
+                <section class="carte reveler">
+                    <h2 class="carte-titre"><span class="ic">🤖</span> Modèle de langage</h2>
+                    <ul class="liste-nue petit" style="margin-top:var(--sp-2)">
+                        <li class="ligne-espace"><span>Modèle</span><strong class="mono">{{ d.llm.modele }}</strong></li>
+                        <li class="ligne-espace"><span>Appels effectués</span><strong>{{ d.llm.appels_total }}</strong></li>
+                        <li class="ligne-espace"><span>Taux de succès</span><strong>{{ d.llm.taux_succes_pct }} %</strong></li>
+                        <li class="ligne-espace"><span>Latence moyenne</span><strong>{{ d.llm.latence_moyenne_ms }} ms</strong></li>
+                        <li class="ligne-espace"><span>État</span>
+                            <span class="badge badge-{{ 'ok' if d.llm.configure else 'ko' }}">{{ 'configuré' if d.llm.configure else 'non configuré' }}</span>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+
+            <div class="grille g-2" style="margin-bottom:var(--sp-5)">
+                <!-- Répartition par matière -->
+                <section class="carte reveler">
+                    <h2 class="carte-titre"><span class="ic">📚</span> Répartition par matière</h2>
+                    {% if d.par_matiere %}
+                    {% set total_m = d.par_matiere | map(attribute='nb') | sum %}
+                    <div style="margin-top:var(--sp-3)">
+                        {% for m in d.par_matiere %}
+                        <div class="ligne-barre">
+                            <span class="libelle">{{ m.matiere }}</span>
+                            <span class="barre barre-fine">
+                                <span class="barre-remplissage" data-pct="{{ (m.nb / total_m * 100) | round(1) }}" style="display:block"></span>
+                            </span>
+                            <span class="valeur">{{ m.nb }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}<div class="vide" style="padding:var(--sp-5)">Aucune donnée.</div>{% endif %}
+                </section>
+
+                <!-- Replis par agent -->
+                <section class="carte reveler">
+                    <h2 class="carte-titre"><span class="ic">🔁</span> Replis activés par agent</h2>
+                    <p class="petit muet">Nombre d'analyses au cours desquelles un agent a dû basculer sur son mécanisme de secours.</p>
+                    {% if d.replis_par_agent %}
+                    <ul class="liste-nue petit" style="margin-top:var(--sp-2)">
+                        {% for r in d.replis_par_agent %}
+                        <li class="ligne-espace"><span>{{ r.agent }}</span><span class="badge badge-moyen">{{ r.nb }}</span></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="petit" style="color:var(--ok)">✓ Aucun repli : tous les agents fonctionnent nominalement.</p>
+                    {% endif %}
+                </section>
+            </div>
+
+            <!-- Dernières analyses -->
+            <section class="carte reveler">
+                <div class="carte-entete">
+                    <h2 class="carte-titre"><span class="ic">🗂️</span> Dernières analyses de la plateforme</h2>
+                    <a class="btn btn-fantome btn-sm" href="{{ url_for('admin.analyses') }}">Tout voir →</a>
+                </div>
+                <div class="tableau-enveloppe">
+                    <table class="tableau">
+                        <thead>
+                            <tr><th>Support</th><th>Utilisateur</th><th>Matière</th><th>Date</th><th style="text-align:right">Note</th><th>Statut</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for a in d.dernieres_analyses %}
+                            <tr>
+                                <td><a href="{{ url_for('main.rapport', analyse_id=a.id) }}">{{ (a.titre_cours or a.nom_fichier)[:44] }}</a></td>
+                                <td class="petit muet">{{ a.utilisateur_email or 'session anonyme' }}</td>
+                                <td class="petit">{{ a.matiere }}</td>
+                                <td class="petit muet">{{ a.date_creation }}</td>
+                                <td class="td-num">{{ a.resume_note_globale or '—' }}</td>
+                                <td><span class="badge badge-{{ a.statut | classe_statut }}">{{ a.statut | replace('_',' ') | title }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="centre muet">Aucune analyse enregistrée.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

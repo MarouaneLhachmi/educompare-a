@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block titre %}Gestion des utilisateurs — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+    <div class="mise-en-page-console">
+
+        <aside class="barre-laterale">
+            <div class="barre-laterale-titre">Administration</div>
+            <a href="{{ url_for('admin.tableau_de_bord') }}"><span class="ic">🛡️</span> Vue d'ensemble</a>
+            <a class="actif" href="{{ url_for('admin.utilisateurs') }}"><span class="ic">👥</span> Utilisateurs</a>
+            <a href="{{ url_for('admin.analyses') }}"><span class="ic">🗂️</span> Toutes les analyses</a>
+            <a href="{{ url_for('admin.systeme') }}"><span class="ic">⚙️</span> Supervision technique</a>
+            <a href="{{ url_for('admin.modeles') }}"><span class="ic">🩺</span> Supervision des modèles</a>
+        </aside>
+
+        <div>
+            <section class="ligne-espace anim-monter" style="margin-bottom:var(--sp-5)">
+                <div>
+                    <h1 style="margin-bottom:4px">Gestion des utilisateurs</h1>
+                    <p class="muet petit" style="margin:0">
+                        <span data-compteur-lignes>{{ utilisateurs | length }}</span> compte(s) affiché(s)
+                    </p>
+                </div>
+                <form method="get" class="ligne">
+                    <input class="saisie" type="search" name="q" value="{{ recherche }}"
+                           placeholder="Rechercher un nom ou un e-mail…" style="min-width:260px"
+                           data-filtre-tableau="table-utilisateurs">
+                    <button class="btn btn-secondaire btn-sm" type="submit">Rechercher</button>
+                </form>
+            </section>
+
+            <section class="carte reveler">
+                <div class="tableau-enveloppe">
+                    <table class="tableau" id="table-utilisateurs">
+                        <thead>
+                            <tr>
+                                <th>Compte</th><th>Fournisseur</th><th>Rôle</th>
+                                <th style="text-align:right">Analyses</th><th style="text-align:right">Connexions</th>
+                                <th>État</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in utilisateurs %}
+                            <tr>
+                                <td>
+                                    <div class="ligne" style="gap:10px;flex-wrap:nowrap">
+                                        <span class="avatar">
+                                            {% if u.photo %}<img src="{{ u.photo }}" alt="">{% else %}{{ u.nom | initiales }}{% endif %}
+                                        </span>
+                                        <span style="min-width:0">
+                                            <strong>{{ u.nom }}</strong><br>
+                                            <span class="petit muet">{{ u.email }}</span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="petit muet">{{ u.fournisseur }}</td>
+                                <td>
+                                    <span class="badge {{ 'badge-marque' if u.role == 'administrateur' else 'badge-neutre' }}">{{ u.role }}</span>
+                                </td>
+                                <td class="td-num">{{ u.nb_analyses }}</td>
+                                <td class="td-num">{{ u.nb_connexions or 0 }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 'ok' if u.actif else 'ko' }}">{{ 'actif' if u.actif else 'désactivé' }}</span>
+                                </td>
+                                <td>
+                                    <div class="ligne" style="gap:6px;flex-wrap:nowrap">
+                                        <form method="post" action="{{ url_for('admin.changer_role', utilisateur_id=u.id) }}"
+                                              data-confirmer="Modifier le rôle de {{ u.email }} ?">
+                                            <input type="hidden" name="role" value="{{ 'utilisateur' if u.role == 'administrateur' else 'administrateur' }}">
+                                            <button class="btn btn-fantome btn-sm" type="submit">
+                                                {{ 'Rétrograder' if u.role == 'administrateur' else 'Promouvoir' }}
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{{ url_for('admin.changer_activation', utilisateur_id=u.id) }}"
+                                              data-confirmer="{{ 'Désactiver' if u.actif else 'Réactiver' }} le compte {{ u.email }} ?">
+                                            <input type="hidden" name="actif" value="{{ '0' if u.actif else '1' }}">
+                                            <button class="btn {{ 'btn-danger' if u.actif else 'btn-secondaire' }} btn-sm" type="submit">
+                                                {{ 'Désactiver' if u.actif else 'Activer' }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="7" class="centre muet">Aucun compte enregistré.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="aide" style="margin-top:var(--sp-4)">
+                    Un compte désactivé est immédiatement déconnecté et ne peut plus accéder à la plateforme.
+                    Vous ne pouvez ni retirer votre propre rôle administrateur, ni désactiver votre propre compte.
+                </p>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

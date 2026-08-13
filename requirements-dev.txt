@@ -1,0 +1,8 @@
+# Dependances de developpement (tests de non-regression).
+# Installation :  pip install -r requirements.txt -r requirements-dev.txt
+#
+# La suite rapide n'a besoin ni de MongoDB ni d'une cle API : la base bascule
+# sur son repli en memoire et le modele de langage est neutralise par les
+# fixtures de `tests/conftest.py`.
+
+pytest>=8.0

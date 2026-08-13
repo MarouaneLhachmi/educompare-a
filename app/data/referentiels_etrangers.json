@@ -1,0 +1,178 @@
+{
+  "_meta": {
+    "description": "Base de connaissances des referentiels pedagogiques etrangers. Chaque notion est vectorisee par l'Agent 4 puis indexee dans la base vectorielle interrogee par l'Agent 5.",
+    "version": "2.0",
+    "note": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes des programmes officiels, a vocation de demonstration."
+  },
+  "Mathématiques - Dernière année du primaire": [
+    {
+      "code": "FR",
+      "pays": "France",
+      "drapeau": "🇫🇷",
+      "referentiel": "Programme de cycle 3 — CM2 (Éducation nationale)",
+      "notions": [
+        { "intitule": "Nombres entiers jusqu'au milliard", "descriptif": "Lire, écrire, décomposer et comparer les grands nombres entiers, comprendre la valeur positionnelle des chiffres." },
+        { "intitule": "Fractions simples et nombres décimaux", "descriptif": "Comprendre les fractions comme partage, les placer sur une droite graduée, passer des fractions décimales aux nombres à virgule." },
+        { "intitule": "Opérations sur les nombres décimaux", "descriptif": "Additionner, soustraire, multiplier et diviser des nombres décimaux, poser les opérations et estimer un ordre de grandeur." },
+        { "intitule": "Proportionnalité", "descriptif": "Reconnaître une situation de proportionnalité, utiliser le coefficient, les pourcentages, les échelles et le passage à l'unité." },
+        { "intitule": "Figures planes usuelles", "descriptif": "Décrire, construire et reconnaître carré, rectangle, losange, triangle et cercle, connaître leurs propriétés et leurs axes de symétrie." },
+        { "intitule": "Périmètres et aires", "descriptif": "Calculer le périmètre et l'aire du carré, du rectangle et du triangle, distinguer les deux grandeurs." },
+        { "intitule": "Solides et volumes", "descriptif": "Reconnaître cube et pavé droit, réaliser des patrons, découvrir la notion de volume et l'unité litre / centimètre cube." },
+        { "intitule": "Grandeurs et mesures", "descriptif": "Utiliser et convertir les unités de longueur, masse, contenance, aire et durée, résoudre des problèmes de conversion." },
+        { "intitule": "Organisation et gestion de données", "descriptif": "Lire, interpréter et construire tableaux, diagrammes en bâtons et graphiques, calculer une moyenne simple." },
+        { "intitule": "Résolution de problèmes à plusieurs étapes", "descriptif": "Modéliser un énoncé, planifier une suite de calculs, vérifier la vraisemblance du résultat et communiquer sa démarche." },
+        { "intitule": "Initiation à la pensée algébrique", "descriptif": "Trouver un nombre manquant dans une égalité, exprimer une règle générale à partir d'une suite de nombres." },
+        { "intitule": "Repérage et déplacement dans l'espace", "descriptif": "Se repérer sur un quadrillage, utiliser des coordonnées, décrire un déplacement et programmer un trajet." }
+      ]
+    },
+    {
+      "code": "UK",
+      "pays": "Royaume-Uni",
+      "drapeau": "🇬🇧",
+      "referentiel": "National Curriculum — Key Stage 2, Year 6",
+      "notions": [
+        { "intitule": "Place value up to 10 000 000", "descriptif": "Read, write, order and compare numbers up to ten million and determine the value of each digit." },
+        { "intitule": "Fractions, decimals and percentages", "descriptif": "Convert between fractions, decimals and percentages and use them to solve problems in context." },
+        { "intitule": "Long multiplication and long division", "descriptif": "Multiply four-digit numbers by two-digit numbers and divide using the formal long division method with remainders." },
+        { "intitule": "Ratio and proportion", "descriptif": "Solve problems involving relative sizes, scale factors, unequal sharing and simple percentage comparison." },
+        { "intitule": "Algebra: simple formulae and equations", "descriptif": "Use simple formulae, generate and describe linear number sequences and find pairs of numbers satisfying an equation." },
+        { "intitule": "Properties of 2D and 3D shapes", "descriptif": "Classify shapes by their properties, build 3D shapes from nets and recognise angles in triangles and quadrilaterals." },
+        { "intitule": "Perimeter, area and volume", "descriptif": "Calculate the area of triangles and parallelograms and the volume of cubes and cuboids using standard units." },
+        { "intitule": "Measurement and unit conversion", "descriptif": "Convert between metric units and between miles and kilometres, and use measures in problem solving." },
+        { "intitule": "Statistics: pie charts and line graphs", "descriptif": "Interpret and construct pie charts and line graphs, and calculate and interpret the mean as an average." },
+        { "intitule": "Coordinates in four quadrants", "descriptif": "Describe positions on the full coordinate grid and draw or translate simple shapes on the axes." },
+        { "intitule": "Multi-step word problem solving", "descriptif": "Solve problems requiring several operations, choose an appropriate strategy and justify the answer." },
+        { "intitule": "Mental arithmetic and estimation", "descriptif": "Perform mental calculations with large numbers and use estimation and rounding to check answers." }
+      ]
+    },
+    {
+      "code": "US",
+      "pays": "États-Unis",
+      "drapeau": "🇺🇸",
+      "referentiel": "Common Core State Standards — Grade 5 Mathematics",
+      "notions": [
+        { "intitule": "Understanding the place value system", "descriptif": "Recognise that a digit represents ten times what it represents to its right, read and round decimals to thousandths." },
+        { "intitule": "Operations with multi-digit whole numbers", "descriptif": "Fluently multiply multi-digit numbers and divide with two-digit divisors using place value strategies." },
+        { "intitule": "Add and subtract fractions with unlike denominators", "descriptif": "Use equivalent fractions to add and subtract fractions, including mixed numbers, and solve word problems." },
+        { "intitule": "Multiply and divide fractions", "descriptif": "Interpret fractions as division, multiply a fraction by a whole number or a fraction, divide unit fractions." },
+        { "intitule": "Operations with decimals to hundredths", "descriptif": "Add, subtract, multiply and divide decimals using concrete models and written strategies." },
+        { "intitule": "Numerical expressions and order of operations", "descriptif": "Write and interpret numerical expressions with parentheses, brackets and braces, and evaluate them." },
+        { "intitule": "Patterns and relationships between two rules", "descriptif": "Generate two numerical patterns, form ordered pairs and graph them on a coordinate plane." },
+        { "intitule": "Coordinate plane and graphing", "descriptif": "Use the first quadrant of the coordinate plane to represent real-world and mathematical problems." },
+        { "intitule": "Volume of rectangular prisms", "descriptif": "Understand volume as an attribute, count unit cubes and apply the formulas V = l x w x h and V = b x h." },
+        { "intitule": "Converting measurement units", "descriptif": "Convert among different-sized standard measurement units within a system and use them in multi-step problems." },
+        { "intitule": "Classify two-dimensional figures", "descriptif": "Classify shapes into hierarchies based on properties, understanding that attributes of a category are shared." },
+        { "intitule": "Represent and interpret data with line plots", "descriptif": "Make a line plot with fractional measurement units and use operations on fractions to answer questions." }
+      ]
+    },
+    {
+      "code": "CA",
+      "pays": "Canada (Ontario)",
+      "drapeau": "🇨🇦",
+      "referentiel": "Ontario Mathematics Curriculum — Grade 6",
+      "notions": [
+        { "intitule": "Nombres entiers, décimaux et fractions", "descriptif": "Représenter, comparer et ordonner nombres entiers, décimaux et fractions dans divers contextes de la vie courante." },
+        { "intitule": "Sens des opérations et estimation", "descriptif": "Choisir la ou les opérations pertinentes, estimer un résultat et évaluer la raisonnabilité d'une réponse." },
+        { "intitule": "Rapports, taux et pourcentages", "descriptif": "Résoudre des problèmes de rapports, de taux unitaires et de pourcentages dans des situations authentiques." },
+        { "intitule": "Algèbre et modélisation", "descriptif": "Décrire des régularités, utiliser des expressions et des équations simples pour modéliser une situation." },
+        { "intitule": "Codage et pensée computationnelle", "descriptif": "Écrire et déboguer des programmes simples comportant des instructions séquentielles, répétitives et conditionnelles." },
+        { "intitule": "Géométrie et sens de l'espace", "descriptif": "Décrire les propriétés des figures et des solides, effectuer des transformations et construire des dallages." },
+        { "intitule": "Mesure : aire, périmètre et volume", "descriptif": "Établir et appliquer des formules pour l'aire des parallélogrammes et des triangles et le volume des prismes." },
+        { "intitule": "Traitement des données", "descriptif": "Collecter, organiser et représenter des données à l'aide de diagrammes appropriés et en tirer des conclusions." },
+        { "intitule": "Probabilité", "descriptif": "Déterminer et comparer la probabilité théorique et expérimentale d'événements simples." },
+        { "intitule": "Littératie financière", "descriptif": "Établir un budget simple, comparer des méthodes de paiement et calculer un rabais ou une taxe." }
+      ]
+    },
+    {
+      "code": "FI",
+      "pays": "Finlande",
+      "drapeau": "🇫🇮",
+      "referentiel": "Perusopetuksen opetussuunnitelma — Grades 3-6 Mathematics",
+      "notions": [
+        { "intitule": "Raisonnement mathématique et argumentation", "descriptif": "Justifier une démarche, formuler une conjecture et vérifier sa validité en coopération avec ses pairs." },
+        { "intitule": "Nombres et opérations de base", "descriptif": "Maîtriser les quatre opérations sur les entiers, les décimaux et les fractions, y compris le calcul mental." },
+        { "intitule": "Pourcentages et proportionnalité", "descriptif": "Calculer une part en pourcentage, un pourcentage d'augmentation et interpréter une proportion dans un contexte réel." },
+        { "intitule": "Géométrie et mesure", "descriptif": "Étudier les angles, les figures et les solides, mesurer et calculer périmètres, aires et volumes." },
+        { "intitule": "Algèbre : expressions et équations", "descriptif": "Utiliser des lettres pour représenter des quantités inconnues et résoudre des équations du premier degré simples." },
+        { "intitule": "Traitement et interprétation de l'information", "descriptif": "Collecter et représenter des données, calculer moyenne et mode, interpréter un diagramme." },
+        { "intitule": "Programmation et algorithmique", "descriptif": "Concevoir et tester des algorithmes simples dans un environnement de programmation visuelle." },
+        { "intitule": "Résolution de problèmes ouverts", "descriptif": "Aborder des problèmes sans procédure imposée, comparer plusieurs stratégies et évaluer les résultats." },
+        { "intitule": "Mathématiques et vie quotidienne", "descriptif": "Appliquer les mathématiques à des situations concrètes : achats, déplacements, temps, budget personnel." }
+      ]
+    }
+  ],
+  "Sciences - Dernière année du primaire": [
+    {
+      "code": "FR",
+      "pays": "France",
+      "drapeau": "🇫🇷",
+      "referentiel": "Sciences et technologie — cycle 3 (CM2)",
+      "notions": [
+        { "intitule": "Matière, mouvement, énergie et information", "descriptif": "Décrire les états et les changements d'état de la matière, identifier des sources et des formes d'énergie." },
+        { "intitule": "Le vivant, sa diversité et ses fonctions", "descriptif": "Classer les êtres vivants, décrire la nutrition, la respiration et la reproduction des organismes." },
+        { "intitule": "Matériaux et objets techniques", "descriptif": "Identifier les fonctions d'un objet technique, décrire son fonctionnement et les matériaux qui le composent." },
+        { "intitule": "La planète Terre et les êtres vivants", "descriptif": "Situer la Terre dans le système solaire, décrire les mouvements terrestres, les saisons et les phénomènes météorologiques." },
+        { "intitule": "Éducation à l'environnement et développement durable", "descriptif": "Identifier l'impact des activités humaines, comprendre le recyclage et la préservation des ressources." },
+        { "intitule": "Démarche d'investigation scientifique", "descriptif": "Formuler une hypothèse, concevoir une expérience, observer, mesurer et interpréter des résultats." }
+      ]
+    },
+    {
+      "code": "UK",
+      "pays": "Royaume-Uni",
+      "drapeau": "🇬🇧",
+      "referentiel": "National Curriculum Science — Key Stage 2, Year 6",
+      "notions": [
+        { "intitule": "Living things and their habitats", "descriptif": "Classify living things into broad groups according to observable characteristics and similarities." },
+        { "intitule": "Animals including humans", "descriptif": "Describe the circulatory system, the impact of diet, exercise and lifestyle on the human body." },
+        { "intitule": "Evolution and inheritance", "descriptif": "Recognise that living things produce offspring that vary and that adaptation may lead to evolution." },
+        { "intitule": "Light and how we see", "descriptif": "Explain that light travels in straight lines and use this to explain shadows and reflection." },
+        { "intitule": "Electricity and simple circuits", "descriptif": "Compare the brightness of lamps with the voltage of cells and use recognised circuit symbols." },
+        { "intitule": "Working scientifically", "descriptif": "Plan enquiries, take accurate measurements, record data and report findings with conclusions and causal relationships." }
+      ]
+    },
+    {
+      "code": "US",
+      "pays": "États-Unis",
+      "drapeau": "🇺🇸",
+      "referentiel": "Next Generation Science Standards — Grade 5",
+      "notions": [
+        { "intitule": "Structure and properties of matter", "descriptif": "Develop models to describe that matter is made of particles too small to be seen and that mass is conserved." },
+        { "intitule": "Matter and energy in ecosystems", "descriptif": "Model the movement of matter among plants, animals, decomposers and the environment." },
+        { "intitule": "Earth's systems and interactions", "descriptif": "Describe interactions among the geosphere, biosphere, hydrosphere and atmosphere." },
+        { "intitule": "Space systems: stars and the solar system", "descriptif": "Support an argument that gravity is directed down and explain daily and seasonal patterns of the sky." },
+        { "intitule": "Protecting Earth's resources", "descriptif": "Obtain and combine information about ways communities protect Earth's resources and environment." },
+        { "intitule": "Engineering design practices", "descriptif": "Define a problem, generate and compare multiple solutions and improve a design based on test results." }
+      ]
+    }
+  ],
+  "Français - Dernière année du primaire": [
+    {
+      "code": "FR",
+      "pays": "France",
+      "drapeau": "🇫🇷",
+      "referentiel": "Français — cycle 3 (CM2)",
+      "notions": [
+        { "intitule": "Compréhension de textes littéraires", "descriptif": "Comprendre un texte narratif long, identifier personnages, intentions et implicites, justifier son interprétation." },
+        { "intitule": "Lecture de textes documentaires", "descriptif": "Prélever et mettre en relation des informations dans un document composite, y compris numérique." },
+        { "intitule": "Écriture de textes variés", "descriptif": "Rédiger un récit, une description ou un texte argumentatif structuré, en plusieurs jets, avec relecture." },
+        { "intitule": "Grammaire : classes et fonctions", "descriptif": "Identifier les classes de mots, les fonctions sujet, complément d'objet et compléments circonstanciels." },
+        { "intitule": "Conjugaison et système verbal", "descriptif": "Conjuguer aux temps de l'indicatif, comprendre la valeur des temps et respecter la concordance." },
+        { "intitule": "Orthographe grammaticale et lexicale", "descriptif": "Maîtriser les accords dans le groupe nominal et avec le verbe, enrichir et orthographier le lexique." },
+        { "intitule": "Expression orale et écoute", "descriptif": "Prendre la parole en continu, participer à un débat régulé, écouter et reformuler le propos d'autrui." }
+      ]
+    },
+    {
+      "code": "UK",
+      "pays": "Royaume-Uni",
+      "drapeau": "🇬🇧",
+      "referentiel": "National Curriculum English — Key Stage 2, Year 6",
+      "notions": [
+        { "intitule": "Reading comprehension and inference", "descriptif": "Draw inferences from a text, justify them with evidence and summarise ideas across paragraphs." },
+        { "intitule": "Writing composition for different purposes", "descriptif": "Plan, draft, evaluate and edit writing, selecting form and register appropriate to audience and purpose." },
+        { "intitule": "Vocabulary, grammar and punctuation", "descriptif": "Use passive voice, subjunctive forms, semicolons, colons and hyphens accurately in extended writing." },
+        { "intitule": "Spelling patterns and word families", "descriptif": "Spell words with silent letters, homophones and common prefixes and suffixes correctly." },
+        { "intitule": "Spoken language and debate", "descriptif": "Participate in discussions, presentations and debates, using standard English and justifying opinions." }
+      ]
+    }
+  ]
+}

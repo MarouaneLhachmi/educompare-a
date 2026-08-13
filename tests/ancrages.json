@@ -1,0 +1,359 @@
+{
+  "_meta": {
+    "description": "Intervalles d'ancrage mesures sur le corpus de reference. Regenerer avec `python tests/mesurer_ancrages.py` apres un changement volontaire de seuil, et commiter la difference.",
+    "mesure_le": "2026-08-12T19:22:01+00:00",
+    "marge_note": 8.0,
+    "marge_couverture": 10.0,
+    "modele_de_langage": "neutralise (mode degrade)"
+  },
+  "documents": {
+    "cours_maths_complet.pdf": {
+      "fichier": "cours_maths_complet.pdf",
+      "nature": "cours_complet",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 67.2,
+        "couverture_pct": 64.9,
+        "nb_notions_manquantes": 14,
+        "nb_unites": 7,
+        "nb_chapitres": 7,
+        "nb_recommandations": 12,
+        "niveau_maturite": "Solide"
+      },
+      "intervalle": {
+        "note_globale": [
+          59.2,
+          75.2
+        ],
+        "couverture_pct": [
+          54.9,
+          74.9
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "cours_maths_partiel.pdf": {
+      "fichier": "cours_maths_partiel.pdf",
+      "nature": "cours_partiel",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 78.3,
+        "couverture_pct": 95.3,
+        "nb_notions_manquantes": 0,
+        "nb_unites": 2,
+        "nb_chapitres": 2,
+        "nb_recommandations": 12,
+        "niveau_maturite": "Solide"
+      },
+      "intervalle": {
+        "note_globale": [
+          70.3,
+          86.3
+        ],
+        "couverture_pct": [
+          85.3,
+          100.0
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "cours_maths_doublon.pdf": {
+      "fichier": "cours_maths_doublon.pdf",
+      "nature": "quasi_doublon",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 65.2,
+        "couverture_pct": 64.6,
+        "nb_notions_manquantes": 15,
+        "nb_unites": 7,
+        "nb_chapitres": 7,
+        "nb_recommandations": 12,
+        "niveau_maturite": "Solide"
+      },
+      "intervalle": {
+        "note_globale": [
+          57.2,
+          73.2
+        ],
+        "couverture_pct": [
+          54.6,
+          74.6
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "plan_de_cours.pdf": {
+      "fichier": "plan_de_cours.pdf",
+      "nature": "plan_de_cours",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 38.5,
+        "couverture_pct": 0.0,
+        "nb_notions_manquantes": 55,
+        "nb_unites": 1,
+        "nb_chapitres": 1,
+        "nb_recommandations": 12,
+        "niveau_maturite": "À renforcer"
+      },
+      "intervalle": {
+        "note_globale": [
+          30.5,
+          46.5
+        ],
+        "couverture_pct": [
+          0.0,
+          10.0
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "cours_sciences.pdf": {
+      "fichier": "cours_sciences.pdf",
+      "nature": "cours_complet",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 48.0,
+        "couverture_pct": 52.8,
+        "nb_notions_manquantes": 4,
+        "nb_unites": 4,
+        "nb_chapitres": 4,
+        "nb_recommandations": 12,
+        "niveau_maturite": "À renforcer"
+      },
+      "intervalle": {
+        "note_globale": [
+          40.0,
+          56.0
+        ],
+        "couverture_pct": [
+          42.8,
+          62.8
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "cours_maths_anglais.pdf": {
+      "fichier": "cours_maths_anglais.pdf",
+      "nature": "cours_complet",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 45.9,
+        "couverture_pct": 31.9,
+        "nb_notions_manquantes": 27,
+        "nb_unites": 4,
+        "nb_chapitres": 4,
+        "nb_recommandations": 12,
+        "niveau_maturite": "À renforcer"
+      },
+      "intervalle": {
+        "note_globale": [
+          37.9,
+          53.9
+        ],
+        "couverture_pct": [
+          21.9,
+          41.9
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "hors_sujet_cv.pdf": {
+      "fichier": "hors_sujet_cv.pdf",
+      "nature": "hors_sujet",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 27.3,
+        "couverture_pct": 0.0,
+        "nb_notions_manquantes": 55,
+        "nb_unites": 1,
+        "nb_chapitres": 1,
+        "nb_recommandations": 12,
+        "niveau_maturite": "À refondre"
+      },
+      "intervalle": {
+        "note_globale": [
+          19.3,
+          35.3
+        ],
+        "couverture_pct": [
+          0.0,
+          10.0
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "hors_sujet_facture.pdf": {
+      "fichier": "hors_sujet_facture.pdf",
+      "nature": "hors_sujet",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 24.0,
+        "couverture_pct": 0.0,
+        "nb_notions_manquantes": 55,
+        "nb_unites": 1,
+        "nb_chapitres": 1,
+        "nb_recommandations": 12,
+        "niveau_maturite": "À refondre"
+      },
+      "intervalle": {
+        "note_globale": [
+          16.0,
+          32.0
+        ],
+        "couverture_pct": [
+          0.0,
+          10.0
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "hors_sujet_contrat.pdf": {
+      "fichier": "hors_sujet_contrat.pdf",
+      "nature": "hors_sujet",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 30.5,
+        "couverture_pct": 0.0,
+        "nb_notions_manquantes": 55,
+        "nb_unites": 2,
+        "nb_chapitres": 1,
+        "nb_recommandations": 12,
+        "niveau_maturite": "À refondre"
+      },
+      "intervalle": {
+        "note_globale": [
+          22.5,
+          38.5
+        ],
+        "couverture_pct": [
+          0.0,
+          10.0
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "scan_sans_texte.pdf": {
+      "fichier": "scan_sans_texte.pdf",
+      "nature": "scan_sans_couche_texte",
+      "statut": "ECHEC",
+      "erreur": "Aucun texte n'a pu etre extrait de ce PDF. Le document est probablement une image scannee : installez Tesseract OCR (+ pdf2image) pour activer l'extraction par reconnaissance optique de caracteres."
+    }
+  }
+}

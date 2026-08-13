@@ -1,0 +1,1164 @@
+{% extends "base.html" %}
+{% block titre %}{{ r.titre_rapport }} — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+
+    <!-- =================== En-tête du rapport =================== -->
+    <section class="carte anim-monter" style="margin-bottom:var(--sp-5)">
+        <div class="ligne-espace">
+            <div style="min-width:0">
+                <span class="badge badge-marque">Rapport d'analyse · réf. {{ r.id }}</span>
+                <h1 style="margin:var(--sp-3) 0 6px">{{ r.titre_rapport }}</h1>
+                <p class="muet petit" style="margin:0">
+                    {{ r.nom_fichier }} · {{ r.matiere }} · {{ r.niveau }} · {{ r.date_creation }}
+                    {% if r.duree_analyse_s %} · traité en {{ r.duree_analyse_s | duree }}{% endif %}
+                </p>
+            </div>
+            <div class="ligne">
+                <a class="btn btn-primaire" href="{{ url_for('main.rapport_pdf', analyse_id=r.id) }}">
+                    <span class="ic">⬇</span> Télécharger le PDF
+                </a>
+                <a class="btn btn-secondaire" href="{{ url_for('main.accueil') }}">Nouvelle analyse</a>
+            </div>
+        </div>
+
+        {% if r.fiabilite and r.fiabilite.alertes %}
+        <div class="carte" style="background:var(--warn-soft);border-color:rgba(245,158,11,.35);margin-top:var(--sp-4)">
+            <strong class="petit">⚠ Points de vigilance (confiance estimée : {{ r.fiabilite.niveau_confiance_pct }} %)</strong>
+            <ul class="liste-puces petit muet" style="margin:8px 0 0">
+                {% for alerte in r.fiabilite.alertes %}<li>{{ alerte }}</li>{% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- =================== Bandeau de synthèse =================== -->
+    <section class="grille g-1-2 reveler" style="margin-bottom:var(--sp-5)">
+        <div class="carte" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-3)">
+            <div class="jauge">
+                <svg viewBox="0 0 160 160">
+                    <circle class="jauge-piste" cx="80" cy="80" r="66"></circle>
+                    <circle class="jauge-valeur" cx="80" cy="80" r="66" data-jauge="{{ r.note_globale }}"></circle>
+                </svg>
+                <div class="jauge-contenu">
+                    <div class="jauge-nombre"><span data-compteur="{{ r.note_globale }}" data-decimales="0">0</span></div>
+                    <div class="jauge-unite">/ 100</div>
+                </div>
+            </div>
+            <div class="centre">
+                <div style="font-weight:800;font-size:1.05rem">{{ r.niveau_maturite }}</div>
+                <div class="petit muet">Note d'alignement international</div>
+                {% if r.notes_par_tete %}
+                <div class="petit muet infobulle" style="margin-top:8px"
+                     data-bulle="Deux modèles votent : arbres boostés {{ r.notes_par_tete.gradient_boosting }} et réseau de neurones {{ r.notes_par_tete.reseau_de_neurones }}. Plus l'écart est faible, plus la note est fiable.">
+                    fiabilité <strong>{{ r.notes_par_tete.fiabilite }}</strong> (écart {{ r.notes_par_tete.divergence }})
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="pile">
+            <div class="carte carte-vedette">
+                <h2 style="font-size:1.1rem">
+                    Synthèse exécutive
+                    {% if not r.agent9.synthese_generee_par_ia %}
+                    <span class="badge" style="background:rgba(255,255,255,.22);color:#fff">gabarit déterministe</span>
+                    {% endif %}
+                </h2>
+                <p style="margin-bottom:0">{{ r.synthese_executive }}</p>
+                {% if r.verdict %}<p style="margin-top:var(--sp-3);font-weight:700">→ {{ r.verdict }}</p>{% endif %}
+            </div>
+
+            {% if r.synthese_extractive and r.synthese_extractive.disponible %}
+            <div class="carte">
+                <div class="carte-entete">
+                    <h3 class="carte-titre" style="font-size:.98rem">
+                        <span class="ic">✂️</span> Ce que dit le document lui-même
+                    </h3>
+                    <span class="badge badge-neutre">sans modèle de langage</span>
+                </div>
+                <p class="petit" style="margin-bottom:var(--sp-3)">{{ r.synthese_extractive.resume }}</p>
+                <p class="aide" style="margin:0">
+                    Phrases sélectionnées dans le document par {{ r.synthese_extractive.algorithme }} —
+                    {{ r.synthese_extractive.nb_phrases_retenues }} retenues sur
+                    {{ r.synthese_extractive.nb_phrases_source }}
+                    ({{ (r.synthese_extractive.taux_compression * 100) | round }} % de compression).
+                    Aucune reformulation : ce sont les phrases d'origine. À confronter à la synthèse
+                    ci-dessus, qui est générée.
+                </p>
+            </div>
+            {% endif %}
+
+            <div class="grille g-4">
+                {% for chiffre in r.chiffres_cles[:4] %}
+                <div class="tuile-stat">
+                    <div class="tuile-stat-libelle">{{ chiffre.libelle }}</div>
+                    <div class="tuile-stat-valeur texte-degrade">
+                        <span data-compteur="{{ chiffre.valeur }}" data-decimales="{{ 1 if chiffre.unite == '%' else 0 }}">0</span>{{ chiffre.unite }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- =================== Onglets =================== -->
+    <div class="onglets reveler" data-groupe-onglets style="margin-bottom:var(--sp-5)">
+        <button class="onglet actif" data-onglet="plan" type="button">🎯 Plan d'amélioration</button>
+        <button class="onglet" data-onglet="comparaison" type="button">⚖️ Comparaison</button>
+        <button class="onglet" data-onglet="evaluation" type="button">📊 Évaluation</button>
+        <button class="onglet" data-onglet="sources" type="button">🤝 Les deux sources</button>
+        <button class="onglet" data-onglet="structure" type="button">📄 Structure du cours</button>
+        <button class="onglet" data-onglet="technique" type="button">🧩 Traçabilité</button>
+    </div>
+
+    <!-- ============ Panneau : PLAN D'AMÉLIORATION ============ -->
+    <section class="panneau actif" data-panneau="plan">
+    {% if r.parcours_disponible %}
+
+        <!-- Bandeau du parcours -->
+        <div class="carte carte-lueur reveler" style="margin-bottom:var(--sp-5)">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">🧭</span> Parcours d'amélioration planifié</h2>
+                <span class="badge badge-marque">Nos modèles seuls — aucun texte généré</span>
+            </div>
+            <p class="petit muet" style="margin-bottom:var(--sp-4)">
+                Séquence décidée par apprentissage par renforcement à partir du profil de maîtrise
+                mesuré, du graphe de prérequis et de l'importance internationale de chaque notion.
+                Le modèle de langage n'intervient pas dans ces choix.
+            </p>
+
+            <div class="grille g-4" style="margin-bottom:var(--sp-5)">
+                <div class="tuile-stat">
+                    <div class="tuile-stat-ic">📚</div>
+                    <div class="tuile-stat-libelle">Étapes</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ r.parcours.nb_etapes }}">0</span></div>
+                    <div class="tuile-stat-detail">{{ r.parcours.nb_notions_distinctes }} notions distinctes</div>
+                </div>
+                <div class="tuile-stat">
+                    <div class="tuile-stat-ic">🕐</div>
+                    <div class="tuile-stat-libelle">Séances</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ r.parcours.seances_planifiees }}" data-decimales="1">0</span></div>
+                    <div class="tuile-stat-detail">volume horaire estimé</div>
+                </div>
+                <div class="tuile-stat">
+                    <div class="tuile-stat-ic">📈</div>
+                    <div class="tuile-stat-libelle">Maîtrise visée</div>
+                    <div class="tuile-stat-valeur texte-degrade">
+                        <span data-compteur="{{ (r.parcours.etat_final_predit.maitrise_ponderee * 100) | round(1) }}" data-decimales="1" data-suffixe="%">0</span>
+                    </div>
+                    <div class="tuile-stat-detail">
+                        depuis {{ (r.parcours.etat_initial.maitrise_ponderee * 100) | round(1) }} %
+                        <span class="variation hausse">▲ {{ (r.parcours.gain_maitrise_ponderee * 100) | round(1) }} pts</span>
+                    </div>
+                </div>
+                <div class="tuile-stat">
+                    <div class="tuile-stat-ic">🧠</div>
+                    <div class="tuile-stat-libelle">Rétention prévue</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ (r.parcours.etat_final_predit.retention_ponderee * 100) | round(1) }}" data-decimales="1" data-suffixe="%">0</span></div>
+                    <div class="tuile-stat-detail">après 8 périodes sans pratique</div>
+                </div>
+            </div>
+
+            <!-- Courbe de progression -->
+            <h3 class="carte-titre" style="font-size:1rem"><span class="ic">📉</span> Trajectoire de maîtrise prévue</h3>
+            <svg class="courbe" data-courbe='{{ r.courbe_parcours | tojson }}' style="height:220px"></svg>
+            <p class="aide" style="margin-top:var(--sp-2)">
+                Maîtrise pondérée par l'importance internationale des notions, séance après séance.
+                Il s'agit d'une <strong>prévision du modèle d'acquisition</strong>, pas d'une mesure
+                sur des élèves réels.
+            </p>
+
+            <hr class="separateur">
+            <div class="ligne petit muet" style="gap:var(--sp-5)">
+                <span><strong>Répartition :</strong>
+                    {% for nom, nombre in r.parcours.repartition_interventions.items() %}
+                    <span class="badge badge-neutre">{{ nombre }}× {{ nom }}</span>
+                    {% endfor %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Frise des étapes -->
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">🗓️</span> Déroulé séance par séance</h2>
+                {% if r.contenu_pedagogique.disponible %}
+                <span class="badge badge-info">Contenu des {{ r.contenu_pedagogique.nb_etapes_redigees }} premières étapes rédigé par le modèle de langage</span>
+                {% endif %}
+            </div>
+
+            <div class="parcours" style="margin-top:var(--sp-4)">
+                {% for etape in r.parcours.etapes %}
+                {% set contenu = r.contenu_par_rang.get(etape.rang) %}
+                <article class="etape-parcours" data-rang="{{ etape.rang }}">
+                    <div class="ligne-espace" style="margin-bottom:8px">
+                        <div style="min-width:0">
+                            <span class="seance">Séance {{ etape.seance_cumulee }}</span>
+                            <h3 style="margin:2px 0 0;font-size:1rem">
+                                {% if contenu and contenu.titre_seance %}{{ contenu.titre_seance }}{% else %}{{ etape.intervention_nom }}{% endif %}
+                            </h3>
+                            <div class="petit muet">
+                                {{ etape.notion }} <span style="opacity:.6">· {{ etape.pays }}</span>
+                            </div>
+                        </div>
+                        <div class="ligne" style="gap:8px;flex-wrap:nowrap">
+                            <span class="badge badge-marque">{{ etape.intervention_nom }}</span>
+                            <span class="badge badge-neutre">Bloom : {{ etape.bloom_cible }}</span>
+                        </div>
+                    </div>
+
+                    <div class="ligne" style="gap:var(--sp-5);margin-bottom:8px">
+                        <span class="gain-maitrise">
+                            {{ '%.2f' % etape.maitrise_avant }}
+                            <span class="mini-barre"><span style="width:{{ (etape.maitrise_avant * 100) | round }}%"></span></span>
+                            <span class="fleche">→</span>
+                            {{ '%.2f' % etape.maitrise_apres_predite }}
+                            <span class="mini-barre"><span style="width:{{ (etape.maitrise_apres_predite * 100) | round }}%"></span></span>
+                        </span>
+                        <span class="petit muet">{{ etape.cout_seances }} séance(s)</span>
+                        {% if etape.prerequis_bloquant %}
+                        <span class="badge badge-moyen">⚠ prérequis fragiles ({{ etape.prerequis_acquis }})</span>
+                        {% endif %}
+                        {% if etape.libelle_ecart %}
+                        <span class="badge badge-neutre">{{ etape.libelle_ecart }}</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="petit muet" style="margin:0">{{ etape.justification }}</p>
+
+                    {% if contenu %}
+                    <div class="accordeon" style="margin-top:var(--sp-3)">
+                        <button class="accordeon-tete" type="button">
+                            <span class="ic">📖</span>
+                            <span><strong class="petit">Contenu pédagogique</strong>
+                                <span class="petit muet">— théorie, exercices gradués et critère de réussite</span></span>
+                            <span class="accordeon-fleche">▾</span>
+                        </button>
+                        <div class="accordeon-corps"><div class="accordeon-contenu">
+
+                            {% if contenu.theorie.apport %}
+                            <div class="bloc-theorie">
+                                {% if contenu.theorie.rappel %}
+                                <p class="petit" style="margin-bottom:8px"><strong>Prérequis à réactiver :</strong> {{ contenu.theorie.rappel }}</p>
+                                {% endif %}
+                                <p style="margin-bottom:8px">{{ contenu.theorie.apport }}</p>
+                                {% if contenu.theorie.exemple %}
+                                <p class="petit" style="margin:0"><strong>Exemple filé :</strong> {{ contenu.theorie.exemple }}</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            {% if contenu.exercices %}
+                            <h4 style="margin:var(--sp-4) 0 4px;font-size:.9rem">Exercices gradués</h4>
+                            {% for exercice in contenu.exercices %}
+                            <div class="exercice">
+                                <div class="exercice-niveau">{{ exercice.niveau }}</div>
+                                <p style="margin:4px 0 0">{{ exercice.enonce }}</p>
+                                {% if exercice.reponse %}
+                                <div class="exercice-reponse"><strong>Réponse attendue :</strong> {{ exercice.reponse }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+
+                            <div class="grille g-2" style="margin-top:var(--sp-4)">
+                                {% if contenu.critere_reussite %}
+                                <div class="carte" style="background:var(--ok-soft);box-shadow:none;padding:var(--sp-3);border:0">
+                                    <strong class="petit">✓ Critère de réussite</strong>
+                                    <p class="petit" style="margin:5px 0 0">{{ contenu.critere_reussite }}</p>
+                                </div>
+                                {% endif %}
+                                {% if contenu.erreur_frequente %}
+                                <div class="carte" style="background:var(--danger-soft);box-shadow:none;padding:var(--sp-3);border:0">
+                                    <strong class="petit">✗ Erreur fréquente à prévenir</strong>
+                                    <p class="petit" style="margin:5px 0 0">{{ contenu.erreur_frequente }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div></div>
+                    </div>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Grille de suivi -->
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">📋</span> Grille de suivi de l'élève</h2>
+                <span class="badge badge-neutre">à cocher au fil des séances</span>
+            </div>
+            <p class="petit muet">
+                Chaque étape fait franchir un palier. Le critère de réussite indique quand
+                considérer l'étape acquise et passer à la suivante.
+            </p>
+            <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                <table class="tableau">
+                    <thead>
+                        <tr>
+                            <th>Séance</th><th>Notion</th><th>Activité</th>
+                            <th>Palier visé</th><th>Critère de validation</th><th>Acquis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in r.grille_suivi %}
+                        <tr>
+                            <td class="mono">{{ ligne.seance }}</td>
+                            <td>
+                                <strong class="petit">{{ ligne.notion }}</strong><br>
+                                <span class="petit muet">{{ ligne.pays }}</span>
+                            </td>
+                            <td class="petit">{{ ligne.intervention }}<br><span class="muet">Bloom : {{ ligne.bloom_cible }}</span></td>
+                            <td>
+                                <span class="palier palier-{{ ligne.palier_depart | lower | replace(' ', '-') | replace('é','e') }}">{{ ligne.palier_depart }}</span>
+                                <span class="muet">→</span>
+                                <span class="palier palier-{{ ligne.palier_vise | lower | replace(' ', '-') | replace('é','e') }}">{{ ligne.palier_vise }}</span>
+                            </td>
+                            <td class="petit">{{ ligne.critere_reussite or '—' }}</td>
+                            <td class="centre"><span style="font-size:1.2rem;opacity:.35">☐</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Contrôle de cohérence -->
+        {% if r.controle_coherence.applique %}
+        <div class="carte reveler">
+            <h3 class="carte-titre"><span class="ic">🔍</span> Contrôle automatique des exercices générés</h3>
+            <p class="petit muet">{{ r.controle_coherence.methode }}.</p>
+            <div class="grille g-3" style="margin-top:var(--sp-3)">
+                <div class="tuile-stat" style="padding:var(--sp-3)">
+                    <div class="tuile-stat-libelle">Correctement ciblés</div>
+                    <div class="tuile-stat-valeur" style="font-size:1.5rem">{{ r.controle_coherence.part_correctement_cibles_pct }} %</div>
+                </div>
+                <div class="tuile-stat" style="padding:var(--sp-3)">
+                    <div class="tuile-stat-libelle">Rang moyen de la cible</div>
+                    <div class="tuile-stat-valeur" style="font-size:1.5rem">{{ r.controle_coherence.rang_moyen_cible }}</div>
+                    <div class="tuile-stat-detail">sur {{ r.controle_coherence.nb_notions_comparees }} notions</div>
+                </div>
+                <div class="tuile-stat" style="padding:var(--sp-3)">
+                    <div class="tuile-stat-libelle">À relire</div>
+                    <div class="tuile-stat-valeur" style="font-size:1.5rem">{{ r.controle_coherence.nb_suspects }}</div>
+                    <div class="tuile-stat-detail">sur {{ r.controle_coherence.nb_exercices_verifies }} exercices</div>
+                </div>
+            </div>
+            <p class="petit" style="margin-top:var(--sp-3);color:{{ 'var(--ok)' if r.controle_coherence.nb_suspects == 0 else 'var(--warn)' }}">
+                {{ r.controle_coherence.verdict }}
+            </p>
+            {% if r.controle_coherence.suspects %}
+            <ul class="liste-nue petit muet" style="margin-top:8px">
+                {% for s in r.controle_coherence.suspects %}
+                <li>Étape {{ s.rang_etape }} ({{ s.niveau }}) — visait « {{ s.notion_visee }} », plus proche de « {{ s.notion_plus_proche }} »</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    {% else %}
+        <div class="vide">
+            <div class="vide-icone">🧭</div>
+            <p>Le parcours d'amélioration n'a pas pu être planifié pour cette analyse.</p>
+            <p class="petit muet">{{ r.parcours.motif if r.parcours else '' }}</p>
+        </div>
+    {% endif %}
+    </section>
+
+    <!-- ============ Panneau : Comparaison ============ -->
+    <section class="panneau" data-panneau="comparaison">
+
+        <div class="grille g-4 reveler" style="margin-bottom:var(--sp-5)">
+            <div class="tuile-stat">
+                <div class="tuile-stat-libelle">Couverture</div>
+                <div class="tuile-stat-valeur"><span data-compteur="{{ r.agent6.score_global_pct }}" data-decimales="1" data-suffixe="%">0</span></div>
+                <div class="tuile-stat-detail">notions abordées</div>
+            </div>
+            <div class="tuile-stat">
+                <div class="tuile-stat-libelle">Traitement approfondi</div>
+                <div class="tuile-stat-valeur texte-degrade"><span data-compteur="{{ r.score_approfondissement }}" data-decimales="1" data-suffixe="%">0</span></div>
+                <div class="tuile-stat-detail">assez de matière pour être apprises</div>
+            </div>
+            <div class="tuile-stat">
+                <div class="tuile-stat-libelle">Non couvertes</div>
+                <div class="tuile-stat-valeur"><span data-compteur="{{ r.agent6.nb_notions_manquantes }}">0</span></div>
+                <div class="tuile-stat-detail">notions attendues absentes</div>
+            </div>
+            <div class="tuile-stat">
+                <div class="tuile-stat-libelle">Zone d'incertitude</div>
+                <div class="tuile-stat-valeur"><span data-compteur="{{ r.agent6.nb_notions_incertaines }}">0</span></div>
+                <div class="tuile-stat-detail">verdict automatique non fiable</div>
+            </div>
+        </div>
+
+        {% if r.pipeline.reranking and r.pipeline.reranking.applique %}
+        <div class="carte reveler" style="margin-bottom:var(--sp-5);background:var(--gradient-soft)">
+            <div class="ligne" style="gap:var(--sp-4)">
+                <span style="font-size:1.6rem">🎯</span>
+                <div>
+                    <strong class="petit">Couverture décidée par re-ranking neuronal</strong>
+                    <p class="petit muet" style="margin:5px 0 0">
+                        {{ r.pipeline.reranking.nb_paires_scorees }} paires (unité de cours, notion) ont été
+                        re-scorées par un cross-encodeur, qui évalue conjointement les deux textes là où
+                        le bi-encodeur les compare séparément. Décision :
+                        <strong>{{ r.pipeline.decision.source | replace('_', ' ') }}</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grille g-2-1" style="margin-bottom:var(--sp-5)">
+            <div class="carte">
+                <div class="carte-entete">
+                    <h2 class="carte-titre"><span class="ic">🌍</span> Couverture par référentiel</h2>
+                    <span class="badge badge-neutre">{{ r.nb_referentiels }} pays comparés</span>
+                </div>
+                {% for pays in r.referentiels %}
+                <div style="margin-bottom:var(--sp-4)">
+                    <div class="ligne-espace" style="margin-bottom:6px">
+                        <span style="font-weight:700">
+                            <span style="font-size:1.15rem">{{ pays.drapeau }}</span> {{ pays.pays }}
+                            <span class="petit muet" style="font-weight:400">— {{ pays.referentiel }}</span>
+                        </span>
+                        <span class="mono" style="font-weight:800">{{ pays.taux_couverture_pct }} %</span>
+                    </div>
+                    <div class="barre {{ 'barre-ok' if pays.taux_couverture_pct >= 70 else 'barre-moyen' if pays.taux_couverture_pct >= 45 else 'barre-ko' }}">
+                        <div class="barre-remplissage" data-pct="{{ pays.taux_couverture_pct }}"></div>
+                    </div>
+                    <div class="petit muet" style="margin-top:5px">
+                        <span class="badge badge-ok">{{ pays.nb_couvertes }} couvertes</span>
+                        <span class="badge badge-moyen">{{ pays.nb_partielles }} partielles</span>
+                        <span class="badge badge-ko">{{ pays.nb_manquantes }} manquantes</span>
+                        · dont <strong>{{ pays.nb_approfondies }}</strong> traitée(s) en profondeur
+                        {% if pays.nb_incertaines %}· {{ pays.nb_incertaines }} incertaine(s){% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="carte" style="display:flex;flex-direction:column;align-items:center;gap:var(--sp-3)">
+                <h3 class="carte-titre" style="align-self:flex-start"><span class="ic">🍩</span> Répartition globale</h3>
+                <svg class="anneau" data-anneau='[
+                    {"valeur": {{ r.repartition.couvertes }}, "couleur": "#16a34a", "libelle": "Couvertes"},
+                    {"valeur": {{ r.repartition.partielles }}, "couleur": "#f59e0b", "libelle": "Partielles"},
+                    {"valeur": {{ r.repartition.manquantes }}, "couleur": "#ef4444", "libelle": "Manquantes"}
+                ]'></svg>
+                <div class="legende" style="justify-content:center">
+                    <span class="legende-item"><span class="legende-puce" style="background:#16a34a"></span> Couvertes ({{ r.repartition.pct_couvertes }} %)</span>
+                    <span class="legende-item"><span class="legende-puce" style="background:#f59e0b"></span> Partielles ({{ r.repartition.pct_partielles }} %)</span>
+                    <span class="legende-item"><span class="legende-puce" style="background:#ef4444"></span> Manquantes ({{ r.repartition.pct_manquantes }} %)</span>
+                </div>
+                <p class="petit muet centre" style="margin:0">
+                    Sur {{ r.repartition.total }} notions de référentiel évaluées.
+                </p>
+            </div>
+        </div>
+
+        {% if r.analyse_qualitative and r.analyse_qualitative.disponible %}
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">🧠</span> Lecture qualitative</h2>
+                <span class="badge badge-info">Agent 6 · modèle de langage</span>
+            </div>
+            <p>{{ r.analyse_qualitative.synthese_comparative }}</p>
+
+            {% if r.analyse_qualitative.arbitrages_incertains %}
+            <h4 style="margin-top:var(--sp-4)">Arbitrage des notions incertaines</h4>
+            <p class="petit muet">Cas que la mesure automatique ne tranche pas ; le modèle donne son avis.</p>
+            <div class="tableau-enveloppe" style="margin-top:8px">
+                <table class="tableau">
+                    <thead><tr><th>Notion</th><th>Verdict</th><th>Justification</th></tr></thead>
+                    <tbody>
+                        {% for a in r.analyse_qualitative.arbitrages_incertains %}
+                        <tr>
+                            <td class="petit"><strong>{{ a.notion }}</strong></td>
+                            <td><span class="badge badge-{{ 'ok' if a.verdict == 'plutot_couverte' else 'ko' }}">{{ a.verdict | replace('_', ' ') }}</span></td>
+                            <td class="petit muet">{{ a.justification }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <div class="grille g-3" style="margin-top:var(--sp-5)">
+                {% if r.analyse_qualitative.points_forts %}
+                <div>
+                    <h4 style="color:var(--ok)">✓ Points forts</h4>
+                    <ul class="liste-puces petit">{% for p in r.analyse_qualitative.points_forts %}<li>{{ p }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
+                {% if r.analyse_qualitative.ecarts_majeurs %}
+                <div>
+                    <h4 style="color:var(--danger)">✗ Écarts majeurs</h4>
+                    <ul class="liste-puces petit">
+                        {% for e in r.analyse_qualitative.ecarts_majeurs %}
+                        <li><strong>{{ e.notion }}</strong> <span class="muet">({{ e.pays }})</span> — {{ e.impact }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if r.analyse_qualitative.specificites_locales %}
+                <div>
+                    <h4 style="color:var(--brand-500)">★ Spécificités locales</h4>
+                    <ul class="liste-puces petit">{% for s in r.analyse_qualitative.specificites_locales %}<li>{{ s }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="carte" style="background:var(--warn-soft);border-color:rgba(245,158,11,.35);margin-bottom:var(--sp-5)">
+            <strong>Analyse qualitative indisponible</strong>
+            <p class="petit muet" style="margin:6px 0 0">
+                La cartographie chiffrée reste intégralement valide : elle est produite par les
+                modèles de similarité, indépendamment du modèle de langage.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Détail par pays -->
+        <div class="pile" style="margin-bottom:var(--sp-5)">
+            {% for pays in r.referentiels %}
+            <div class="accordeon {{ 'ouvert' if loop.first }}">
+                <button class="accordeon-tete" type="button">
+                    <span style="font-size:1.3rem">{{ pays.drapeau }}</span>
+                    <span>
+                        <strong>{{ pays.pays }}</strong>
+                        <span class="petit muet"> — {{ pays.nb_notions }} notions · couverture {{ pays.taux_couverture_pct }} %</span>
+                    </span>
+                    <span class="accordeon-fleche">▾</span>
+                </button>
+                <div class="accordeon-corps">
+                    <div class="accordeon-contenu">
+                        <div class="tableau-enveloppe">
+                            <table class="tableau">
+                                <thead>
+                                    <tr>
+                                        <th>Notion du référentiel</th>
+                                        <th>Preuve dans le cours</th>
+                                        <th style="text-align:right">Probabilité</th>
+                                        <th style="text-align:right">Matière</th>
+                                        <th>Diagnostic</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for n in pays.notions %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ n.notion }}</strong>
+                                            {% if n.incertaine %}<span class="badge badge-moyen">incertain</span>{% endif %}
+                                            {% if n.descriptif %}<br><span class="petit muet">{{ n.descriptif }}</span>{% endif %}
+                                        </td>
+                                        <td class="petit muet">
+                                            {% if n.chapitre_correspondant %}
+                                            <strong>{{ n.chapitre_correspondant }}</strong>
+                                            {% if n.page_correspondante %} · p. {{ n.page_correspondante }}{% endif %}
+                                            <br>« {{ n.extrait_correspondant[:110] }}… »
+                                            {% else %}—{% endif %}
+                                        </td>
+                                        <td class="td-num">{{ (n.probabilite_couverture * 100) | round }} %</td>
+                                        <td class="td-num">{{ (n.suffisance * 100) | round }} %</td>
+                                        <td>
+                                            <span class="badge badge-{{ n.statut | classe_statut }}">{{ n.libelle_ecart }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="aide" style="margin-top:10px">
+                            <strong>Probabilité</strong> : la notion est-elle abordée ? —
+                            <strong>Matière</strong> : y a-t-il assez de contenu pour qu'elle soit apprise ?
+                            Les deux questions sont mesurées séparément.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="grille g-3">
+            <div class="carte">
+                <h3 class="carte-titre"><span class="ic">🚫</span> Notions absentes</h3>
+                {% if r.notions_manquantes %}
+                <ul class="liste-nue">
+                    {% for n in r.notions_manquantes %}
+                    <li class="ligne-espace">
+                        <span><strong class="petit">{{ n.notion }}</strong><br><span class="petit muet">{{ n.pays }}</span></span>
+                        <span class="badge badge-ko mono">{{ (n.probabilite_couverture * 100) | round }} %</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="vide" style="padding:var(--sp-5)"><div class="vide-icone">🎉</div>Toutes les notions sont abordées.</div>
+                {% endif %}
+            </div>
+
+            <div class="carte">
+                <h3 class="carte-titre"><span class="ic">⏳</span> Traitées trop brièvement</h3>
+                <p class="petit muet">Mentionnées, mais sans assez de matière pour être apprises.</p>
+                {% if r.notions_superficielles %}
+                <ul class="liste-nue">
+                    {% for n in r.notions_superficielles %}
+                    <li class="ligne-espace">
+                        <span><strong class="petit">{{ n.notion }}</strong><br><span class="petit muet">{{ n.chapitre_correspondant }}</span></span>
+                        <span class="badge badge-moyen mono">{{ (n.suffisance * 100) | round }} %</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="vide" style="padding:var(--sp-5)">Aucune.</div>
+                {% endif %}
+            </div>
+
+            <div class="carte">
+                <h3 class="carte-titre"><span class="ic">★</span> Sans équivalent étranger</h3>
+                <p class="petit muet">Spécificités du programme analysé.</p>
+                {% if r.contenus_excedentaires %}
+                <ul class="liste-nue">
+                    {% for c in r.contenus_excedentaires %}
+                    <li>
+                        <strong class="petit">{{ c.chapitre }}</strong>
+                        {% if c.page %}<span class="petit muet"> · p. {{ c.page }}</span>{% endif %}
+                        <div class="petit muet">{{ c.extrait[:140] }}…</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="vide" style="padding:var(--sp-5)"><div class="vide-icone">🔗</div>Aucun contenu isolé.</div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ Panneau : Évaluation ============ -->
+    <section class="panneau" data-panneau="evaluation">
+        <div class="grille g-2" style="margin-bottom:var(--sp-5)">
+            <div class="carte">
+                <div class="carte-entete">
+                    <h2 class="carte-titre"><span class="ic">🕸️</span> Profil des indicateurs</h2>
+                    <span class="badge badge-marque">Agent 7 · {{ r.contributions | length }} indicateurs</span>
+                </div>
+                <svg class="radar" data-radar='{{ r.contributions | tojson }}'></svg>
+            </div>
+
+            <div class="carte">
+                <h2 class="carte-titre"><span class="ic">📐</span> Détail et pondération</h2>
+                <div style="margin-top:var(--sp-3)">
+                    {% for c in r.contributions %}
+                    <div class="ligne-barre">
+                        <span class="libelle infobulle" data-bulle="Poids dans la grille experte : {{ c.poids_pct }} % — contribution : {{ c.contribution_points }} points">
+                            {{ c.libelle }}
+                        </span>
+                        <span class="barre barre-fine {{ 'barre-ok' if c.niveau == 'fort' else 'barre-moyen' if c.niveau == 'moyen' else 'barre-ko' }}">
+                            <span class="barre-remplissage" data-pct="{{ (c.valeur * 100) | round(1) }}" style="display:block"></span>
+                        </span>
+                        <span class="valeur">{{ '%.2f' % c.valeur }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Modèle d'ensemble -->
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <h2 class="carte-titre"><span class="ic">🔀</span> Modèle d'ensemble</h2>
+            <p class="petit muet">{{ r.modele_evaluation.algorithme }} — {{ r.modele_evaluation.meta_modele }}.</p>
+            <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                <table class="tableau">
+                    <thead><tr><th>Modèle</th><th>Nature</th><th style="text-align:right">Erreur moyenne</th><th style="text-align:right">R² validation</th><th style="text-align:right">Note prédite</th></tr></thead>
+                    <tbody>
+                        {% for tete in r.modele_evaluation.tetes %}
+                        <tr>
+                            <td class="petit"><strong>{{ tete.nom }}</strong></td>
+                            <td class="petit muet">{{ tete.type }}</td>
+                            <td class="td-num">{{ tete.erreur_absolue_moyenne }}</td>
+                            <td class="td-num">{{ tete.r2_validation }}</td>
+                            <td class="td-num">{{ r.notes_par_tete.gradient_boosting if loop.first else r.notes_par_tete.reseau_de_neurones }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr style="background:var(--gradient-soft)">
+                            <td class="petit"><strong>Ensemble empilé</strong></td>
+                            <td class="petit muet">Stacking</td>
+                            <td class="td-num"><strong>{{ r.modele_evaluation.erreur_absolue_moyenne }}</strong></td>
+                            <td class="td-num"><strong>{{ r.modele_evaluation.r2_validation }}</strong></td>
+                            <td class="td-num"><strong>{{ r.note_globale }}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="aide" style="margin-top:var(--sp-3)">
+                <strong>Corpus d'entraînement :</strong> {{ r.modele_evaluation.corpus }}.
+                Aucun corpus de cours annotés par des experts n'étant disponible à ce stade du projet,
+                les indicateurs sont mesurés sur le document mais la note qui les agrège provient d'un
+                modèle entraîné sur des données simulées à partir de la grille d'évaluation.
+            </p>
+        </div>
+
+        <div class="grille g-2" style="margin-bottom:var(--sp-5)">
+            <!-- Difficulté et progression -->
+            <div class="carte reveler">
+                <h2 class="carte-titre"><span class="ic">📈</span> Difficulté et progression</h2>
+                <ul class="liste-nue petit" style="margin-top:var(--sp-2)">
+                    <li class="ligne-espace"><span>Difficulté médiane mesurée</span><strong>{{ r.difficulte.mediane }}</strong></li>
+                    <li class="ligne-espace"><span>Bande attendue ({{ r.difficulte.cycle }})</span><strong>{{ r.difficulte.bande_attendue[0] }} – {{ r.difficulte.bande_attendue[1] }}</strong></li>
+                    <li class="ligne-espace"><span>Écart au cycle visé</span><strong>{{ r.difficulte.ecart_au_cycle }}</strong></li>
+                    <li class="ligne-espace"><span>Monotonie (τ de Kendall)</span><strong>{{ r.difficulte.progression.tau_kendall }}</strong></li>
+                    <li class="ligne-espace"><span>Ruptures de difficulté</span><strong>{{ r.difficulte.progression.ruptures | length }}</strong></li>
+                </ul>
+                {% if r.difficulte.par_unite %}
+                <h4 style="margin-top:var(--sp-4);font-size:.9rem">Difficulté unité par unité</h4>
+                <div class="histogramme" style="height:80px">
+                    {% for u in r.difficulte.par_unite %}
+                    <div class="colonne" style="height:{{ (u.difficulte * 100) | round }}%;animation-delay:{{ loop.index0 * 0.05 }}s"
+                         title="{{ u.chapitre }} : {{ u.difficulte }}"></div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <p class="aide">Méthode : {{ r.difficulte.source | replace('_', ' ') }}.</p>
+            </div>
+
+            <!-- Profil de Bloom -->
+            <div class="carte reveler">
+                <h2 class="carte-titre"><span class="ic">🧗</span> Profondeur cognitive (Bloom)</h2>
+                <p class="petit muet">
+                    Niveau maximal atteint : <strong>{{ r.bloom.niveau_max_atteint or '—' }}</strong> ·
+                    profondeur moyenne {{ r.bloom.profondeur_moyenne }}
+                </p>
+                <div class="bloom-barres" style="margin-top:var(--sp-3)">
+                    {% for b in r.bloom_distribution %}
+                    <div class="bloom-ligne {{ 'atteint' if b.atteint }}">
+                        <span class="libelle">{{ b.niveau }}</span>
+                        <span class="piste"><span class="part" data-part="{{ b.part_pct }}"></span></span>
+                        <span class="mono petit">{{ b.nombre }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <p class="aide">
+                    Un support qui plafonne à « Mémoriser / Comprendre » fait restituer ;
+                    il ne fait ni analyser ni créer.
+                </p>
+            </div>
+        </div>
+
+        {% if r.appreciation %}
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">✍️</span> Appréciation de l'évaluateur</h2>
+                {% if not r.appreciation.disponible %}<span class="badge badge-moyen">repli déterministe</span>{% endif %}
+            </div>
+            <p>{{ r.appreciation.appreciation_globale }}</p>
+            {% if r.appreciation.levier_prioritaire %}
+            <div class="carte" style="background:var(--gradient-soft);box-shadow:none;border:0;padding:var(--sp-3);margin-top:var(--sp-3)">
+                <strong class="petit">🔧 Levier prioritaire</strong>
+                <p class="petit" style="margin:5px 0 0">{{ r.appreciation.levier_prioritaire }}</p>
+            </div>
+            {% endif %}
+
+            {% if r.appreciation.criteres %}
+            <div class="grille g-auto" style="margin-top:var(--sp-4)">
+                {% for critere in r.appreciation.criteres %}
+                <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-4)">
+                    <div class="ligne-espace" style="margin-bottom:6px">
+                        <strong class="petit">{{ critere.critere }}</strong>
+                        <span class="badge badge-{{ 'ok' if critere.niveau == 'fort' else 'moyen' if critere.niveau == 'moyen' else 'ko' }}">{{ critere.niveau }}</span>
+                    </div>
+                    <p class="petit muet" style="margin:0">{{ critere.constat }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="grille g-2" style="margin-top:var(--sp-5)">
+                {% if r.appreciation.risques_accreditation %}
+                <div>
+                    <h4 style="color:var(--danger)">Risques au regard de l'accréditation</h4>
+                    <ul class="liste-puces petit">{% for x in r.appreciation.risques_accreditation %}<li>{{ x }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
+                {% if r.appreciation.atouts_a_valoriser %}
+                <div>
+                    <h4 style="color:var(--ok)">Atouts à valoriser</h4>
+                    <ul class="liste-puces petit">{% for x in r.appreciation.atouts_a_valoriser %}<li>{{ x }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grille g-2">
+            {% if r.clustering and r.clustering.applique %}
+            <div class="carte">
+                <h3 class="carte-titre"><span class="ic">🧬</span> Cohérence thématique</h3>
+                <p class="petit muet">
+                    Regroupement non supervisé des unités par <strong>{{ r.clustering.algorithme }}</strong> :
+                    <strong>{{ r.clustering.nb_groupes_optimal }} groupes thématiques</strong>,
+                    silhouette <strong>{{ r.clustering.silhouette }}</strong>.
+                    Plus elle est élevée, plus les thèmes du cours sont nettement séparés.
+                </p>
+            </div>
+            {% endif %}
+
+            {% if r.profil_maitrise.par_notion %}
+            <div class="carte">
+                <h3 class="carte-titre"><span class="ic">🎚️</span> Profil de maîtrise</h3>
+                <p class="petit muet">
+                    {{ r.profil_maitrise.nb_notions }} notions · maîtrise moyenne {{ r.profil_maitrise.maitrise_globale }} ·
+                    {{ r.profil_maitrise.nb_maitrise_faible }} faibles, {{ r.profil_maitrise.nb_maitrise_solide }} solides.
+                </p>
+                <div style="margin-top:var(--sp-3)">
+                    {% for e in r.maitrise_faible[:8] %}
+                    <div class="ligne-barre">
+                        <span class="libelle petit">{{ e.notion[:38] }}</span>
+                        <span class="barre barre-fine barre-ko">
+                            <span class="barre-remplissage" data-pct="{{ (e.maitrise * 100) | round(1) }}" style="display:block"></span>
+                        </span>
+                        <span class="valeur">{{ '%.2f' % e.maitrise }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <p class="aide">{{ r.profil_maitrise.avertissement }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- ============ Panneau : LES DEUX SOURCES ============ -->
+    <section class="panneau" data-panneau="sources">
+
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <h2 class="carte-titre"><span class="ic">🤝</span> Deux sources indépendantes</h2>
+            <p class="petit muet">
+                Les recommandations proviennent de deux origines délibérément séparées. À gauche,
+                nos modèles décident seuls, sans texte généré. À droite, le modèle de langage
+                propose librement, sans contrainte issue de nos calculs. Les confronter permet de
+                distinguer ce qui est solide de ce qui mérite un arbitrage humain.
+            </p>
+
+            {% if r.confrontation.disponible %}
+            <div class="ligne-espace" style="margin-top:var(--sp-4)">
+                <div class="ligne" style="gap:var(--sp-4)">
+                    <div class="jauge jauge-sm" style="width:84px;height:84px">
+                        <svg viewBox="0 0 160 160">
+                            <circle class="jauge-piste" cx="80" cy="80" r="66"></circle>
+                            <circle class="jauge-valeur" cx="80" cy="80" r="66" data-jauge="{{ r.confrontation.taux_convergence_pct }}"></circle>
+                        </svg>
+                        <div class="jauge-contenu"><div class="jauge-nombre" style="font-size:1.1rem">{{ r.confrontation.taux_convergence_pct }}%</div></div>
+                    </div>
+                    <div>
+                        <strong class="petit">Taux de convergence</strong>
+                        <p class="petit muet" style="margin:4px 0 0;max-width:520px">{{ r.confrontation.lecture }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="deux-sources reveler" style="margin-bottom:var(--sp-5)">
+            <!-- Colonne algorithmique -->
+            <div class="source-algo">
+                <div class="source-entete"><span>⚙️</span> Nos modèles — parcours planifié</div>
+                {% if r.parcours_disponible %}
+                <p class="petit muet">
+                    {{ r.parcours.nb_etapes }} étapes décidées par apprentissage par renforcement.
+                    Aucune intervention du modèle de langage dans ces choix.
+                </p>
+                <ul class="liste-nue petit" style="margin-top:var(--sp-3)">
+                    {% for e in r.parcours.etapes[:8] %}
+                    <li>
+                        <div class="ligne-espace">
+                            <span><strong>{{ e.rang }}. {{ e.notion[:44] }}</strong><br>
+                                <span class="muet">{{ e.intervention_nom }} · séance {{ e.seance_cumulee }}</span></span>
+                            <span class="badge badge-neutre mono">{{ (e.consensus * 100) | round }} %</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <p class="aide">Le pourcentage indique la part des référentiels qui exigent la notion.</p>
+                {% else %}
+                <p class="petit muet">Parcours indisponible.</p>
+                {% endif %}
+            </div>
+
+            <!-- Colonne modèle de langage -->
+            <div class="source-llm">
+                <div class="source-entete"><span>💬</span> Modèle de langage — avis libre</div>
+                {% if r.recommandations_gemini.disponible %}
+                <p class="petit muet">{{ r.recommandations_gemini.synthese }}</p>
+                <ul class="liste-nue petit" style="margin-top:var(--sp-3)">
+                    {% for reco in r.recommandations_gemini.recommandations %}
+                    <li>
+                        <div class="ligne-espace" style="margin-bottom:3px">
+                            <strong>{{ reco.titre }}</strong>
+                            <span class="badge badge-{{ 'ko' if reco.priorite == 'critique' else 'moyen' if reco.priorite == 'haute' else 'info' }}">{{ reco.priorite }}</span>
+                        </div>
+                        <div class="muet">{{ reco.argument }}</div>
+                        {% if reco.mise_en_oeuvre %}<div class="muet" style="margin-top:3px">→ {{ reco.mise_en_oeuvre }}</div>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% if r.recommandations_gemini.angle_mort %}
+                <div class="carte" style="background:var(--surface-2);box-shadow:none;border:0;padding:var(--sp-3);margin-top:var(--sp-3)">
+                    <strong class="petit">🕳️ Angle mort signalé</strong>
+                    <p class="petit muet" style="margin:5px 0 0">{{ r.recommandations_gemini.angle_mort }}</p>
+                </div>
+                {% endif %}
+                <p class="aide">{{ r.recommandations_gemini.avertissement }}</p>
+                {% else %}
+                <p class="petit muet">Le modèle de langage n'a pas pu être sollicité.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if r.confrontation.disponible %}
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <h2 class="carte-titre"><span class="ic">🔗</span> Où les deux sources se rejoignent</h2>
+            {% if r.confrontation.convergences %}
+            <div style="margin-top:var(--sp-3)">
+                {% for c in r.confrontation.convergences %}
+                <div class="convergence">
+                    <span><strong class="petit">{{ c.intervention_algorithmique }}</strong><br>
+                        <span class="petit muet">étape {{ c.rang_parcours }} — {{ c.notion[:46] }}</span></span>
+                    <span class="lien">↔</span>
+                    <span class="petit">{{ c.recommandation_gemini }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="aide">Ces points sont confirmés par deux méthodes indépendantes : ils sont fiables.</p>
+            {% else %}
+            <div class="vide" style="padding:var(--sp-5)">
+                <div class="vide-icone">🔀</div>
+                Aucune convergence détectée : les deux sources traitent des aspects différents.
+            </div>
+            {% endif %}
+
+            <div class="grille g-2" style="margin-top:var(--sp-5)">
+                <div>
+                    <h4 style="color:var(--brand-500)">Propres à nos modèles ({{ r.confrontation.specifiques_algorithme | length }})</h4>
+                    <ul class="liste-puces petit muet">
+                        {% for s in r.confrontation.specifiques_algorithme[:6] %}
+                        <li><strong>{{ s.notion[:48] }}</strong> — {{ s.intervention }} (étape {{ s.rang }})</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color:var(--violet-500)">Propres au modèle de langage ({{ r.confrontation.specifiques_gemini | length }})</h4>
+                    <ul class="liste-puces petit muet">
+                        {% for s in r.confrontation.specifiques_gemini[:6] %}
+                        <li><strong>{{ s.titre }}</strong> — {{ s.notion_visee }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <p class="aide" style="margin-top:var(--sp-3)">
+                Méthode d'appariement : {{ r.confrontation.methode }}. Une divergence ne signifie pas
+                qu'une source a tort — elle signale un point à arbitrer.
+            </p>
+        </div>
+        {% endif %}
+
+        {% if r.message_enseignant %}
+        <div class="carte" style="background:var(--info-soft);border-color:rgba(14,165,233,.3)">
+            <strong class="petit">Message à l'enseignant</strong>
+            <p style="margin:8px 0 0">{{ r.message_enseignant }}</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- ============ Panneau : Structure ============ -->
+    <section class="panneau" data-panneau="structure">
+        <div class="grille g-4" style="margin-bottom:var(--sp-5)">
+            <div class="tuile-stat"><div class="tuile-stat-ic">📄</div><div class="tuile-stat-libelle">Pages</div><div class="tuile-stat-valeur"><span data-compteur="{{ r.agent1.nb_pages }}">0</span></div></div>
+            <div class="tuile-stat"><div class="tuile-stat-ic">🔤</div><div class="tuile-stat-libelle">Mots</div><div class="tuile-stat-valeur"><span data-compteur="{{ r.agent1.nb_mots }}">0</span></div></div>
+            <div class="tuile-stat"><div class="tuile-stat-ic">📚</div><div class="tuile-stat-libelle">Chapitres</div><div class="tuile-stat-valeur"><span data-compteur="{{ r.agent1.nb_chapitres }}">0</span></div></div>
+            <div class="tuile-stat"><div class="tuile-stat-ic">✂️</div><div class="tuile-stat-libelle">Unités de sens</div><div class="tuile-stat-valeur"><span data-compteur="{{ r.pipeline.nb_unites }}">0</span></div></div>
+        </div>
+
+        {% if r.structure %}
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">🧠</span> Lecture pédagogique du document</h2>
+                <span class="badge {{ 'badge-info' if r.structure.source == 'gemini' else 'badge-moyen' }}">
+                    Agent 2 · {{ 'modèle de langage' if r.structure.source == 'gemini' else 'repli déterministe' }}
+                </span>
+            </div>
+            <p>{{ r.structure.resume }}</p>
+            <div class="ligne petit muet" style="gap:var(--sp-5)">
+                <span><strong>Discipline identifiée :</strong> {{ r.structure.discipline_identifiee }}</span>
+                <span><strong>Niveau estimé :</strong> {{ r.structure.niveau_estime }}</span>
+                <span><strong>Cohérence :</strong> {{ r.structure.coherence_niveau_declare | replace('_', ' ') }}</span>
+            </div>
+            {% if r.structure.competences_visees %}
+            <h4 style="margin-top:var(--sp-4)">Compétences visées</h4>
+            <div>{% for c in r.structure.competences_visees %}<span class="etiquette">{{ c }}</span>{% endfor %}</div>
+            {% endif %}
+            {% if r.structure.prerequis %}
+            <h4 style="margin-top:var(--sp-3)">Prérequis</h4>
+            <div>{% for p in r.structure.prerequis %}<span class="etiquette">{{ p }}</span>{% endfor %}</div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="grille g-2-1">
+            <div class="carte">
+                <h2 class="carte-titre"><span class="ic">📚</span> Chapitres détectés</h2>
+                <div class="pile" style="margin-top:var(--sp-3);gap:10px">
+                    {% for chapitre in r.chapitres %}
+                    <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-3)">
+                        <div class="ligne-espace">
+                            <strong class="petit">{{ chapitre.titre }}</strong>
+                            <span class="petit muet">p. {{ chapitre.page }} · {{ chapitre.nb_mots }} mots</span>
+                        </div>
+                        <p class="petit muet" style="margin:6px 0 0">{{ chapitre.extrait[:230] }}{% if chapitre.extrait|length > 230 %}…{% endif %}</p>
+                        {% for c2 in r.structure.chapitres %}
+                            {% if c2.titre == chapitre.titre and c2.objectifs_pedagogiques %}
+                            <div style="margin-top:8px">
+                                <span class="petit" style="font-weight:700">Objectifs :</span>
+                                <ul class="liste-puces petit muet" style="margin:4px 0 0">
+                                    {% for o in c2.objectifs_pedagogiques %}<li>{{ o }}</li>{% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="pile">
+                <div class="carte">
+                    <h3 class="carte-titre"><span class="ic">🏷️</span> Vocabulaire dominant</h3>
+                    <div>{% for m in r.mots_cles %}<span class="etiquette">{{ m.mot }} <span class="muet">{{ m.occurrences }}</span></span>{% endfor %}</div>
+                </div>
+                <div class="carte">
+                    <h3 class="carte-titre"><span class="ic">🧱</span> Éléments pédagogiques</h3>
+                    <ul class="liste-nue petit">
+                        {% for cle, valeur in r.agent1.elements_pedagogiques.items() %}
+                        <li class="ligne-espace"><span style="text-transform:capitalize">{{ cle }}</span><strong class="mono">{{ valeur }}</strong></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ Panneau : Traçabilité ============ -->
+    <section class="panneau" data-panneau="technique">
+        <div class="grille g-2" style="margin-bottom:var(--sp-5)">
+            <div class="carte">
+                <h2 class="carte-titre"><span class="ic">🔬</span> Chaîne de traitement exécutée</h2>
+                <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                    <table class="tableau">
+                        <tbody>
+                            <tr><td><strong>Agent 1 — Extraction</strong></td><td>{{ r.pipeline.extraction }}{% if r.pipeline.ocr %} <span class="badge badge-moyen">OCR</span>{% endif %}</td></tr>
+                            <tr><td><strong>Agent 2 — Compréhension</strong></td><td>{{ 'API Gemini' if r.structure.source == 'gemini' else 'Repli heuristique' }}</td></tr>
+                            <tr><td><strong>Agent 3 — Découpage</strong></td><td>{{ r.pipeline.nb_unites }} unités · {{ r.pipeline.taille_moyenne_unite }} mots en moyenne</td></tr>
+                            <tr><td><strong>Agent 4 — Vectorisation</strong></td><td>{{ r.pipeline.moteur_vectorisation }} · {{ r.pipeline.dimension }} dimensions</td></tr>
+                            <tr><td><strong>Agent 5 — Recherche</strong></td><td>{{ r.pipeline.index.moteur }} · {{ r.pipeline.nb_notions_indexees }} vecteurs</td></tr>
+                            <tr><td><strong>Agent 6 — Comparaison</strong></td>
+                                <td>
+                                    {% if r.pipeline.reranking.applique %}Cross-encodeur ({{ r.pipeline.reranking.nb_paires_scorees }} paires){% else %}Cosinus seul{% endif %}
+                                    · décision : {{ r.pipeline.decision.source | replace('_', ' ') }}
+                                </td></tr>
+                            <tr><td><strong>Agent 7 — Évaluation</strong></td><td>{{ r.modele_evaluation.algorithme }}</td></tr>
+                            <tr><td><strong>Agent 8 — Recommandations</strong></td><td>{{ r.parcours.moteur if r.parcours_disponible else 'priorisation déterministe' }}</td></tr>
+                            <tr><td><strong>Agent 9 — Rapport final</strong></td><td>{{ 'Synthèse générée par modèle de langage' if r.agent9.synthese_generee_par_ia else 'Synthèse par gabarit' }}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Benchmark du planificateur -->
+            {% if r.benchmark_rl and r.benchmark_rl.resultats %}
+            <div class="carte">
+                <h2 class="carte-titre"><span class="ic">🏁</span> Performance du planificateur</h2>
+                <p class="petit muet">{{ r.benchmark_rl.protocole }}</p>
+                <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                    <table class="tableau">
+                        <thead><tr><th>Politique</th><th style="text-align:right">Récompense</th><th style="text-align:right">Rétention</th><th style="text-align:right">Maîtrise</th><th style="text-align:right">Consolidation</th></tr></thead>
+                        <tbody>
+                            {% for nom, res in r.benchmark_rl.resultats.items() %}
+                            <tr {% if nom == 'apprise' %}style="background:var(--gradient-soft)"{% endif %}>
+                                <td class="petit"><strong>{{ nom | capitalize }}</strong>{% if nom == 'gloutonne' %}<br><span class="muet">version initiale</span>{% endif %}</td>
+                                <td class="td-num">{{ res.recompense }}</td>
+                                <td class="td-num">{{ res.retention_ponderee }}</td>
+                                <td class="td-num">{{ res.maitrise_ponderee }}</td>
+                                <td class="td-num">{{ res.stabilite }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="aide" style="margin-top:var(--sp-3)">
+                    Gains de la politique apprise sur la politique gloutonne :
+                    {% for cle, valeur in r.benchmark_rl.gains_vs_gloutonne_pct.items() %}
+                    <span class="badge badge-{{ 'ok' if valeur > 0 else 'ko' }}">{{ cle | replace('_', ' ') }} {{ '%+g' % valeur }} %</span>
+                    {% endfor %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="grille g-2" style="margin-bottom:var(--sp-5)">
+            <div class="carte">
+                <h2 class="carte-titre"><span class="ic">🎯</span> Voisinages sémantiques</h2>
+                <p class="petit muet">Pour chaque unité de sens, les notions étrangères les plus proches (Agent 5).</p>
+                <div style="max-height:420px;overflow-y:auto;margin-top:var(--sp-3)">
+                    {% for v in r.voisins %}
+                    <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-3);margin-bottom:8px">
+                        <strong class="petit">{{ v.chapitre }}</strong>
+                        <p class="petit muet" style="margin:4px 0 8px">{{ v.extrait[:130] }}…</p>
+                        {% for voisin in v.voisins[:3] %}
+                        <div class="ligne-espace petit">
+                            <span>{{ voisin.drapeau }} {{ voisin.notion }}</span>
+                            <span class="mono">{{ '%.3f' % voisin.score }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="carte">
+                <h2 class="carte-titre"><span class="ic">🛡️</span> Fiabilité de l'analyse</h2>
+                <div class="ligne" style="gap:var(--sp-5);margin-top:var(--sp-3)">
+                    <div class="jauge jauge-sm">
+                        <svg viewBox="0 0 160 160">
+                            <circle class="jauge-piste" cx="80" cy="80" r="66"></circle>
+                            <circle class="jauge-valeur" cx="80" cy="80" r="66" data-jauge="{{ r.fiabilite.niveau_confiance_pct }}"></circle>
+                        </svg>
+                        <div class="jauge-contenu">
+                            <div class="jauge-nombre"><span data-compteur="{{ r.fiabilite.niveau_confiance_pct }}">0</span></div>
+                        </div>
+                    </div>
+                    <div style="flex:1;min-width:200px">
+                        {% if r.fiabilite.alertes %}
+                        <ul class="liste-puces petit">{% for a in r.fiabilite.alertes %}<li>{{ a }}</li>{% endfor %}</ul>
+                        {% else %}
+                        <p class="petit" style="color:var(--ok)">✓ Aucun repli activé : tous les agents ont abouti nominalement.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if r.pipeline.graphe_prerequis %}
+                <hr class="separateur">
+                <p class="petit muet" style="margin:0">
+                    <strong>Graphe de prérequis :</strong> {{ r.pipeline.graphe_prerequis.nb_aretes }} relations —
+                    {{ r.pipeline.graphe_prerequis.methode }}.
+                </p>
+                {% endif %}
+                <p class="aide" style="margin-top:var(--sp-3)">
+                    Les scores sont produits par une comparaison sémantique automatisée. Ils constituent
+                    une aide à la décision et ne se substituent pas à l'expertise pédagogique d'un
+                    enseignant ou d'un comité d'accréditation.
+                </p>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

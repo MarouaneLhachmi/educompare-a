@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block titre %}{{ titre }} — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+    <div class="mise-en-page-console">
+
+        <aside class="barre-laterale">
+            {% if mode_admin %}
+            <div class="barre-laterale-titre">Administration</div>
+            <a href="{{ url_for('admin.tableau_de_bord') }}"><span class="ic">🛡️</span> Vue d'ensemble</a>
+            <a href="{{ url_for('admin.utilisateurs') }}"><span class="ic">👥</span> Utilisateurs</a>
+            <a class="actif" href="{{ url_for('admin.analyses') }}"><span class="ic">🗂️</span> Toutes les analyses</a>
+            <a href="{{ url_for('admin.systeme') }}"><span class="ic">⚙️</span> Supervision technique</a>
+            <a href="{{ url_for('admin.modeles') }}"><span class="ic">🩺</span> Supervision des modèles</a>
+            {% else %}
+            <div class="barre-laterale-titre">Mon espace</div>
+            <a href="{{ url_for('dashboard.tableau_de_bord') }}"><span class="ic">📊</span> Tableau de bord</a>
+            <a class="actif" href="{{ url_for('dashboard.historique') }}"><span class="ic">🗂️</span> Mes analyses</a>
+            <a href="{{ url_for('dashboard.profil') }}"><span class="ic">👤</span> Mon profil</a>
+            <a href="{{ url_for('main.accueil') }}"><span class="ic">➕</span> Nouvelle analyse</a>
+            {% endif %}
+        </aside>
+
+        <div>
+            <section class="ligne-espace anim-monter" style="margin-bottom:var(--sp-4)">
+                <div>
+                    <h1 style="margin-bottom:4px">{{ titre }}</h1>
+                    <p class="muet petit" style="margin:0">{{ analyses | length }} résultat(s) sur {{ total }} analyse(s)</p>
+                </div>
+                <a class="btn btn-primaire btn-sm" href="{{ url_for('main.accueil') }}"><span class="ic">➕</span> Nouvelle analyse</a>
+            </section>
+
+            <!-- Filtres -->
+            <form method="get" class="carte reveler" style="margin-bottom:var(--sp-4)">
+                <div class="grille g-3" style="gap:var(--sp-3);align-items:end">
+                    <div class="champ" style="margin:0">
+                        <label for="q">Recherche</label>
+                        <input class="saisie" type="search" id="q" name="q" value="{{ recherche }}" placeholder="Titre, fichier, matière…">
+                    </div>
+                    <div class="champ" style="margin:0">
+                        <label for="matiere">Matière</label>
+                        <select class="saisie" id="matiere" name="matiere">
+                            <option value="">Toutes</option>
+                            {% for m in matieres %}<option value="{{ m }}" {{ 'selected' if m == matiere }}>{{ m }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="champ" style="margin:0">
+                        <label for="statut">Statut</label>
+                        <select class="saisie" id="statut" name="statut">
+                            <option value="">Tous</option>
+                            <option value="TERMINEE" {{ 'selected' if statut == 'TERMINEE' }}>Terminée</option>
+                            <option value="EN_COURS" {{ 'selected' if statut == 'EN_COURS' }}>En cours</option>
+                            <option value="ECHEC" {{ 'selected' if statut == 'ECHEC' }}>Échec</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ligne" style="margin-top:var(--sp-4)">
+                    <button class="btn btn-primaire btn-sm" type="submit">Filtrer</button>
+                    <a class="btn btn-fantome btn-sm" href="{{ request.path }}">Réinitialiser</a>
+                </div>
+            </form>
+
+            <!-- Résultats -->
+            {% if analyses %}
+            <div class="grille g-auto">
+                {% for a in analyses %}
+                <article class="carte carte-survol carte-lueur reveler">
+                    <div class="ligne-espace" style="margin-bottom:var(--sp-3)">
+                        <span class="badge badge-{{ a.statut | classe_statut }}">{{ a.statut | replace('_',' ') | title }}</span>
+                        {% if a.statut == 'TERMINEE' %}
+                        <div class="jauge jauge-sm" style="width:64px;height:64px">
+                            <svg viewBox="0 0 160 160">
+                                <circle class="jauge-piste" cx="80" cy="80" r="66"></circle>
+                                <circle class="jauge-valeur" cx="80" cy="80" r="66" data-jauge="{{ a.resume_note_globale or 0 }}"></circle>
+                            </svg>
+                            <div class="jauge-contenu"><div class="jauge-nombre" style="font-size:1rem">{{ a.resume_note_globale or 0 }}</div></div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <h3 style="font-size:1rem;margin-bottom:4px">{{ (a.titre_cours or a.nom_fichier)[:60] }}</h3>
+                    <p class="petit muet" style="margin-bottom:var(--sp-3)">
+                        {{ a.nom_fichier }}<br>
+                        {{ a.matiere }} · {{ a.niveau }}<br>
+                        {{ a.date_creation }}
+                        {% if mode_admin %}<br><strong>{{ a.utilisateur_email or 'session anonyme' }}</strong>{% endif %}
+                    </p>
+
+                    {% if a.statut == 'TERMINEE' %}
+                    <div class="ligne petit" style="gap:6px;margin-bottom:var(--sp-3)">
+                        <span class="badge badge-neutre">{{ a.resume_couverture_pct or 0 }} % couverture</span>
+                        <span class="badge badge-neutre">{{ a.resume_nb_manquantes or 0 }} manquantes</span>
+                        <span class="badge badge-neutre">{{ a.resume_nb_recommandations or 0 }} recos</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="ligne" style="gap:8px">
+                        {% if a.statut == 'EN_COURS' %}
+                        <a class="btn btn-secondaire btn-sm" href="{{ url_for('main.suivi', analyse_id=a.id) }}">Suivre l'analyse</a>
+                        {% else %}
+                        <a class="btn btn-primaire btn-sm" href="{{ url_for('main.rapport', analyse_id=a.id) }}">Ouvrir le rapport</a>
+                        {% if a.statut == 'TERMINEE' %}
+                        <a class="btn btn-fantome btn-sm" href="{{ url_for('main.rapport_pdf', analyse_id=a.id) }}">PDF</a>
+                        {% endif %}
+                        {% endif %}
+                        <form class="pousser" method="post"
+                              action="{{ url_for('admin.supprimer_analyse', analyse_id=a.id) if mode_admin else url_for('dashboard.supprimer', analyse_id=a.id) }}"
+                              data-confirmer="Supprimer définitivement cette analyse ainsi que le document déposé ?">
+                            <button class="btn btn-danger btn-sm" type="submit">Supprimer</button>
+                        </form>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="vide">
+                <div class="vide-icone">🔍</div>
+                <p>Aucune analyse ne correspond à ces critères.</p>
+                <a class="btn btn-primaire" href="{{ url_for('main.accueil') }}">Lancer une analyse</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

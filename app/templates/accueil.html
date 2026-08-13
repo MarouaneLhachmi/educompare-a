@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block titre %}EduCompare AI — Analyser un support de cours{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+
+    <!-- ================= Héro ================= -->
+    <section class="hero">
+        <span class="hero-pillule">
+            <span class="badge-pulse" style="color:var(--ok);display:inline-flex"></span>
+            9 agents d'IA · {{ statistiques_base.nb_notions }} notions de référence · {{ statistiques_base.nb_pays }} pays
+        </span>
+        <h1 class="hero-titre anim-monter d-1">
+            Comparez vos cours aux<br>
+            <span class="texte-degrade">référentiels internationaux</span>
+        </h1>
+        <p class="hero-sous anim-monter d-2">
+            Déposez un support de cours au format PDF. Neuf agents d'intelligence artificielle
+            l'analysent, le confrontent aux programmes officiels étrangers et produisent un
+            rapport d'alignement avec des recommandations priorisées.
+        </p>
+
+        <div class="bande-stats anim-monter d-3">
+            <div class="item">
+                <div class="n texte-degrade"><span data-compteur="9">0</span></div>
+                <div class="l">Agents IA</div>
+            </div>
+            <div class="item">
+                <div class="n texte-degrade"><span data-compteur="{{ statistiques_base.nb_pays }}">0</span></div>
+                <div class="l">Référentiels pays</div>
+            </div>
+            <div class="item">
+                <div class="n texte-degrade"><span data-compteur="{{ statistiques_base.nb_notions }}">0</span></div>
+                <div class="l">Notions indexées</div>
+            </div>
+            <div class="item">
+                <div class="n texte-degrade"><span data-compteur="{{ modules | length }}">0</span></div>
+                <div class="l">Modules fonctionnels</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= Formulaire de dépôt ================= -->
+    <section class="grille g-2-1 reveler" style="margin-bottom:var(--sp-6)">
+        <div class="carte carte-lueur">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">📤</span> Déposer un support de cours</h2>
+                <span class="badge badge-marque">Module Dépôt &amp; Gestion des Documents</span>
+            </div>
+
+            <form method="post" action="{{ url_for('main.analyser') }}" enctype="multipart/form-data" data-formulaire-analyse>
+
+                <!-- Zone de dépôt -->
+                <div class="zone-depot" data-zone-depot="fichier_pdf">
+                    <input type="file" id="fichier_pdf" name="fichier_pdf" accept="application/pdf,.pdf" required
+                           style="position:absolute;width:1px;height:1px;opacity:0">
+                    <div class="zone-depot-defaut">
+                        <div class="zone-depot-icone">📄</div>
+                        <div class="zone-depot-titre">Glissez votre PDF ici</div>
+                        <div class="aide">ou cliquez pour parcourir — PDF avec texte sélectionnable, 25 Mo maximum</div>
+                    </div>
+                    <div class="fichier-choisi">
+                        <div class="zone-depot-icone" style="animation:none">✓</div>
+                        <div>
+                            <div class="zone-depot-titre" data-nom-fichier>—</div>
+                            <div class="aide"><span data-taille-fichier></span> · prêt pour l'analyse</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grille g-2" style="margin-top:var(--sp-5)">
+                    <div class="champ">
+                        <label for="matiere">Matière</label>
+                        <select class="saisie" id="matiere" name="matiere" data-select-matiere>
+                            {% for m in matieres %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="champ">
+                        <label for="niveau">Niveau</label>
+                        <select class="saisie" id="niveau" name="niveau" data-select-niveau>
+                            {% for n in niveaux %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="champ">
+                    <span class="etiquette-champ">Référentiels de comparaison</span>
+                    <div class="grille-pays" data-pays-conteneur="{{ url_for('main.api_referentiels') }}">
+                        {% for pays in catalogue_pays %}
+                        <label class="carte-pays">
+                            <input type="checkbox" name="pays" value="{{ pays.code }}" checked>
+                            <span class="drapeau">{{ pays.drapeau or '🏳️' }}</span>
+                            <span>
+                                <span class="nom">{{ pays.pays }}</span><br>
+                                <span class="meta">{{ pays.nb_notions }} notions · {{ pays.referentiel }}</span>
+                            </span>
+                            <span class="coche">✓</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <p class="aide">Décochez un pays pour l'exclure de la comparaison sémantique.</p>
+                </div>
+
+                <div class="ligne" style="margin-top:var(--sp-5)">
+                    <button class="btn btn-primaire btn-lg" type="submit" data-bouton-soumettre>
+                        <span class="ic">✨</span> Lancer l'analyse
+                    </button>
+                    <span class="petit muet">Traitement complet en 20 à 60 secondes selon la taille du document.</span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Colonne latérale -->
+        <div class="pile">
+            {% if analyses_recentes %}
+            <div class="carte carte-survol">
+                <h3 class="carte-titre"><span class="ic">🕘</span> Vos dernières analyses</h3>
+                <ul class="liste-nue">
+                    {% for a in analyses_recentes %}
+                    <li>
+                        <a href="{{ url_for('main.rapport', analyse_id=a.id) }}" class="ligne-espace" style="gap:8px">
+                            <span>
+                                <strong class="petit">{{ (a.titre_cours or a.nom_fichier)[:38] }}</strong><br>
+                                <span class="petit muet">{{ a.date_creation }}</span>
+                            </span>
+                            <span class="badge badge-{{ a.statut | classe_statut }}">
+                                {% if a.statut == 'TERMINEE' %}{{ a.resume_note_globale }}/100{% else %}{{ a.statut }}{% endif %}
+                            </span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <a class="btn btn-fantome btn-sm" href="{{ url_for('dashboard.historique') }}" style="margin-top:8px">Voir tout l'historique →</a>
+            </div>
+            {% elif not utilisateur_courant %}
+            <div class="carte carte-vedette">
+                <h3>Créez votre espace</h3>
+                <p>Connectez-vous avec votre compte Google pour conserver l'historique de vos analyses, suivre votre progression et retrouver vos rapports.</p>
+                <a class="btn btn-secondaire" href="{{ url_for('auth.connexion') }}" style="background:#fff;color:var(--brand-600)">Se connecter →</a>
+            </div>
+            {% endif %}
+
+            <div class="carte">
+                <h3 class="carte-titre"><span class="ic">⚙️</span> Comment ça marche</h3>
+                <div class="chronologie" style="margin-top:var(--sp-3)">
+                    <div class="chronologie-item">
+                        <strong class="petit">1 · Extraction &amp; compréhension</strong>
+                        <div class="petit muet">Le texte, les chapitres et les objectifs pédagogiques sont extraits du PDF.</div>
+                    </div>
+                    <div class="chronologie-item">
+                        <strong class="petit">2 · Vectorisation &amp; recherche</strong>
+                        <div class="petit muet">Le cours est projeté dans un espace sémantique multilingue, puis confronté à la base FAISS.</div>
+                    </div>
+                    <div class="chronologie-item">
+                        <strong class="petit">3 · Comparaison &amp; évaluation</strong>
+                        <div class="petit muet">Notions communes, manquantes et excédentaires, puis note d'alignement par apprentissage automatique.</div>
+                    </div>
+                    <div class="chronologie-item ok">
+                        <strong class="petit">4 · Recommandations &amp; rapport</strong>
+                        <div class="petit muet">Un plan d'action priorisé et un rapport PDF téléchargeable.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= Les 9 agents ================= -->
+    <section class="reveler" style="margin-bottom:var(--sp-6)">
+        <div class="ligne-espace" style="margin-bottom:var(--sp-4)">
+            <h2>La chaîne des neuf agents</h2>
+            <a class="btn btn-fantome btn-sm" href="{{ url_for('main.architecture') }}">Détail de l'architecture →</a>
+        </div>
+        <div class="grille g-auto-sm">
+            {% for agent in agents %}
+            <article class="carte carte-survol carte-lueur reveler" style="padding:var(--sp-4)">
+                <div class="ligne" style="gap:10px;margin-bottom:8px">
+                    <span style="font-size:1.5rem">{{ agent.icone }}</span>
+                    <span class="badge badge-neutre">Agent {{ agent.numero }}</span>
+                </div>
+                <h4 style="margin-bottom:4px">{{ agent.nom }}</h4>
+                <p class="petit muet" style="margin-bottom:8px">{{ agent.description }}</p>
+                <span class="badge {{ 'badge-marque' if agent.nature in ['Deep Learning', 'Machine Learning'] else 'badge-info' if agent.nature == 'Hybride' else 'badge-neutre' }}">{{ agent.nature }}</span>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ================= Les 6 modules ================= -->
+    <section class="reveler">
+        <h2 style="margin-bottom:var(--sp-4)">Les six modules fonctionnels</h2>
+        <div class="grille g-auto">
+            {% for module in modules %}
+            <article class="carte carte-survol reveler">
+                <div class="ligne" style="gap:10px;margin-bottom:8px">
+                    <span style="font-size:1.4rem">{{ module.icone }}</span>
+                    <h4 style="margin:0">{{ module.nom }}</h4>
+                </div>
+                <p class="petit muet" style="margin:0">{{ module.role }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

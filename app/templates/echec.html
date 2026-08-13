@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titre %}Analyse interrompue — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur" style="max-width:820px">
+    <section class="carte anim-monter">
+        <span class="badge badge-ko">Analyse interrompue</span>
+        <h1 style="margin-top:var(--sp-3)">Le traitement n'a pas pu aboutir</h1>
+        <p class="muet petit">
+            {{ analyse.nom_fichier }} · {{ analyse.matiere }} · {{ analyse.niveau }} · {{ analyse.date_creation }}
+        </p>
+
+        <div class="carte" style="background:var(--danger-soft);border-color:rgba(239,68,68,.32);margin-top:var(--sp-4)">
+            <strong class="petit">Cause remontée par le pipeline</strong>
+            <p class="petit mono" style="margin:8px 0 0">{{ analyse.erreur or "Erreur non détaillée." }}</p>
+        </div>
+
+        {% if analyse.incidents %}
+        <h3 style="margin-top:var(--sp-5)">Détail des incidents</h3>
+        <div class="pile" style="gap:10px">
+            {% for incident in analyse.incidents %}
+            <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-3)">
+                <strong class="petit">{{ incident.agent }}</strong>
+                <p class="petit muet mono" style="margin:6px 0 0">{{ incident.message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <h3 style="margin-top:var(--sp-5)">Que faire ?</h3>
+        <ul class="liste-puces petit muet">
+            <li>Vérifiez que le PDF contient du <strong>texte sélectionnable</strong> (un document scanné nécessite l'OCR Tesseract).</li>
+            <li>Assurez-vous que le fichier n'est ni protégé par mot de passe, ni corrompu.</li>
+            <li>Si le problème persiste, essayez avec un extrait plus court du document.</li>
+        </ul>
+
+        <div class="ligne" style="margin-top:var(--sp-5)">
+            <a class="btn btn-primaire" href="{{ url_for('main.accueil') }}">Déposer un autre document</a>
+            {% if utilisateur_courant %}
+            <a class="btn btn-secondaire" href="{{ url_for('dashboard.historique') }}">Mon historique</a>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

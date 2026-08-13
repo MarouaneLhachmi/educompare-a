@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block titre %}Mon tableau de bord — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+    <div class="mise-en-page-console">
+
+        <!-- Barre latérale -->
+        <aside class="barre-laterale">
+            <div class="barre-laterale-titre">Mon espace</div>
+            <a class="actif" href="{{ url_for('dashboard.tableau_de_bord') }}"><span class="ic">📊</span> Tableau de bord</a>
+            <a href="{{ url_for('dashboard.historique') }}"><span class="ic">🗂️</span> Mes analyses</a>
+            <a href="{{ url_for('dashboard.profil') }}"><span class="ic">👤</span> Mon profil</a>
+            <a href="{{ url_for('main.accueil') }}"><span class="ic">➕</span> Nouvelle analyse</a>
+            {% if est_administrateur %}
+            <div class="barre-laterale-titre" style="margin-top:var(--sp-4)">Administration</div>
+            <a href="{{ url_for('admin.tableau_de_bord') }}"><span class="ic">🛡️</span> Back-office</a>
+            {% endif %}
+        </aside>
+
+        <div>
+            <!-- Accueil personnalisé -->
+            <section class="carte carte-vedette anim-monter" style="margin-bottom:var(--sp-5)">
+                <div class="ligne-espace">
+                    <div>
+                        <h1 style="margin-bottom:6px">Bonjour {{ utilisateur.nom.split(' ')[0] }} 👋</h1>
+                        <p style="margin:0">
+                            {% if d.nb_analyses %}
+                                Vous avez réalisé <strong>{{ d.nb_analyses }}</strong> analyse(s), pour une note
+                                moyenne d'alignement de <strong>{{ d.note_moyenne }}/100</strong>.
+                            {% else %}
+                                Votre espace est prêt. Déposez votre premier support de cours pour lancer une analyse.
+                            {% endif %}
+                        </p>
+                    </div>
+                    <a class="btn btn-secondaire" href="{{ url_for('main.accueil') }}" style="background:#fff;color:var(--brand-600)">
+                        <span class="ic">➕</span> Nouvelle analyse
+                    </a>
+                </div>
+            </section>
+
+            <!-- Indicateurs -->
+            <section class="grille g-4" style="margin-bottom:var(--sp-5)">
+                <div class="tuile-stat reveler">
+                    <div class="tuile-stat-ic">📁</div>
+                    <div class="tuile-stat-libelle">Analyses</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ d.nb_analyses }}">0</span></div>
+                    <div class="tuile-stat-detail">{{ d.nb_terminees }} terminée(s){% if d.nb_en_cours %} · {{ d.nb_en_cours }} en cours{% endif %}</div>
+                </div>
+                <div class="tuile-stat reveler">
+                    <div class="tuile-stat-ic">🎯</div>
+                    <div class="tuile-stat-libelle">Note moyenne</div>
+                    <div class="tuile-stat-valeur texte-degrade"><span data-compteur="{{ d.note_moyenne }}" data-decimales="1">0</span></div>
+                    <div class="tuile-stat-detail">
+                        {% if d.evolution_note is not none %}
+                            <span class="variation {{ 'hausse' if d.evolution_note >= 0 else 'baisse' }}">
+                                {{ '▲' if d.evolution_note >= 0 else '▼' }} {{ d.evolution_note | abs }} pts
+                            </span> sur les 3 dernières
+                        {% else %}
+                            Meilleure note : {{ d.meilleure_note }}/100
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="tuile-stat reveler">
+                    <div class="tuile-stat-ic">🌍</div>
+                    <div class="tuile-stat-libelle">Couverture moyenne</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ d.couverture_moyenne }}" data-decimales="1" data-suffixe="%">0</span></div>
+                    <div class="tuile-stat-detail">des référentiels comparés</div>
+                </div>
+                <div class="tuile-stat reveler">
+                    <div class="tuile-stat-ic">💡</div>
+                    <div class="tuile-stat-libelle">Recommandations</div>
+                    <div class="tuile-stat-valeur"><span data-compteur="{{ d.total_recommandations }}">0</span></div>
+                    <div class="tuile-stat-detail">{{ d.total_notions_manquantes }} notion(s) à combler</div>
+                </div>
+            </section>
+
+            <div class="grille g-2-1" style="margin-bottom:var(--sp-5)">
+                <!-- Activité -->
+                <section class="carte reveler">
+                    <div class="carte-entete">
+                        <h2 class="carte-titre"><span class="ic">📈</span> Activité des 14 derniers jours</h2>
+                    </div>
+                    {% set maxi = (d.serie_temporelle | map(attribute='valeur') | max) or 1 %}
+                    <div class="histogramme">
+                        {% for point in d.serie_temporelle %}
+                        <div class="colonne" data-valeur="{{ point.valeur }}"
+                             style="height:{{ (point.valeur / maxi * 100) if point.valeur else 3 }}%;animation-delay:{{ loop.index0 * 0.05 }}s"
+                             title="{{ point.date }} : {{ point.valeur }} analyse(s)"></div>
+                        {% endfor %}
+                    </div>
+                    <div class="ligne-espace petit muet" style="margin-top:8px">
+                        <span>{{ d.serie_temporelle[0].date }}</span>
+                        <span>{{ d.serie_temporelle[-1].date }}</span>
+                    </div>
+                </section>
+
+                <!-- Par matière -->
+                <section class="carte reveler">
+                    <h2 class="carte-titre"><span class="ic">📚</span> Par matière</h2>
+                    {% if d.par_matiere %}
+                    <div style="margin-top:var(--sp-3)">
+                        {% for m in d.par_matiere %}
+                        <div class="ligne-barre">
+                            <span class="libelle">{{ m.matiere }}</span>
+                            <span class="barre barre-fine">
+                                <span class="barre-remplissage" data-pct="{{ m.note_moyenne }}" style="display:block"></span>
+                            </span>
+                            <span class="valeur">{{ m.note_moyenne }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="vide" style="padding:var(--sp-5)"><div class="vide-icone">📚</div>Aucune analyse terminée.</div>
+                    {% endif %}
+                </section>
+            </div>
+
+            <!-- Trajectoire et profils : analyse de l'historique par apprentissage -->
+            <div class="grille g-2-1" style="margin-bottom:var(--sp-5)">
+                <section class="carte reveler">
+                    <div class="carte-entete">
+                        <h2 class="carte-titre"><span class="ic">📉</span> Votre trajectoire</h2>
+                        {% if d.trajectoire.applique %}
+                        <span class="badge badge-neutre">{{ d.trajectoire.algorithme }}</span>
+                        {% endif %}
+                    </div>
+                    {% if d.trajectoire.applique %}
+                    <svg class="courbe" style="height:190px" data-courbe='[
+                        {% for p in d.trajectoire.points %}{"x": {{ p.rang }}, "y": {{ (p.note / 100) | round(4) }}, "libelle": "Analyse {{ p.rang }}"}{{ "," if not loop.last }}{% endfor %}
+                    ]'></svg>
+                    <div class="ligne-espace" style="margin-top:var(--sp-3)">
+                        <span class="petit">{{ d.trajectoire.lecture }}</span>
+                        <span class="badge badge-{{ 'ok' if d.trajectoire.sens == 'progression' else 'moyen' if d.trajectoire.sens == 'recul' else 'neutre' }}">
+                            {{ d.trajectoire.pente_par_analyse }} pt / analyse
+                        </span>
+                    </div>
+                    <p class="aide" style="margin-top:var(--sp-2)">
+                        Prochaine note prévue : <strong>{{ d.trajectoire.note_prochaine_predite }}/100</strong>
+                        (intervalle {{ d.trajectoire.intervalle_prochaine[0] }} – {{ d.trajectoire.intervalle_prochaine[1] }}) ·
+                        R² = {{ d.trajectoire.r2 }}{% if not d.trajectoire.significative %} — tendance non significative,
+                        les écarts s'expliquent surtout par la diversité des supports{% endif %}.
+                    </p>
+                    {% else %}
+                    <div class="vide" style="padding:var(--sp-5)">
+                        <div class="vide-icone">📉</div>{{ d.trajectoire.motif }}
+                    </div>
+                    {% endif %}
+                </section>
+
+                <section class="carte reveler">
+                    <h2 class="carte-titre"><span class="ic">🧩</span> Vos profils de cours</h2>
+                    {% if d.profils.applique %}
+                    <p class="petit muet">
+                        {{ d.profils.nb_groupes }} profils dégagés par {{ d.profils.algorithme }}.
+                        Silhouette {{ d.profils.silhouette }}{% if not d.profils.structure_nette %} — structure peu marquée{% endif %}.
+                    </p>
+                    <div class="pile" style="margin-top:var(--sp-3);gap:8px">
+                        {% for p in d.profils.profils %}
+                        <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-3)">
+                            <div class="ligne-espace">
+                                <strong class="petit">{{ p.nom }}</strong>
+                                <span class="badge badge-neutre">{{ p.nb_analyses }} · {{ p.note_moyenne }}/100</span>
+                            </div>
+                            <p class="petit muet" style="margin:5px 0 0">{{ p.description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="vide" style="padding:var(--sp-5)">
+                        <div class="vide-icone">🧩</div>{{ d.profils.motif }}
+                    </div>
+                    {% endif %}
+                </section>
+            </div>
+
+            {% if d.aberrantes.applique and d.aberrantes.nb_aberrantes %}
+            <section class="carte reveler" style="margin-bottom:var(--sp-5);background:var(--warn-soft);border-color:transparent">
+                <h3 class="carte-titre" style="font-size:.98rem"><span class="ic">⚠</span> Analyses au profil inhabituel</h3>
+                <p class="petit muet">
+                    Détectées par {{ d.aberrantes.algorithme }}. Un profil isolé signale souvent un
+                    document mal extrait ou une matière mal déclarée — à vérifier avant d'exploiter le résultat.
+                </p>
+                <ul class="liste-nue petit" style="margin-top:8px">
+                    {% for a in d.aberrantes.aberrantes %}
+                    <li class="ligne-espace">
+                        <a href="{{ url_for('main.rapport', analyse_id=a.id) }}">{{ a.titre[:50] }}</a>
+                        <span class="muet">{{ a.date }} · note {{ a.note }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
+            <!-- Dernières analyses -->
+            <section class="carte reveler">
+                <div class="carte-entete">
+                    <h2 class="carte-titre"><span class="ic">🕘</span> Dernières analyses</h2>
+                    <a class="btn btn-fantome btn-sm" href="{{ url_for('dashboard.historique') }}">Tout l'historique →</a>
+                </div>
+                {% if d.dernieres_analyses %}
+                <div class="tableau-enveloppe">
+                    <table class="tableau">
+                        <thead>
+                            <tr>
+                                <th>Support</th><th>Matière</th><th>Date</th>
+                                <th style="text-align:right">Note</th><th>Statut</th><th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in d.dernieres_analyses %}
+                            <tr>
+                                <td>
+                                    <strong>{{ (a.titre_cours or a.nom_fichier)[:50] }}</strong><br>
+                                    <span class="petit muet">{{ a.nom_fichier }}</span>
+                                </td>
+                                <td class="petit">{{ a.matiere }}</td>
+                                <td class="petit muet">{{ a.date_creation }}</td>
+                                <td class="td-num">{{ a.resume_note_globale or '—' }}</td>
+                                <td><span class="badge badge-{{ a.statut | classe_statut }}">{{ a.statut | replace('_', ' ') | title }}</span></td>
+                                <td>
+                                    {% if a.statut == 'EN_COURS' %}
+                                        <a class="btn btn-fantome btn-sm" href="{{ url_for('main.suivi', analyse_id=a.id) }}">Suivre</a>
+                                    {% else %}
+                                        <a class="btn btn-fantome btn-sm" href="{{ url_for('main.rapport', analyse_id=a.id) }}">Ouvrir</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="vide">
+                    <div class="vide-icone">📭</div>
+                    <p>Aucune analyse pour le moment.</p>
+                    <a class="btn btn-primaire" href="{{ url_for('main.accueil') }}">Déposer un premier cours</a>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

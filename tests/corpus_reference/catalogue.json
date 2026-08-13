@@ -1,0 +1,153 @@
+[
+  {
+    "fichier": "cours_maths_complet.pdf",
+    "titre": "Cours de Mathematiques - Derniere annee du primaire",
+    "sous_titre": "Support de cours complet, sept chapitres.",
+    "nature": "cours_complet",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "haute"
+    },
+    "taille_octets": 3528
+  },
+  {
+    "fichier": "cours_maths_partiel.pdf",
+    "titre": "Cours de Mathematiques - Premier semestre",
+    "sous_titre": "Support couvrant les deux premiers chapitres seulement.",
+    "nature": "cours_partiel",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "basse"
+    },
+    "taille_octets": 1868
+  },
+  {
+    "fichier": "cours_maths_doublon.pdf",
+    "titre": "Cours de Mathematiques - Derniere annee du primaire",
+    "sous_titre": "Reformulation mineure du support complet.",
+    "nature": "quasi_doublon",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "doublon_de": "cours_maths_complet.pdf",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "haute"
+    },
+    "taille_octets": 3575
+  },
+  {
+    "fichier": "plan_de_cours.pdf",
+    "titre": "Progression annuelle de mathematiques",
+    "sous_titre": "Document d'organisation pedagogique, sans contenu enseigne.",
+    "nature": "plan_de_cours",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "basse"
+    },
+    "taille_octets": 1625
+  },
+  {
+    "fichier": "cours_sciences.pdf",
+    "titre": "Cours de Sciences - Derniere annee du primaire",
+    "sous_titre": "Support de cours complet, quatre chapitres.",
+    "nature": "cours_complet",
+    "matiere": "Sciences",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "haute"
+    },
+    "taille_octets": 2142
+  },
+  {
+    "fichier": "cours_maths_anglais.pdf",
+    "titre": "Mathematics - Upper Key Stage 2",
+    "sous_titre": "Complete course material, four chapters.",
+    "nature": "cours_complet",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "en",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "haute"
+    },
+    "taille_octets": 2112
+  },
+  {
+    "fichier": "hors_sujet_cv.pdf",
+    "titre": "Curriculum vitae",
+    "sous_titre": "",
+    "nature": "hors_sujet",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": false,
+      "couverture_relative": "basse"
+    },
+    "taille_octets": 1644
+  },
+  {
+    "fichier": "hors_sujet_facture.pdf",
+    "titre": "Facture",
+    "sous_titre": "",
+    "nature": "hors_sujet",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": false,
+      "couverture_relative": "basse"
+    },
+    "taille_octets": 1611
+  },
+  {
+    "fichier": "hors_sujet_contrat.pdf",
+    "titre": "Contrat de prestation de services",
+    "sous_titre": "",
+    "nature": "hors_sujet",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": false,
+      "couverture_relative": "basse"
+    },
+    "taille_octets": 1673
+  },
+  {
+    "fichier": "scan_sans_texte.pdf",
+    "titre": "",
+    "sous_titre": "",
+    "nature": "scan_sans_couche_texte",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": null,
+    "attendu": {
+      "extraction_reussie": false,
+      "triage_pedagogique": null,
+      "couverture_relative": null
+    },
+    "taille_octets": 1310
+  }
+]
