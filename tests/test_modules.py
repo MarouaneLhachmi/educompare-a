@@ -326,6 +326,53 @@ class TestRetourEnseignantHttp:
         assert "retours" not in apres
 
 
+class TestTrajectoireCloisonneeParVersion:
+    """
+    La trajectoire ecarte les analyses produites sur une autre version des
+    referentiels. Ce filtrage est correct, mais il doit se voir : perdre des
+    points de mesure en silence serait pire que ne pas filtrer du tout.
+    """
+
+    def _analyse_versionnee(self, identifiant, utilisateur_id, version, jour, note):
+        database.creer_analyse({
+            "id": identifiant,
+            "utilisateur_id": utilisateur_id,
+            "statut": "TERMINEE",
+            "nom_fichier": "cours.pdf",
+            "matiere": "Mathématiques",
+            "niveau": "Dernière année du primaire",
+            "resume_note_globale": note,
+            "referentiel_version": version,
+            "date_creation": f"{jour:02d}/01/2026 10:00",
+            "date_creation_iso": f"2026-01-{jour:02d}T10:00:00",
+        })
+
+    def test_le_tableau_de_bord_signale_les_analyses_ecartees(
+            self, client, utilisateur_figee, connecter):
+        connecter(utilisateur_figee)
+        for jour in range(1, 5):
+            self._analyse_versionnee(f"neuve{jour}", utilisateur_figee["id"],
+                                     "FR:2.0-officiel", jour + 4, 60 + jour)
+        self._analyse_versionnee("ancienne", utilisateur_figee["id"],
+                                 "FR:1.0-reconstitue", 1, 40)
+
+        corps = client.get("/espace/").get_data(as_text=True)
+        assert "analyse(s) écartée(s)" in corps, (
+            "l'analyse écartée de la trajectoire ne l'est pas visiblement"
+        )
+        assert "FR:2.0-officiel" in corps
+
+    def test_aucune_mention_quand_tout_est_comparable(
+            self, client, utilisateur_figee, connecter):
+        connecter(utilisateur_figee)
+        for jour in range(1, 6):
+            self._analyse_versionnee(f"a{jour}", utilisateur_figee["id"],
+                                     "FR:1.0-reconstitue", jour, 50 + jour)
+
+        corps = client.get("/espace/").get_data(as_text=True)
+        assert "analyse(s) écartée(s)" not in corps
+
+
 class TestPagesPubliques:
 
     def test_accueil_accessible_sans_compte(self, client):

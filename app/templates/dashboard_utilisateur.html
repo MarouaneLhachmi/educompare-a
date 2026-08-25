@@ -146,6 +146,14 @@
                         <div class="vide-icone">📉</div>{{ d.trajectoire.motif }}
                     </div>
                     {% endif %}
+                    {% if d.trajectoire.nb_ecartees_autre_version %}
+                    <p class="aide" style="margin-top:var(--sp-2)">
+                        ⚖ {{ d.trajectoire.nb_ecartees_autre_version }} analyse(s) écartée(s) de la
+                        courbe : elles ont été produites sur une autre version des référentiels
+                        (<code class="mono">{{ d.trajectoire.version_referentiel }}</code> ici).
+                        Une note ne se compare que dans les termes du socle qui l'a produite.
+                    </p>
+                    {% endif %}
                 </section>
 
                 <section class="carte reveler">
