@@ -142,6 +142,26 @@ def peut_consulter_analyse(analyse: dict) -> bool:
     return bool(utilisateur and utilisateur["id"] == proprietaire)
 
 
+def peut_consulter_programme(programme: dict) -> bool:
+    """
+    Regle d'habilitation sur un programme, calquee sur celle des analyses :
+    son proprietaire ou un administrateur.
+
+    Le rattachement d'une analyse est verifie separement, contre
+    `peut_consulter_analyse` : un programme ne doit pas devenir un moyen de
+    lire l'analyse d'autrui.
+    """
+    if programme is None:
+        return False
+    if est_administrateur():
+        return True
+    utilisateur = utilisateur_courant()
+    proprietaire = programme.get("utilisateur_id")
+    if proprietaire is None:
+        return True
+    return bool(utilisateur and utilisateur["id"] == proprietaire)
+
+
 # ---------------------------------------------------------------------------
 # Creation / connexion des comptes
 # ---------------------------------------------------------------------------

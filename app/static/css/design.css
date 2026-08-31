@@ -1303,6 +1303,21 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     body { padding-bottom: 68px; }
 }
 
+/* ============ 9ter. MATRICE NOTIONS x DOCUMENTS (vue programme) ========= */
+/* L'intensite de la cellule porte l'information : une ligne entierement pale
+   se repere d'un coup d'oeil comme un trou du cursus, sans avoir a lire les
+   chiffres un a un. */
+.tableau-matrice th { position: sticky; top: 0; z-index: 2; background: var(--surface-solid); }
+.tableau-matrice td:first-child { max-width: 280px; }
+.cellule-matrice {
+    text-align: center;
+    background: color-mix(in srgb, var(--brand-500) calc(var(--intensite, 0) * 78%), transparent);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    border-radius: 4px;
+}
+.cellule-matrice[style*="--intensite:0."] { color: var(--text-2); }
+
 /* ================= 9bis. RETOUR ENSEIGNANT (mode ombre) ================= */
 .retour-widget {
     display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;

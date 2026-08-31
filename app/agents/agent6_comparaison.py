@@ -709,3 +709,242 @@ def process(agent2: dict, agent3: dict, agent4: dict, agent5: dict,
         "nb_contenus_excedentaires": len(contenus_excedentaires),
         "gemini": analyse,
     }
+
+
+# ---------------------------------------------------------------------------
+# Mode agrege : du cours au cursus (plan de transition, phase 2.1)
+# ---------------------------------------------------------------------------
+#
+# Un etablissement ne cherche pas a evaluer un cours, mais la couverture d'un
+# cursus. Une notion absente du chapitre A peut etre traitee dans le chapitre
+# B, par un autre enseignant : analysee document par document, elle apparait
+# manquante deux fois alors qu'elle est enseignee une fois.
+#
+# L'agregation ne relance aucun calcul. Elle reprend les decisions deja prises
+# par `process()` sur chaque document et les combine notion par notion. Deux
+# regles, et une seule est evidente :
+#
+# - **probabilite de couverture : le maximum.** Il suffit qu'un document
+#   traite la notion pour que le cursus la traite.
+# - **suffisance : le maximum egalement**, et non la somme. Additionner
+#   supposerait que les documents se completent plutot qu'ils ne se repetent —
+#   or rien dans les donnees ne l'etablit. Le maximum reste interpretable :
+#   « au moins un document y consacre assez de matiere ». C'est le choix
+#   conservateur, celui qui ne fabrique pas de couverture.
+
+def _cle_notion(ligne: dict) -> str:
+    """Identifiant stable d'une notion, homogene a celui de l'Agent 5."""
+    return f"{ligne.get('code', '')}::{ligne.get('notion', '')}"
+
+
+def _lignes_par_notion(analyses: list[dict]) -> dict:
+    """Regroupe les lignes de l'Agent 6 de chaque analyse, par notion."""
+    groupes: dict[str, list[dict]] = defaultdict(list)
+    for analyse in analyses:
+        agent6 = analyse.get("agent6") or {}
+        for pays in (agent6.get("par_pays") or {}).values():
+            for ligne in pays.get("notions", []):
+                enrichie = dict(ligne)
+                enrichie["_analyse_id"] = analyse.get("id")
+                enrichie["_document"] = (
+                    analyse.get("titre_cours") or analyse.get("nom_fichier") or "document"
+                )
+                enrichie["_enseignant"] = (
+                    analyse.get("utilisateur_nom") or analyse.get("utilisateur_email")
+                    or "non attribue"
+                )
+                groupes[_cle_notion(ligne)].append(enrichie)
+    return groupes
+
+
+def agreger_programme(analyses: list[dict]) -> dict:
+    """
+    Couverture d'un cursus, a partir des analyses de ses documents.
+
+    Retourne la meme forme que `process()` pour `par_pays`, `score_global_pct`
+    et `notions_manquantes` — les gabarits d'affichage et l'annexe savent deja
+    les lire — completee de ce qui n'a de sens qu'au niveau du programme : qui
+    couvre quoi, et la matrice notions x documents.
+    """
+    analyses = [a for a in analyses if (a.get("agent6") or {}).get("par_pays")]
+    if not analyses:
+        return {
+            "disponible": False,
+            "motif": "aucune analyse exploitable dans ce programme",
+            "nb_documents": 0,
+            "par_pays": {},
+            "score_global_pct": 0.0,
+            "notions_manquantes": [],
+        }
+
+    groupes = _lignes_par_notion(analyses)
+    cross_actif = any(
+        ((a.get("agent6") or {}).get("reranking") or {}).get("applique")
+        for a in analyses
+    )
+
+    detail_par_pays: dict[str, list] = defaultdict(list)
+    notions_manquantes: list[dict] = []
+    notions_incertaines: list[dict] = []
+
+    for cle, lignes in groupes.items():
+        # Le document de reference est celui qui couvre le mieux la notion :
+        # c'est sa preuve textuelle qui est restituee, puisque c'est lui qui
+        # justifie la decision retenue pour le cursus.
+        meilleure = max(lignes, key=lambda l: float(l.get("probabilite_couverture") or 0))
+        probabilite = float(meilleure.get("probabilite_couverture") or 0)
+        suffisance = max(float(l.get("suffisance") or 0) for l in lignes)
+
+        valeurs = meilleure.get("caracteristiques") or {}
+        valeurs = {
+            "cos_max": float(valeurs.get("cos_max") or 0),
+            "cross_prob_max": float(valeurs.get("cross_prob_max") or 0),
+        }
+        statut = _statut(probabilite)
+        type_ecart = _type_ecart(probabilite, suffisance, valeurs, cross_actif)
+        incertaine = ZONE_INCERTITUDE[0] <= probabilite <= ZONE_INCERTITUDE[1]
+
+        contributeurs = [
+            {
+                "analyse_id": l.get("_analyse_id"),
+                "document": l.get("_document"),
+                "enseignant": l.get("_enseignant"),
+                "probabilite": round(float(l.get("probabilite_couverture") or 0), 3),
+                "suffisance": round(float(l.get("suffisance") or 0), 3),
+                "statut": l.get("statut"),
+            }
+            for l in sorted(lignes, key=lambda l: -float(l.get("probabilite_couverture") or 0))
+        ]
+
+        ligne = {
+            "notion": meilleure.get("notion"),
+            "descriptif": meilleure.get("descriptif", ""),
+            "pays": meilleure.get("pays"),
+            "code": meilleure.get("code"),
+            "cle_notion": cle,
+            "score": meilleure.get("score"),
+            "probabilite_couverture": round(probabilite, 3),
+            "suffisance": round(suffisance, 3),
+            "statut": statut,
+            "type_ecart": type_ecart,
+            "libelle_ecart": LIBELLES_ECART.get(type_ecart, type_ecart),
+            "incertaine": incertaine,
+            "traitement_approfondi": bool(
+                statut == "Couverte" and suffisance >= SEUIL_SUFFISANCE
+            ),
+            "chapitre_correspondant": meilleure.get("chapitre_correspondant"),
+            "page_correspondante": meilleure.get("page_correspondante"),
+            "extrait_correspondant": meilleure.get("extrait_correspondant"),
+            "caracteristiques": meilleure.get("caracteristiques", {}),
+            # Propre au cursus : d'ou vient la couverture, et qui l'apporte.
+            "document_referent": meilleure.get("_document"),
+            "analyse_referente": meilleure.get("_analyse_id"),
+            "enseignant_referent": meilleure.get("_enseignant"),
+            "contributeurs": contributeurs,
+            "nb_documents_couvrants": sum(
+                1 for c in contributeurs if c["statut"] == "Couverte"
+            ),
+        }
+
+        detail_par_pays[ligne["code"]].append(ligne)
+        if statut == "Non couverte":
+            notions_manquantes.append(ligne)
+        if incertaine:
+            notions_incertaines.append(ligne)
+
+    # --- Cartographie par pays, dans la forme attendue par l'affichage ---
+    reference_pays = {}
+    for analyse in analyses:
+        for code, pays in ((analyse.get("agent6") or {}).get("par_pays") or {}).items():
+            reference_pays.setdefault(code, pays)
+
+    par_pays: dict[str, dict] = {}
+    for code, detail in detail_par_pays.items():
+        detail.sort(key=lambda n: n["probabilite_couverture"], reverse=True)
+        nb = len(detail) or 1
+        nb_couvertes = sum(1 for n in detail if n["statut"] == "Couverte")
+        nb_partielles = sum(1 for n in detail if n["statut"] == "Partiellement couverte")
+        modele = reference_pays.get(code, {})
+        par_pays[code] = {
+            "code": code,
+            "pays": detail[0]["pays"] if detail else code,
+            "drapeau": modele.get("drapeau", ""),
+            "referentiel": modele.get("referentiel", ""),
+            "notions": detail,
+            "nb_notions": len(detail),
+            "nb_couvertes": nb_couvertes,
+            "nb_partielles": nb_partielles,
+            "nb_manquantes": sum(1 for n in detail if n["statut"] == "Non couverte"),
+            "nb_incertaines": sum(1 for n in detail if n["incertaine"]),
+            "nb_approfondies": sum(1 for n in detail if n["traitement_approfondi"]),
+            "nb_superficielles": sum(1 for n in detail if n["type_ecart"] == "superficielle"),
+            "taux_couverture_pct": round(100 * (nb_couvertes + 0.5 * nb_partielles) / nb, 1),
+            "taux_couverture_probabiliste_pct": round(
+                100 * float(np.mean([n["probabilite_couverture"] for n in detail])), 1
+            ),
+        }
+
+    score_global = (
+        round(float(np.mean([p["taux_couverture_pct"] for p in par_pays.values()])), 1)
+        if par_pays else 0.0
+    )
+
+    # --- Qui couvre quoi : apport propre de chaque document --------------
+    couverture_par_document = []
+    for analyse in analyses:
+        identifiant = analyse.get("id")
+        couvertes = [
+            n for detail in detail_par_pays.values() for n in detail
+            if any(c["analyse_id"] == identifiant and c["statut"] == "Couverte"
+                   for c in n["contributeurs"])
+        ]
+        # Une notion n'est portee que par ce document si aucun autre ne la
+        # couvre : c'est la contribution qui disparaitrait s'il etait retire.
+        exclusives = [
+            n for n in couvertes
+            if sum(1 for c in n["contributeurs"] if c["statut"] == "Couverte") == 1
+        ]
+        couverture_par_document.append({
+            "analyse_id": identifiant,
+            "document": analyse.get("titre_cours") or analyse.get("nom_fichier"),
+            "nom_fichier": analyse.get("nom_fichier"),
+            "enseignant": (analyse.get("utilisateur_nom")
+                           or analyse.get("utilisateur_email") or "non attribue"),
+            "date": analyse.get("date_creation"),
+            "note": analyse.get("resume_note_globale"),
+            "couverture_seule_pct": (analyse.get("agent6") or {}).get("score_global_pct", 0),
+            "nb_notions_couvertes": len(couvertes),
+            "nb_notions_exclusives": len(exclusives),
+            "notions_exclusives": [n["notion"] for n in exclusives[:12]],
+        })
+    couverture_par_document.sort(key=lambda d: -d["nb_notions_exclusives"])
+
+    toutes_notions = [n for detail in detail_par_pays.values() for n in detail]
+    toutes_notions.sort(key=lambda n: (n["code"], -n["probabilite_couverture"]))
+
+    return {
+        "disponible": True,
+        "nb_documents": len(analyses),
+        "nb_notions": len(toutes_notions),
+        "par_pays": par_pays,
+        "score_global_pct": score_global,
+        "notions": toutes_notions,
+        "notions_manquantes": notions_manquantes,
+        "nb_notions_manquantes": len(notions_manquantes),
+        "notions_incertaines": notions_incertaines,
+        "nb_notions_incertaines": len(notions_incertaines),
+        "notions_superficielles": [
+            n for n in toutes_notions if n["type_ecart"] == "superficielle"
+        ],
+        "couverture_par_document": couverture_par_document,
+        "decision": {
+            "source": "agregation_par_maximum",
+            "seuils": {"couverte": SEUIL_COUVERTE, "partielle": SEUIL_PARTIELLE},
+            "zone_incertitude": list(ZONE_INCERTITUDE),
+            "regle": (
+                "Probabilite et suffisance agregees par le maximum sur les "
+                "documents du programme."
+            ),
+        },
+        "reranking": {"applique": cross_actif},
+    }

@@ -157,11 +157,13 @@ def create_app() -> Flask:
     from app.routes.main import bp as bp_main
     from app.routes.auth import bp as bp_auth
     from app.routes.dashboard import bp as bp_dashboard
+    from app.routes.programmes import bp as bp_programmes
     from app.routes.admin import bp as bp_admin
 
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_auth)
     app.register_blueprint(bp_dashboard)
+    app.register_blueprint(bp_programmes)
     app.register_blueprint(bp_admin)
 
     from app.modules import module_auth_securite

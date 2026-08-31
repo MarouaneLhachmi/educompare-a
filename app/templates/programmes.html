@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block titre %}Mes programmes — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+
+    <section class="carte anim-monter" style="margin-bottom:var(--sp-5)">
+        <div class="ligne-espace">
+            <div style="min-width:0">
+                <span class="badge badge-marque">Du cours au cursus</span>
+                <h1 style="margin:var(--sp-3) 0 6px">Programmes</h1>
+                <p class="muet petit" style="margin:0;max-width:62ch">
+                    Un programme regroupe les documents d'un même cursus. La couverture d'une
+                    notion y devient le <strong>maximum</strong> sur l'ensemble des documents :
+                    une notion absente d'un chapitre mais traitée dans un autre cesse
+                    d'apparaître comme un écart.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div class="grille g-2-1" style="align-items:start">
+
+        <!-- Liste des programmes -->
+        <section class="carte reveler">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">🎓</span> Mes programmes</h2>
+                <span class="badge badge-neutre">{{ programmes | length }}</span>
+            </div>
+
+            {% if programmes %}
+            <div class="pile" style="margin-top:var(--sp-3)">
+                {% for p in programmes %}
+                <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-4)">
+                    <div class="ligne-espace">
+                        <div style="min-width:0">
+                            <strong>{{ p.nom }}</strong>
+                            <div class="petit muet" style="margin-top:2px">
+                                {{ p.matiere or '—' }}{% if p.niveau %} · {{ p.niveau }}{% endif %}
+                                {%- if p.annee %} · {{ p.annee }}{% endif %}
+                                {%- if p.etablissement %} · {{ p.etablissement }}{% endif %}
+                            </div>
+                        </div>
+                        <div class="ligne" style="gap:var(--sp-3);flex-wrap:nowrap">
+                            <span class="badge badge-{{ 'info' if p.nb_documents else 'neutre' }}">
+                                {{ p.nb_documents }} document(s)
+                            </span>
+                            <a class="btn btn-secondaire btn-sm"
+                               href="{{ url_for('programmes.detail', programme_id=p.id) }}">Ouvrir</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="vide" style="padding:var(--sp-5)">
+                <div class="vide-icone">🎓</div>
+                Aucun programme pour le moment.
+                <p class="petit muet" style="margin-top:6px">
+                    Créez-en un, puis rattachez-y les analyses de vos chapitres.
+                </p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Création -->
+        <section class="carte reveler">
+            <h2 class="carte-titre"><span class="ic">➕</span> Nouveau programme</h2>
+            <form method="post" action="{{ url_for('programmes.creer') }}" class="pile"
+                  style="margin-top:var(--sp-3)">
+                <div class="champ">
+                    <label class="etiquette-champ" for="nom">Nom du programme</label>
+                    <input class="saisie" type="text" id="nom" name="nom" required
+                           placeholder="Mathématiques — 6e année, 2025-2026">
+                </div>
+                <div class="grille g-2">
+                    <div class="champ">
+                        <label class="etiquette-champ" for="matiere">Matière</label>
+                        <select class="saisie" id="matiere" name="matiere">
+                            {% for m in matieres %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="champ">
+                        <label class="etiquette-champ" for="niveau">Niveau</label>
+                        <select class="saisie" id="niveau" name="niveau">
+                            {% for n in niveaux %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="grille g-2">
+                    <div class="champ">
+                        <label class="etiquette-champ" for="annee">Année scolaire</label>
+                        <input class="saisie" type="text" id="annee" name="annee"
+                               placeholder="2025-2026">
+                    </div>
+                    <div class="champ">
+                        <label class="etiquette-champ" for="etablissement">Établissement</label>
+                        <input class="saisie" type="text" id="etablissement" name="etablissement"
+                               placeholder="facultatif">
+                    </div>
+                </div>
+                <button class="btn btn-primaire btn-bloc" type="submit">Créer le programme</button>
+            </form>
+            <p class="aide" style="margin-top:var(--sp-3)">
+                Seules les analyses partageant la même matière, le même niveau et la même
+                version de référentiel sont agrégées. Les autres sont listées à part, avec
+                leur motif.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}

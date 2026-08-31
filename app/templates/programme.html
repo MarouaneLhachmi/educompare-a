@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% block titre %}{{ v.programme.nom }} — Programme — EduCompare AI{% endblock %}
+
+{% block contenu %}
+<div class="conteneur conteneur-large">
+
+    <!-- =================== En-tête =================== -->
+    <section class="carte anim-monter" style="margin-bottom:var(--sp-5)">
+        <div class="ligne-espace">
+            <div style="min-width:0">
+                <span class="badge badge-marque">Programme · {{ v.nb_analyses }} document(s) agrégé(s)</span>
+                <h1 style="margin:var(--sp-3) 0 6px">{{ v.programme.nom }}</h1>
+                <p class="muet petit" style="margin:0">
+                    {{ v.matiere or '—' }}{% if v.niveau %} · {{ v.niveau }}{% endif %}
+                    {%- if v.programme.annee %} · {{ v.programme.annee }}{% endif %}
+                    {%- if v.programme.etablissement %} · {{ v.programme.etablissement }}{% endif %}
+                    {%- if v.enseignants %} · {{ v.enseignants | length }} enseignant(s){% endif %}
+                </p>
+            </div>
+            <div class="ligne">
+                <a class="btn btn-secondaire" href="{{ url_for('programmes.liste') }}">Tous les programmes</a>
+                <form method="post" action="{{ url_for('programmes.supprimer', programme_id=v.programme.id) }}"
+                      data-confirmer="Supprimer ce programme ? Les analyses rattachées sont conservées.">
+                    <button class="btn btn-danger" type="submit">Supprimer</button>
+                </form>
+            </div>
+        </div>
+
+        {% if v.referentiel_version %}
+        <p class="aide" style="margin-top:var(--sp-3)">
+            Socle de connaissances : <code class="mono">{{ v.referentiel_version }}</code>
+            <span class="badge badge-{{ 'ok' if v.referentiel_officiel else 'moyen' }}">
+                {{ 'texte officiel' if v.referentiel_officiel else 'référentiel reconstitué' }}
+            </span>
+        </p>
+        {% endif %}
+    </section>
+
+    {% if v.agregat.disponible %}
+
+    <!-- =================== Bandeau de synthèse =================== -->
+    <section class="grille g-4 reveler" style="margin-bottom:var(--sp-5)">
+        <div class="tuile-stat">
+            <div class="tuile-stat-libelle">Couverture du cursus</div>
+            <div class="tuile-stat-valeur"><span data-compteur="{{ v.agregat.score_global_pct }}" data-decimales="1" data-suffixe="%">0</span></div>
+            <div class="tuile-stat-detail">tous documents confondus</div>
+        </div>
+        <div class="tuile-stat">
+            <div class="tuile-stat-libelle">Écarts résorbés</div>
+            <div class="tuile-stat-valeur texte-degrade"><span data-compteur="{{ v.ecarts_resorbes }}">0</span></div>
+            <div class="tuile-stat-detail">notions manquantes document par document, mais traitées ailleurs</div>
+        </div>
+        <div class="tuile-stat">
+            <div class="tuile-stat-libelle">Écarts réels</div>
+            <div class="tuile-stat-valeur"><span data-compteur="{{ v.agregat.nb_notions_manquantes }}">0</span></div>
+            <div class="tuile-stat-detail">non couvertes par aucun document</div>
+        </div>
+        <div class="tuile-stat">
+            <div class="tuile-stat-libelle">Zone d'incertitude</div>
+            <div class="tuile-stat-valeur"><span data-compteur="{{ v.agregat.nb_notions_incertaines }}">0</span></div>
+            <div class="tuile-stat-detail">verdict automatique non fiable</div>
+        </div>
+    </section>
+
+    <div class="carte reveler" style="margin-bottom:var(--sp-5);background:var(--gradient-soft)">
+        <p class="petit" style="margin:0">
+            <strong>Lecture.</strong> Pris isolément, les {{ v.nb_analyses }} documents cumulent
+            <strong>{{ v.manquantes_cumulees_isolement }}</strong> notions manquantes. Considérés
+            comme un cursus, il n'en reste que <strong>{{ v.agregat.nb_notions_manquantes }}</strong> :
+            {{ v.ecarts_resorbes }} écart(s) n'en étaient pas — la notion était traitée dans un autre
+            document. Ceux qui subsistent sont les vrais.
+        </p>
+    </div>
+
+    <!-- =================== Couverture par référentiel =================== -->
+    <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+        <div class="carte-entete">
+            <h2 class="carte-titre"><span class="ic">🌍</span> Couverture agrégée par référentiel</h2>
+            <span class="badge badge-neutre">maximum sur les documents</span>
+        </div>
+        <div class="pile" style="margin-top:var(--sp-3)">
+            {% for p in v.agregat.par_pays.values() | sort(attribute='taux_couverture_pct', reverse=true) %}
+            <div>
+                <div class="ligne-espace petit" style="margin-bottom:5px">
+                    <span>{{ p.drapeau }} <strong>{{ p.pays }}</strong>
+                        <span class="muet">— {{ p.nb_couvertes }}/{{ p.nb_notions }} couvertes</span></span>
+                    <strong>{{ p.taux_couverture_pct }} %</strong>
+                </div>
+                <div class="barre">
+                    <div class="barre-remplissage" data-pct="{{ p.taux_couverture_pct }}"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- =================== Qui couvre quoi =================== -->
+    <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+        <div class="carte-entete">
+            <h2 class="carte-titre"><span class="ic">🧑‍🏫</span> Qui couvre quoi</h2>
+        </div>
+        <p class="petit muet">
+            « Notions exclusives » : celles qu'aucun autre document du programme ne couvre.
+            C'est ce qui disparaîtrait du cursus si ce document en était retiré.
+        </p>
+        <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+            <table class="tableau">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Enseignant</th>
+                        <th style="text-align:right">Couverture seul</th>
+                        <th style="text-align:right">Notions couvertes</th>
+                        <th style="text-align:right">Dont exclusives</th>
+                        <th>Apport propre</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in v.documents %}
+                    <tr>
+                        <td><strong>{{ d.document }}</strong>
+                            <br><span class="petit muet">{{ d.date }}</span></td>
+                        <td class="petit">{{ d.enseignant }}</td>
+                        <td class="td-num">{{ d.couverture_seule_pct }} %</td>
+                        <td class="td-num">{{ d.nb_notions_couvertes }}</td>
+                        <td class="td-num">
+                            <span class="badge badge-{{ 'info' if d.nb_notions_exclusives else 'neutre' }}">
+                                {{ d.nb_notions_exclusives }}
+                            </span>
+                        </td>
+                        <td class="petit muet">
+                            {% if d.notions_exclusives %}
+                                {{ d.notions_exclusives | join(' · ') }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            <div class="ligne" style="gap:6px;flex-wrap:nowrap">
+                                <a class="btn btn-secondaire btn-sm"
+                                   href="{{ url_for('main.rapport', analyse_id=d.analyse_id) }}">Rapport</a>
+                                <form method="post"
+                                      action="{{ url_for('programmes.detacher', programme_id=v.programme.id, analyse_id=d.analyse_id) }}"
+                                      data-confirmer="Retirer ce document du programme ?">
+                                    <button class="btn btn-fantome btn-sm" type="submit">Retirer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- =================== Matrice notions × documents =================== -->
+    <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+        <div class="carte-entete">
+            <h2 class="carte-titre"><span class="ic">🔲</span> Matrice notions × documents</h2>
+            <span class="badge badge-neutre">{{ v.matrice.nb_lignes }} notions</span>
+        </div>
+        <p class="petit muet">
+            Chaque cellule est la probabilité de couverture de la notion par ce document.
+            Une ligne entièrement pâle est un trou réel du cursus ; une ligne à une seule
+            cellule forte signale une dépendance à un document unique.
+        </p>
+        <div class="tableau-enveloppe" style="margin-top:var(--sp-3);max-height:620px;overflow:auto">
+            <table class="tableau tableau-matrice">
+                <thead>
+                    <tr>
+                        <th style="min-width:220px">Notion attendue</th>
+                        <th style="min-width:90px">Référentiel</th>
+                        {% for d in v.matrice.documents %}
+                        <th style="text-align:center;min-width:78px" title="{{ d.document }}">
+                            {{ d.document[:14] }}{% if d.document | length > 14 %}…{% endif %}
+                        </th>
+                        {% endfor %}
+                        <th style="text-align:center;min-width:120px">Cursus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in v.matrice.lignes %}
+                    <tr>
+                        <td>{{ ligne.notion }}</td>
+                        <td class="petit muet">{{ ligne.pays }}</td>
+                        {% for c in ligne.cellules %}
+                        <td class="td-num cellule-matrice"
+                            style="--intensite:{{ c.probabilite }}"
+                            title="{{ (c.probabilite * 100) | round | int }} % — {{ c.statut }}">
+                            {{ (c.probabilite * 100) | round | int }}
+                        </td>
+                        {% endfor %}
+                        <td style="text-align:center">
+                            <span class="badge badge-{{ ligne.statut | classe_statut }}">{{ ligne.libelle_ecart }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- =================== Écarts réels =================== -->
+    <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+        <h2 class="carte-titre"><span class="ic">🚫</span> Notions non couvertes par le cursus</h2>
+        {% if v.agregat.notions_manquantes %}
+        <p class="petit muet">
+            Ces notions ne sont traitées par aucun document du programme. Ce sont les écarts
+            qui subsistent une fois le cursus considéré dans son ensemble.
+        </p>
+        <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+            <table class="tableau">
+                <thead>
+                    <tr><th>Notion</th><th>Référentiel</th><th style="text-align:right">Meilleure probabilité</th><th>Diagnostic</th></tr>
+                </thead>
+                <tbody>
+                    {% for n in v.agregat.notions_manquantes %}
+                    <tr>
+                        <td><strong>{{ n.notion }}</strong>
+                            {% if n.descriptif %}<br><span class="petit muet">{{ n.descriptif }}</span>{% endif %}</td>
+                        <td class="petit muet">{{ n.pays }}</td>
+                        <td class="td-num">{{ (n.probabilite_couverture * 100) | round | int }} %</td>
+                        <td><span class="badge badge-{{ n.statut | classe_statut }}">{{ n.libelle_ecart }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="vide" style="padding:var(--sp-5)">
+            <div class="vide-icone">✅</div>
+            Aucune notion du référentiel n'échappe au cursus.
+        </div>
+        {% endif %}
+    </section>
+
+    {% else %}
+    <section class="carte reveler" style="margin-bottom:var(--sp-5)">
+        <div class="vide" style="padding:var(--sp-6)">
+            <div class="vide-icone">📭</div>
+            {{ v.agregat.motif or "Aucune analyse agrégeable dans ce programme." }}
+            <p class="petit muet" style="margin-top:6px">
+                Rattachez au moins une analyse terminée pour voir la couverture du cursus.
+            </p>
+        </div>
+    </section>
+    {% endif %}
+
+    <div class="grille g-2-1" style="align-items:start">
+
+        <!-- Analyses écartées -->
+        <section class="carte reveler">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">⚖</span> Documents non agrégés</h2>
+                <span class="badge badge-{{ 'moyen' if v.nb_ecartees else 'neutre' }}">{{ v.nb_ecartees }}</span>
+            </div>
+            {% if v.analyses_ecartees %}
+            <p class="petit muet">
+                Ces documents sont rattachés au programme mais ne participent pas au calcul :
+                les agréger fabriquerait une couverture qui ne veut rien dire.
+            </p>
+            <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                <table class="tableau">
+                    <thead><tr><th>Document</th><th>Motif</th><th></th></tr></thead>
+                    <tbody>
+                        {% for a in v.analyses_ecartees %}
+                        <tr>
+                            <td>{{ a.nom_fichier }}
+                                <br><span class="petit muet">{{ a.matiere or '' }}{% if a.niveau %} · {{ a.niveau }}{% endif %}</span></td>
+                            <td><span class="badge badge-moyen">{{ a.motif_exclusion }}</span></td>
+                            <td>
+                                <form method="post"
+                                      action="{{ url_for('programmes.detacher', programme_id=v.programme.id, analyse_id=a.id) }}">
+                                    <button class="btn btn-fantome btn-sm" type="submit">Retirer</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="petit muet" style="margin-top:var(--sp-3)">
+                Tous les documents rattachés participent au calcul.
+            </p>
+            {% endif %}
+        </section>
+
+        <!-- Rattacher -->
+        <section class="carte reveler">
+            <h2 class="carte-titre"><span class="ic">➕</span> Rattacher un document</h2>
+            {% if v.rattachables %}
+            <form method="post" action="{{ url_for('programmes.rattacher', programme_id=v.programme.id) }}"
+                  style="margin-top:var(--sp-3)">
+                <div class="champ">
+                    <label class="etiquette-champ" for="analyse_id">Analyse terminée</label>
+                    <select class="saisie" id="analyse_id" name="analyse_id" required>
+                        {% for a in v.rattachables %}
+                        <option value="{{ a.id }}">
+                            {{ a.nom_fichier }} — {{ a.matiere }} — {{ a.date_creation }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn btn-primaire btn-bloc" type="submit">Rattacher au programme</button>
+            </form>
+            {% else %}
+            <div class="vide" style="padding:var(--sp-5)">
+                <div class="vide-icone">📄</div>
+                Aucune analyse disponible à rattacher.
+                <p class="petit muet" style="margin-top:6px">
+                    <a href="{{ url_for('main.accueil') }}">Déposer un cours</a> pour en produire une.
+                </p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

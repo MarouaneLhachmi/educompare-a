@@ -278,3 +278,192 @@ def tableau_de_bord_administrateur() -> dict:
         # atteint.
         "retours": database.compter_retours(),
     }
+
+
+# ---------------------------------------------------------------------------
+# Vue programme : du cours au cursus (phase 2.1 du plan de transition)
+# ---------------------------------------------------------------------------
+#
+# Un etablissement n'evalue pas un cours, il evalue un cursus. Ce bloc assemble
+# la vue d'un programme : quelles analyses sont agregeables, ce que donne leur
+# agregation, et surtout **quelles analyses ont ete ecartees et pourquoi**.
+#
+# Le tri est aussi important que l'agregation. Melanger deux versions de
+# referentiel, ou deux matieres, produirait une couverture flatteuse et fausse.
+# La regle de comparabilite est la meme qu'en phase 1.1 : meme matiere, meme
+# niveau, meme signature de referentiel que l'analyse la plus recente.
+
+MOTIFS_EXCLUSION = {
+    "non_terminee": "analyse non terminée",
+    "matiere": "matière ou niveau différent du programme",
+    "version": "version de référentiel différente",
+    "introuvable": "analyse supprimée depuis son rattachement",
+}
+
+
+def _cle_comparabilite(analyse: dict) -> tuple:
+    return (analyse.get("matiere"), analyse.get("niveau"))
+
+
+def _trier_analyses(programme: dict, analyses: list[dict]) -> tuple[list[dict], list[dict]]:
+    """
+    Separe les analyses agregeables de celles qui ne le sont pas.
+
+    **La matiere et le niveau viennent du programme lui-meme**, pas des
+    analyses. Les deduire de l'analyse la plus recente rendrait le perimetre
+    du cursus dependant de l'ordre des depots : rattacher un document de
+    sciences a un programme de mathematiques ecarterait les mathematiques.
+    Le programme declare ce qu'il est ; les documents s'y conforment ou non.
+
+    La version de referentiel, elle, n'est pas declarable a l'avance : elle
+    est celle de l'analyse retenue la plus recente, comme pour la trajectoire.
+    """
+    terminees = [a for a in analyses if a.get("statut") == "TERMINEE"]
+    ecartees = [
+        {**a, "motif_exclusion": MOTIFS_EXCLUSION["non_terminee"]}
+        for a in analyses if a.get("statut") != "TERMINEE"
+    ]
+    if not terminees:
+        return [], ecartees
+
+    terminees.sort(key=lambda a: str(a.get("date_creation_iso") or ""))
+
+    cle_programme = (programme.get("matiere"), programme.get("niveau"))
+    if not all(cle_programme):
+        # Programme cree sans matiere ni niveau : on se rabat sur l'analyse la
+        # plus recente, faute de mieux.
+        cle_programme = _cle_comparabilite(terminees[-1])
+
+    conformes = []
+    for analyse in terminees:
+        if _cle_comparabilite(analyse) == cle_programme:
+            conformes.append(analyse)
+        else:
+            ecartees.append({**analyse, "motif_exclusion": MOTIFS_EXCLUSION["matiere"]})
+
+    if not conformes:
+        return [], ecartees
+
+    version_reference = conformes[-1].get("referentiel_version")
+    retenues = []
+    for analyse in conformes:
+        if analyse.get("referentiel_version") != version_reference:
+            ecartees.append({**analyse, "motif_exclusion": MOTIFS_EXCLUSION["version"]})
+        else:
+            retenues.append(analyse)
+    return retenues, ecartees
+
+
+def _matrice_notions_documents(agregat: dict, documents: list[dict]) -> dict:
+    """
+    Matrice notions x documents : qui traite quoi, d'un coup d'oeil.
+
+    C'est la vue qui rend la repartition entre enseignants discutable — une
+    notion dont toutes les cellules sont faibles est un trou reel du cursus,
+    la ou une notion couverte par un seul document signale une dependance.
+    """
+    ordre = [d["analyse_id"] for d in documents]
+    lignes = []
+    for notion in agregat.get("notions", []):
+        par_analyse = {c["analyse_id"]: c for c in notion.get("contributeurs", [])}
+        lignes.append({
+            "notion": notion["notion"],
+            "cle_notion": notion["cle_notion"],
+            "pays": notion["pays"],
+            "code": notion["code"],
+            "statut": notion["statut"],
+            "libelle_ecart": notion["libelle_ecart"],
+            "probabilite": notion["probabilite_couverture"],
+            "cellules": [
+                {
+                    "analyse_id": analyse_id,
+                    "probabilite": (par_analyse.get(analyse_id) or {}).get("probabilite", 0.0),
+                    "statut": (par_analyse.get(analyse_id) or {}).get("statut", "Non couverte"),
+                }
+                for analyse_id in ordre
+            ],
+        })
+    return {
+        "documents": documents,
+        "lignes": lignes,
+        "nb_lignes": len(lignes),
+    }
+
+
+def vue_programme(programme: dict) -> dict:
+    """
+    Contexte d'affichage d'un programme : couverture agregee, matrice notions
+    x documents, apport de chaque document, et analyses ecartees avec motif.
+    """
+    from app.agents import agent6_comparaison
+
+    analyses = database.analyses_du_programme(programme)
+    identifiants_connus = {a.get("id") for a in analyses}
+    orphelines = [
+        {"id": identifiant, "nom_fichier": "—",
+         "motif_exclusion": MOTIFS_EXCLUSION["introuvable"]}
+        for identifiant in (programme.get("analyse_ids") or [])
+        if identifiant not in identifiants_connus
+    ]
+
+    retenues, ecartees = _trier_analyses(programme, analyses)
+    ecartees += orphelines
+
+    agregat = agent6_comparaison.agreger_programme(retenues)
+
+    documents = agregat.get("couverture_par_document", [])
+    matrice = _matrice_notions_documents(agregat, documents) if agregat.get("disponible") else {
+        "documents": [], "lignes": [], "nb_lignes": 0
+    }
+
+    # Gains de l'agregation : le nombre d'ecarts qui disparaissent une fois le
+    # cursus considere dans son ensemble. C'est l'argument central de cette
+    # vue — beaucoup d'ecarts d'un document isole n'en sont pas.
+    manquantes_isolees = sum(
+        (a.get("agent6") or {}).get("nb_notions_manquantes", 0) for a in retenues
+    )
+    manquantes_agregees = agregat.get("nb_notions_manquantes", 0)
+
+    reference = retenues[-1] if retenues else None
+    return {
+        "programme": programme,
+        "analyses": retenues,
+        "nb_analyses": len(retenues),
+        "analyses_ecartees": ecartees,
+        "nb_ecartees": len(ecartees),
+        "agregat": agregat,
+        "matrice": matrice,
+        "documents": documents,
+        "referentiel_version": (reference or {}).get("referentiel_version"),
+        "referentiel_officiel": bool((reference or {}).get("referentiel_officiel")),
+        "matiere": (reference or {}).get("matiere") or programme.get("matiere"),
+        "niveau": (reference or {}).get("niveau") or programme.get("niveau"),
+        "ecarts_resorbes": max(0, manquantes_isolees - manquantes_agregees),
+        "manquantes_cumulees_isolement": manquantes_isolees,
+        "note_moyenne": (
+            round(sum(float(a.get("resume_note_globale") or 0) for a in retenues)
+                  / len(retenues), 1)
+            if retenues else 0.0
+        ),
+        "enseignants": sorted({
+            d["enseignant"] for d in documents if d.get("enseignant")
+        }),
+    }
+
+
+def analyses_rattachables(programme: dict, utilisateur: dict | None) -> list[dict]:
+    """
+    Analyses que l'utilisateur peut ajouter a ce programme : les siennes (ou
+    toutes, s'il est administrateur), terminees, pas deja rattachees.
+    """
+    deja = set(programme.get("analyse_ids") or [])
+    if utilisateur and utilisateur.get("role") == "administrateur":
+        candidates = database.lister_analyses()
+    else:
+        candidates = database.lister_analyses(
+            utilisateur_id=(utilisateur or {}).get("id")
+        )
+    return [
+        a for a in candidates
+        if a.get("statut") == "TERMINEE" and a.get("id") not in deja
+    ]

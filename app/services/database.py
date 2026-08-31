@@ -428,3 +428,89 @@ def compter_retours() -> dict:
         "total": len(documents),
         "par_type": {t: par_type.get(t, 0) for t in sorted(TYPES_RETOUR)},
     }
+
+
+# ---------------------------------------------------------------------------
+# Depot : programmes (du cours au cursus, phase 2.1 du plan de transition)
+# ---------------------------------------------------------------------------
+#
+# Un programme regroupe les analyses des documents d'un meme cursus — les
+# chapitres d'une annee, repartis entre plusieurs enseignants. Il ne duplique
+# aucune donnee d'analyse : il n'en tient que la liste, et la couverture est
+# recalculee a la volee par l'Agent 6 en mode agrege.
+
+def _collection_programmes():
+    return get_db()["programmes"]
+
+
+def creer_programme(programme: dict) -> dict:
+    document = dict(programme)
+    document.setdefault("_id", str(uuid.uuid4()))
+    document.setdefault("id", uuid.uuid4().hex[:10])
+    document.setdefault("analyse_ids", [])
+    document.setdefault("date_creation", _maintenant())
+    _collection_programmes().insert_one(document)
+    return document
+
+
+def programme_par_id(programme_id: str) -> dict | None:
+    document = _collection_programmes().find_one({"id": programme_id})
+    if document:
+        document = dict(document)
+        document["_id"] = str(document.get("_id"))
+    return document
+
+
+def lister_programmes(utilisateur_id: str | None = None) -> list[dict]:
+    filtre = {"utilisateur_id": utilisateur_id} if utilisateur_id else {}
+    documents = [dict(d) for d in _collection_programmes().find(filtre)]
+    for d in documents:
+        d["_id"] = str(d.get("_id"))
+    documents.sort(key=lambda d: str(d.get("date_creation") or ""), reverse=True)
+    return documents
+
+
+def mettre_a_jour_programme(programme_id: str, champs: dict) -> None:
+    _collection_programmes().update_one({"id": programme_id}, {"$set": champs})
+
+
+def supprimer_programme(programme_id: str) -> bool:
+    """Ne supprime que le regroupement : les analyses lui survivent."""
+    return bool(_collection_programmes().delete_one({"id": programme_id}).deleted_count)
+
+
+def rattacher_analyse(programme_id: str, analyse_id: str) -> bool:
+    programme = programme_par_id(programme_id)
+    if programme is None:
+        return False
+    identifiants = list(programme.get("analyse_ids") or [])
+    if analyse_id in identifiants:
+        return False
+    identifiants.append(analyse_id)
+    mettre_a_jour_programme(programme_id, {"analyse_ids": identifiants})
+    return True
+
+
+def detacher_analyse(programme_id: str, analyse_id: str) -> bool:
+    programme = programme_par_id(programme_id)
+    if programme is None:
+        return False
+    identifiants = [i for i in (programme.get("analyse_ids") or []) if i != analyse_id]
+    if len(identifiants) == len(programme.get("analyse_ids") or []):
+        return False
+    mettre_a_jour_programme(programme_id, {"analyse_ids": identifiants})
+    return True
+
+
+def analyses_du_programme(programme: dict) -> list[dict]:
+    """
+    Analyses rattachees, dans l'ordre du programme. Les identifiants
+    orphelins — analyse supprimee depuis — sont ignores silencieusement ici ;
+    c'est la couche d'affichage qui les signale.
+    """
+    resultat = []
+    for analyse_id in (programme.get("analyse_ids") or []):
+        analyse = analyse_par_id(analyse_id)
+        if analyse is not None:
+            resultat.append(analyse)
+    return resultat
