@@ -18,33 +18,72 @@ d'interventions pedagogiques, chacune assortie de la theorie a ajouter, des
 exercices gradues correspondants, du critere de reussite, et de la
 trajectoire de maitrise prevue.
 
-Trois blocs strictement separes
---------------------------------
+Trois sources de priorisation, strictement separees
+----------------------------------------------------
 
-L'exigence de separation des sources structure toute la sortie de cet agent :
+L'exigence de separation des sources structure toute la sortie de cet agent.
+**Trois sources independantes** proposent chacune leur ordre de priorite, et
+chacune reste visible separement :
 
-1. `parcours_algorithmique` — **nos modeles seuls**, aucun modele de langage.
-   Le planificateur par renforcement (`services/rl_parcours`) decide *quoi*
-   traiter, *dans quel ordre*, *avec quel type d'activite*. La priorisation
-   est reproductible et defendable : elle decoule du profil de maitrise
-   mesure par l'Agent 7, du graphe de prerequis et de l'importance
-   internationale de chaque notion.
+1. `parcours_algorithmique` — **planificateur par renforcement**, nos modeles
+   seuls, aucun modele de langage. Le MDP + TD(0) de `services/rl_parcours`
+   decide *quoi* traiter, *dans quel ordre*, *avec quel type d'activite*. La
+   priorisation decoule du profil de maitrise mesure par l'Agent 7, du graphe
+   de prerequis et de l'importance internationale de chaque notion.
 
-2. `contenu_pedagogique` — **le modele de langage habille** ce parcours. Il
-   ne choisit rien : il recoit une etape deja decidee (notion, niveau de
-   Bloom vise, maitrise courante, prerequis) et redige la theorie et les
-   exercices correspondants.
+2. `parcours_graphe` — **ordonnancement par centralite**, nos modeles seuls
+   egalement, mais d'une nature radicalement differente. PageRank personnalise
+   (`services/graphe_parcours`) sur le graphe de prerequis inverse, pondere
+   par la gravite des ecarts.
 
 3. `recommandations_gemini` — **le modele de langage seul**, libre de ses
    propositions, sans aucune contrainte issue de nos modeles.
 
-Un quatrieme bloc, `confrontation`, compare les blocs 1 et 3 : les notions
-sur lesquelles les deux sources convergent constituent un diagnostic solide ;
-celles ou elles divergent sont explicitement signalees a l'arbitrage de
-l'enseignant. C'est cette confrontation qui donne sa valeur a la separation.
+Un quatrieme bloc, `contenu_pedagogique`, n'est pas une source : le modele de
+langage y **habille** le parcours du planificateur RL. Il ne choisit rien, il
+recoit des etapes deja decidees et redige la theorie et les exercices.
+
+Pourquoi deux algorithmes locaux, et non deux variantes du meme
+---------------------------------------------------------------
+
+    Planificateur RL (bloc 1)           Centralite de graphe (bloc 2)
+    ------------------------------      ------------------------------
+    Decision sequentielle sous          Analyse structurelle, statique
+    incertitude : MDP + TD(0)           PageRank, non supervise
+    « Quelle action maximise le         « Quelles notions debloquent le
+    gain cumule attendu ? »             plus d'autres notions ? »
+    Simule l'acquisition seance         Aucun modele d'eleve, aucune
+    apres seance (modele type BKT)      simulation temporelle
+    Entree decisive : maitrise          Entree decisive : topologie des
+    estimee + budget de seances         prerequis + gravite de l'ecart
+    Entraine sur un simulateur          Ne s'entraine sur rien : le score
+                                        se calcule, il ne s'apprend pas
+
+Les deux peuvent donc **diverger reellement**, et pas seulement par le bruit :
+le planificateur privilegie une notion grave dont la remediation rapporte
+immediatement, l'ordonnancement par graphe privilegie une notion peut-etre
+moins grave mais dont depend une grappe entiere du programme. Ce desaccord est
+l'information qu'une source unique ne peut pas produire.
+
+Le choix de PageRank tient aussi a la contrainte de donnees du projet : tres
+peu d'analyses, aucune etiquette de priorite produite par un humain. Un modele
+multi-criteres supervise aurait suppose des etiquettes inventees — exactement
+ce que le projet s'interdit. PageRank ne s'entraine sur rien, et le projet
+emploie deja cette famille d'algorithmes avec TextRank dans le module Rapport
+et Restitution.
+
+La confrontation a trois voix
+------------------------------
+
+`confrontation` compare desormais les trois sources. Une notion citee par les
+deux algorithmes locaux ET par le modele de langage constitue un diagnostic
+**particulierement solide** : trois methodes sans rien de commun dans leur
+raisonnement aboutissent au meme point. A l'inverse, une notion retenue par
+une seule source est signalee comme telle, a l'arbitrage de l'enseignant.
 
 Entree : sorties des Agents 2, 3, 4, 6 et 7 + notions de reference
-Sortie : parcours, contenu pedagogique, recommandations LLM, confrontation
+Sortie : deux parcours algorithmiques, contenu pedagogique, recommandations
+         LLM, confrontation a trois voix
 """
 
 import re
@@ -53,7 +92,9 @@ import unicodedata
 import numpy as np
 
 from app.config import Config
-from app.services import gemini_client, prerequis, reranking, rl_parcours
+from app.services import (
+    gemini_client, graphe_parcours, prerequis, reranking, rl_parcours,
+)
 
 # Seuil de similarite au-dela duquel deux notions de pays differents sont
 # considerees comme portant sur le meme apprentissage.
@@ -487,28 +528,19 @@ def _mots_cles(texte: str) -> set[str]:
     return {m for m in _normaliser(texte).split() if len(m) >= 5}
 
 
-def _confronter(parcours: dict, libres: dict) -> dict:
+def _apparier_gemini(intitules: set[str], libres: dict) -> dict:
     """
-    Compare les notions retenues par le planificateur et celles citees par le
-    modele de langage.
+    Rattache chaque recommandation du modele de langage a une notion.
 
-    L'appariement est lexical (recouvrement de mots significatifs) : c'est
+    L'appariement est lexical (recouvrement de mots significatifs) :
     volontairement simple et verifiable, l'objectif n'etant pas de trancher
-    mais de signaler ou les deux sources se rejoignent ou divergent.
+    mais de signaler ou les sources se rejoignent.
     """
-    notions_parcours = {e["notion"]: e for e in parcours.get("etapes", [])}
-    if not libres.get("disponible") or not notions_parcours:
-        return {
-            "disponible": False,
-            "convergences": [], "specifiques_algorithme": [], "specifiques_gemini": [],
-            "lecture": "Confrontation impossible : une des deux sources est indisponible.",
-        }
-
-    convergences, vues_gemini = [], set()
+    apparie: dict[str, dict] = {}
     for reco in libres.get("recommandations", []):
-        mots_reco = _mots_cles(reco["notion_visee"] + " " + reco["titre"])
+        mots_reco = _mots_cles(reco.get("notion_visee", "") + " " + reco.get("titre", ""))
         meilleure, score = None, 0.0
-        for intitule in notions_parcours:
+        for intitule in intitules:
             mots_notion = _mots_cles(intitule)
             if not mots_notion:
                 continue
@@ -516,45 +548,176 @@ def _confronter(parcours: dict, libres: dict) -> dict:
             if recouvrement > score:
                 meilleure, score = intitule, recouvrement
         if meilleure and score >= 0.34:
-            vues_gemini.add(meilleure)
-            convergences.append({
-                "notion": meilleure,
-                "recommandation_gemini": reco["titre"],
-                "intervention_algorithmique": notions_parcours[meilleure]["intervention_nom"],
-                "rang_parcours": notions_parcours[meilleure]["rang"],
-                "recouvrement": round(score, 2),
-            })
+            # Une notion peut etre visee par plusieurs recommandations : on
+            # garde la mieux appariee.
+            precedent = apparie.get(meilleure)
+            if precedent is None or score > precedent["recouvrement"]:
+                apparie[meilleure] = {"reco": reco, "recouvrement": round(score, 2)}
+    return apparie
 
-    specifiques_algorithme = [
-        {
-            "notion": intitule,
-            "rang": etape["rang"],
-            "intervention": etape["intervention_nom"],
-            "consensus": etape["consensus"],
+
+def _confronter(parcours: dict, parcours_graphe: dict, libres: dict) -> dict:
+    """
+    Confronte les TROIS sources de priorisation.
+
+    Le principe est le meme qu'auparavant — signaler ou les sources se
+    rejoignent et ou elles divergent — mais avec trois voix au lieu de deux,
+    ce qui change la lecture : un accord entre le planificateur par
+    renforcement, l'ordonnancement par graphe et le modele de langage est
+    bien plus fort qu'un accord entre deux sources seulement. Ces trois
+    methodes n'ont rien de commun dans leur raisonnement ; leur convergence
+    n'a donc pas d'explication triviale.
+    """
+    etapes_rl = {e["notion"]: e for e in (parcours.get("etapes") or [])}
+    etapes_graphe = {e["notion"]: e for e in (parcours_graphe.get("etapes") or [])}
+    gemini_disponible = bool(libres.get("disponible"))
+
+    sources_actives = sum([bool(etapes_rl), bool(etapes_graphe), gemini_disponible])
+    if sources_actives < 2:
+        return {
+            "disponible": False,
+            "nb_sources": sources_actives,
+            "accords_complets": [], "accords_partiels": [], "isolees": [],
+            "convergences": [], "specifiques_algorithme": [], "specifiques_gemini": [],
+            "lecture": "Confrontation impossible : moins de deux sources disponibles.",
         }
-        for intitule, etape in notions_parcours.items() if intitule not in vues_gemini
-    ]
-    specifiques_gemini = [
-        {"titre": r["titre"], "notion_visee": r["notion_visee"], "priorite": r["priorite"]}
-        for r in libres.get("recommandations", [])
-        if not any(c["recommandation_gemini"] == r["titre"] for c in convergences)
-    ]
 
-    total = len(notions_parcours) or 1
-    taux = len(convergences) / total
+    intitules = set(etapes_rl) | set(etapes_graphe)
+    apparie = _apparier_gemini(intitules, libres) if gemini_disponible else {}
+
+    accords_complets, accords_partiels, isolees = [], [], []
+    for intitule in sorted(intitules):
+        rl = etapes_rl.get(intitule)
+        graphe = etapes_graphe.get(intitule)
+        gemini = apparie.get(intitule)
+
+        sources = []
+        if rl:
+            sources.append("planificateur")
+        if graphe:
+            sources.append("graphe")
+        if gemini:
+            sources.append("gemini")
+
+        entree = {
+            "notion": intitule,
+            "sources": sources,
+            "nb_sources": len(sources),
+            "rang_planificateur": rl["rang"] if rl else None,
+            "rang_graphe": graphe["rang"] if graphe else None,
+            "intervention_planificateur": rl["intervention_nom"] if rl else None,
+            "intervention_graphe": graphe["intervention_nom"] if graphe else None,
+            "centralite": graphe.get("centralite") if graphe else None,
+            "nb_notions_dependantes": graphe.get("nb_notions_dependantes") if graphe else None,
+            "recommandation_gemini": gemini["reco"].get("titre") if gemini else None,
+            "recouvrement": gemini["recouvrement"] if gemini else None,
+            "ecart_de_rang": (
+                abs(rl["rang"] - graphe["rang"]) if rl and graphe else None
+            ),
+        }
+
+        # Un accord est « complet » quand TOUTES les sources disponibles
+        # retiennent la notion — pas seulement deux d'entre trois.
+        if len(sources) == sources_actives:
+            accords_complets.append(entree)
+        elif len(sources) >= 2:
+            accords_partiels.append(entree)
+        else:
+            isolees.append(entree)
+
+    # Les deux algorithmes locaux sont comparables rang a rang : le modele de
+    # langage, lui, ne produit pas d'ordre exploitable.
+    communes_locales = [
+        e for e in accords_complets + accords_partiels
+        if e["rang_planificateur"] is not None and e["rang_graphe"] is not None
+    ]
+    ecart_moyen = (
+        round(sum(e["ecart_de_rang"] for e in communes_locales) / len(communes_locales), 1)
+        if communes_locales else None
+    )
+
+    specifiques_gemini = [
+        {"titre": r.get("titre"), "notion_visee": r.get("notion_visee"),
+         "priorite": r.get("priorite")}
+        for r in libres.get("recommandations", [])
+        if not any(v["reco"] is r for v in apparie.values())
+    ] if gemini_disponible else []
+
+    total = len(intitules) or 1
+    taux_complet = len(accords_complets) / total
+
+    if taux_complet >= 0.35:
+        lecture = (
+            f"{len(accords_complets)} notion(s) sont retenues par les "
+            f"{sources_actives} sources : sur celles-ci le diagnostic est "
+            "particulièrement solide, trois méthodes sans rien de commun dans "
+            "leur raisonnement aboutissant au même point."
+        )
+    elif accords_complets:
+        lecture = (
+            f"Seules {len(accords_complets)} notion(s) font l'unanimité des "
+            f"{sources_actives} sources. Les autres relèvent de l'arbitrage : "
+            "les sources ne mesurent pas la même chose."
+        )
+    else:
+        lecture = (
+            "Aucune notion ne fait l'unanimité des sources. Le désaccord est "
+            "lui-même une information : il signale un cours dont les priorités "
+            "dépendent fortement du critère retenu."
+        )
+
     return {
         "disponible": True,
-        "convergences": convergences,
-        "specifiques_algorithme": specifiques_algorithme,
+        "nb_sources": sources_actives,
+        "sources": {
+            "planificateur": bool(etapes_rl),
+            "graphe": bool(etapes_graphe),
+            "gemini": gemini_disponible,
+        },
+        "accords_complets": accords_complets,
+        "accords_partiels": accords_partiels,
+        "isolees": isolees,
+        "nb_accords_complets": len(accords_complets),
+        "taux_accord_complet_pct": round(100 * taux_complet, 1),
+        "ecart_moyen_de_rang_entre_algorithmes": ecart_moyen,
         "specifiques_gemini": specifiques_gemini,
-        "taux_convergence_pct": round(100 * taux, 1),
-        "lecture": (
-            "Les deux sources se rejoignent largement : le diagnostic est solide."
-            if taux >= 0.5 else
-            "Les deux sources divergent nettement : les points ci-dessous méritent "
-            "l'arbitrage d'un enseignant."
+        "lecture": lecture,
+        "methode": (
+            "appariement lexical sur les mots significatifs des intitulés ; "
+            "les deux parcours algorithmiques sont comparés par leur intitulé exact"
         ),
-        "methode": "appariement lexical sur les mots significatifs des intitulés",
+        # --- Compatibilite ascendante ------------------------------------
+        # L'export PDF et les tests existants consomment ces trois cles ;
+        # elles restent alimentees avec la lecture a deux voix
+        # (algorithmes locaux contre modele de langage).
+        "convergences": [
+            {
+                "notion": e["notion"],
+                "recommandation_gemini": e["recommandation_gemini"],
+                "intervention_algorithmique": (
+                    e["intervention_planificateur"] or e["intervention_graphe"]
+                ),
+                "rang_parcours": e["rang_planificateur"] or e["rang_graphe"],
+                "recouvrement": e["recouvrement"],
+            }
+            for e in accords_complets + accords_partiels
+            if e["recommandation_gemini"]
+        ],
+        "specifiques_algorithme": [
+            {
+                "notion": e["notion"],
+                "rang": e["rang_planificateur"] or e["rang_graphe"],
+                "intervention": e["intervention_planificateur"] or e["intervention_graphe"],
+                "consensus": (etapes_rl.get(e["notion"]) or
+                              etapes_graphe.get(e["notion"], {})).get("consensus"),
+            }
+            for e in accords_partiels + isolees
+            if not e["recommandation_gemini"]
+        ],
+        "taux_convergence_pct": round(
+            100 * len([e for e in accords_complets + accords_partiels
+                       if e["recommandation_gemini"]]) / total, 1
+        ),
     }
 
 
@@ -579,17 +742,34 @@ def process(agent2: dict, agent3: dict, agent4: dict, agent6: dict, agent7: dict
         max_etapes=max_etapes,
     )
 
-    # --- Bloc 2 : contenu pedagogique redige ------------------------------
+    # --- Source 2 : ordonnancement par centralite de graphe ---------------
+    # Deuxieme algorithme local, calcule sur le MEME etat et le MEME graphe
+    # que le planificateur, mais selon une logique sans rapport : PageRank
+    # mesure l'effet de levier structurel d'une notion, la ou le planificateur
+    # optimise un gain d'apprentissage simule. Leur desaccord est informatif.
+    # Il ne leve jamais : un echec ici ne doit pas priver l'analyse du reste.
+    try:
+        parcours_graphe = graphe_parcours.planifier(etat, graphe, max_etapes=max_etapes)
+    except Exception as exc:  # pragma: no cover - filet de securite
+        parcours_graphe = {
+            "disponible": False,
+            "motif": f"ordonnancement par graphe indisponible : {str(exc)[:120]}",
+            "etapes": [], "nb_etapes": 0,
+        }
+
+    # --- Contenu pedagogique redige ---------------------------------------
+    # Il continue de porter sur le parcours du planificateur, comme avant :
+    # habiller deux parcours doublerait le cout sans rien clarifier.
     contenu = _rediger_contenu(
         parcours, agent2, matiere, niveau, Config.PARCOURS_ETAPES_REDIGEES
     )
     coherence = _verifier_coherence(contenu, parcours)
 
-    # --- Bloc 3 : recommandations libres ----------------------------------
+    # --- Source 3 : recommandations libres --------------------------------
     libres = _recommandations_libres(agent2, agent6, agent7, matiere, niveau)
 
-    # --- Bloc 4 : confrontation -------------------------------------------
-    confrontation = _confronter(parcours, libres)
+    # --- Confrontation des trois sources ----------------------------------
+    confrontation = _confronter(parcours, parcours_graphe, libres)
 
     # --- Vue compatible avec l'existant -----------------------------------
     # Le rapport et l'export PDF consomment historiquement une liste plate de
@@ -615,6 +795,27 @@ def process(agent2: dict, agent3: dict, agent4: dict, agent6: dict, agent7: dict
 
     return {
         "parcours_algorithmique": parcours,
+        "parcours_graphe": parcours_graphe,
+        "moteurs_locaux": [
+            {
+                "cle": "parcours_algorithmique",
+                "nom": "Planificateur par renforcement",
+                "algorithme": parcours.get("moteur", "politique apprise"),
+                "nature": "Apprentissage par renforcement (MDP + TD(0))",
+                "disponible": bool(parcours.get("disponible")),
+                "nb_etapes": parcours.get("nb_etapes", 0),
+                "question": "Quelle action maximise le gain d'apprentissage cumulé ?",
+            },
+            {
+                "cle": "parcours_graphe",
+                "nom": "Ordonnancement par centralité",
+                "algorithme": parcours_graphe.get("moteur", ""),
+                "nature": "Analyse structurelle de graphe (non supervisée)",
+                "disponible": bool(parcours_graphe.get("disponible")),
+                "nb_etapes": parcours_graphe.get("nb_etapes", 0),
+                "question": "Quelles notions débloquent le plus d'autres notions ?",
+            },
+        ],
         "contenu_pedagogique": contenu,
         "controle_coherence": coherence,
         "recommandations_gemini": libres,

@@ -218,6 +218,11 @@ def build_report_context(analyse: dict) -> dict:
     contenu = agent8.get("contenu_pedagogique") or {}
     contexte["parcours"] = parcours
     contexte["parcours_disponible"] = bool(parcours.get("disponible"))
+    # Deuxieme source locale : ordonnancement par centralite de graphe.
+    parcours_graphe = agent8.get("parcours_graphe") or {}
+    contexte["parcours_graphe"] = parcours_graphe
+    contexte["parcours_graphe_disponible"] = bool(parcours_graphe.get("disponible"))
+    contexte["moteurs_locaux"] = agent8.get("moteurs_locaux", [])
     contexte["contenu_pedagogique"] = contenu
     contexte["controle_coherence"] = agent8.get("controle_coherence", {})
     contexte["recommandations_gemini"] = agent8.get("recommandations_gemini", {})

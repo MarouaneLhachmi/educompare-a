@@ -112,7 +112,7 @@
         <button class="onglet actif" data-onglet="plan" type="button">🎯 Plan d'amélioration</button>
         <button class="onglet" data-onglet="comparaison" type="button">⚖️ Comparaison</button>
         <button class="onglet" data-onglet="evaluation" type="button">📊 Évaluation</button>
-        <button class="onglet" data-onglet="sources" type="button">🤝 Les deux sources</button>
+        <button class="onglet" data-onglet="sources" type="button">🤝 Les trois sources</button>
         <button class="onglet" data-onglet="structure" type="button">📄 Structure du cours</button>
         <button class="onglet" data-onglet="technique" type="button">🧩 Traçabilité</button>
     </div>
@@ -865,13 +865,31 @@
     <section class="panneau" data-panneau="sources">
 
         <div class="carte reveler" style="margin-bottom:var(--sp-5)">
-            <h2 class="carte-titre"><span class="ic">🤝</span> Deux sources indépendantes</h2>
+            <h2 class="carte-titre"><span class="ic">🤝</span> Trois sources indépendantes</h2>
             <p class="petit muet">
-                Les recommandations proviennent de deux origines délibérément séparées. À gauche,
-                nos modèles décident seuls, sans texte généré. À droite, le modèle de langage
-                propose librement, sans contrainte issue de nos calculs. Les confronter permet de
-                distinguer ce qui est solide de ce qui mérite un arbitrage humain.
+                Les recommandations proviennent de trois origines délibérément séparées : deux
+                algorithmes locaux qui ne raisonnent pas de la même façon, et le modèle de langage
+                livré à lui-même. Une notion retenue par les trois constitue un diagnostic
+                particulièrement solide — trois méthodes sans rien de commun aboutissent au même
+                point. Une notion retenue par une seule relève de l'arbitrage.
             </p>
+
+            {% if r.moteurs_locaux %}
+            <div class="grille g-2" style="margin-top:var(--sp-4);gap:var(--sp-3)">
+                {% for m in r.moteurs_locaux %}
+                <div class="carte" style="background:var(--surface-2);box-shadow:none;padding:var(--sp-4)">
+                    <div class="ligne-espace" style="margin-bottom:4px">
+                        <strong class="petit">{{ m.nom }}</strong>
+                        <span class="badge badge-{{ 'ok' if m.disponible else 'moyen' }}">
+                            {{ m.nb_etapes }} étape(s)
+                        </span>
+                    </div>
+                    <p class="petit muet" style="margin:0">{{ m.nature }}</p>
+                    <p class="petit" style="margin:6px 0 0;font-style:italic">« {{ m.question }} »</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
             {% if r.confrontation.disponible %}
             <div class="ligne-espace" style="margin-top:var(--sp-4)">
@@ -879,23 +897,135 @@
                     <div class="jauge jauge-sm" style="width:84px;height:84px">
                         <svg viewBox="0 0 160 160">
                             <circle class="jauge-piste" cx="80" cy="80" r="66"></circle>
-                            <circle class="jauge-valeur" cx="80" cy="80" r="66" data-jauge="{{ r.confrontation.taux_convergence_pct }}"></circle>
+                            <circle class="jauge-valeur" cx="80" cy="80" r="66" data-jauge="{{ r.confrontation.taux_accord_complet_pct }}"></circle>
                         </svg>
-                        <div class="jauge-contenu"><div class="jauge-nombre" style="font-size:1.1rem">{{ r.confrontation.taux_convergence_pct }}%</div></div>
+                        <div class="jauge-contenu"><div class="jauge-nombre" style="font-size:1.1rem">{{ r.confrontation.taux_accord_complet_pct }}%</div></div>
                     </div>
                     <div>
-                        <strong class="petit">Taux de convergence</strong>
+                        <strong class="petit">Accord des {{ r.confrontation.nb_sources }} sources actives</strong>
                         <p class="petit muet" style="margin:4px 0 0;max-width:520px">{{ r.confrontation.lecture }}</p>
+                        {% if r.confrontation.ecart_moyen_de_rang_entre_algorithmes is not none %}
+                        <p class="aide" style="margin-top:6px">
+                            Sur les notions retenues par les deux algorithmes locaux, l'écart moyen
+                            de rang est de {{ r.confrontation.ecart_moyen_de_rang_entre_algorithmes }}
+                            place(s) : ils s'accordent sur la notion, pas sur son urgence.
+                        </p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             {% endif %}
         </div>
 
+        <!-- Notions faisant l'unanimité -->
+        {% if r.confrontation.accords_complets %}
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">✅</span> Diagnostic particulièrement solide</h2>
+                <span class="badge badge-ok">{{ r.confrontation.nb_accords_complets }} notion(s)</span>
+            </div>
+            <p class="petit muet">
+                Retenues par l'ensemble des sources actives. Leur convergence n'a pas
+                d'explication triviale : ces méthodes ne partagent ni leurs entrées décisives,
+                ni leur façon de raisonner.
+            </p>
+            <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                <table class="tableau">
+                    <thead>
+                        <tr>
+                            <th>Notion</th>
+                            <th style="text-align:right">Rang planificateur</th>
+                            <th style="text-align:right">Rang graphe</th>
+                            <th style="text-align:right">Notions dépendantes</th>
+                            <th>Vue par</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in r.confrontation.accords_complets %}
+                        <tr>
+                            <td><strong>{{ a.notion }}</strong>
+                                {% if a.recommandation_gemini %}
+                                <br><span class="petit muet">Gemini : {{ a.recommandation_gemini[:70] }}</span>
+                                {% endif %}</td>
+                            <td class="td-num">{{ a.rang_planificateur if a.rang_planificateur else '—' }}</td>
+                            <td class="td-num">{{ a.rang_graphe if a.rang_graphe else '—' }}</td>
+                            <td class="td-num">{{ a.nb_notions_dependantes if a.nb_notions_dependantes is not none else '—' }}</td>
+                            <td>
+                                {% for source in a.sources %}
+                                <span class="badge badge-neutre">{{ source }}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Parcours par centralité de graphe -->
+        <div class="carte reveler" style="margin-bottom:var(--sp-5)">
+            <div class="carte-entete">
+                <h2 class="carte-titre"><span class="ic">🕸️</span> Parcours par centralité de graphe</h2>
+                {% if r.parcours_graphe_disponible %}
+                <span class="badge badge-neutre">{{ r.parcours_graphe.moteur }}</span>
+                {% endif %}
+            </div>
+            {% if r.parcours_graphe_disponible %}
+            <p class="petit muet">
+                Deuxième algorithme local, sans apprentissage : PageRank mesure l'effet de levier
+                d'une notion sur le reste du programme. Une notion très centrale conditionne
+                plusieurs autres — la traiter en premier débloque une grappe entière, même si son
+                écart n'est pas le plus grave.
+            </p>
+            <div class="tableau-enveloppe" style="margin-top:var(--sp-3)">
+                <table class="tableau">
+                    <thead>
+                        <tr>
+                            <th style="text-align:right">Rang</th>
+                            <th>Notion</th>
+                            <th>Intervention</th>
+                            <th style="text-align:right">Centralité</th>
+                            <th style="text-align:right">En dépendent</th>
+                            <th>Justification</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in r.parcours_graphe.etapes %}
+                        <tr>
+                            <td class="td-num">{{ e.rang }}</td>
+                            <td><strong>{{ e.notion }}</strong>
+                                <br><span class="petit muet">{{ e.pays }}</span></td>
+                            <td class="petit">{{ e.intervention_nom }}</td>
+                            <td class="td-num">{{ '%.3f' % e.centralite }}</td>
+                            <td class="td-num">
+                                <span class="badge badge-{{ 'info' if e.nb_notions_dependantes else 'neutre' }}">
+                                    {{ e.nb_notions_dependantes }}
+                                </span>
+                            </td>
+                            <td class="petit muet">{{ e.justification }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="aide" style="margin-top:var(--sp-3)">
+                Amortissement {{ r.parcours_graphe.parametres.amortissement }} ·
+                centralité pondérée à {{ (r.parcours_graphe.parametres.poids_centralite * 100) | round }} %
+                contre {{ (r.parcours_graphe.parametres.poids_gravite * 100) | round }} % pour la gravité de l'écart ·
+                graphe de {{ r.parcours_graphe.graphe.nb_aretes }} arêtes.
+            </p>
+            {% else %}
+            <p class="petit muet">
+                {{ r.parcours_graphe.motif or "Ordonnancement par graphe indisponible pour cette analyse." }}
+            </p>
+            {% endif %}
+        </div>
+
         <div class="deux-sources reveler" style="margin-bottom:var(--sp-5)">
             <!-- Colonne algorithmique -->
             <div class="source-algo">
-                <div class="source-entete"><span>⚙️</span> Nos modèles — parcours planifié</div>
+                <div class="source-entete"><span>⚙️</span> Planificateur par renforcement</div>
                 {% if r.parcours_disponible %}
                 <p class="petit muet">
                     {{ r.parcours.nb_etapes }} étapes décidées par apprentissage par renforcement.
@@ -950,7 +1080,7 @@
 
         {% if r.confrontation.disponible %}
         <div class="carte reveler" style="margin-bottom:var(--sp-5)">
-            <h2 class="carte-titre"><span class="ic">🔗</span> Où les deux sources se rejoignent</h2>
+            <h2 class="carte-titre"><span class="ic">🔗</span> Où les sources se rejoignent</h2>
             {% if r.confrontation.convergences %}
             <div style="margin-top:var(--sp-3)">
                 {% for c in r.confrontation.convergences %}
@@ -966,7 +1096,7 @@
             {% else %}
             <div class="vide" style="padding:var(--sp-5)">
                 <div class="vide-icone">🔀</div>
-                Aucune convergence détectée : les deux sources traitent des aspects différents.
+                Aucune convergence détectée : les sources traitent des aspects différents.
             </div>
             {% endif %}
 
