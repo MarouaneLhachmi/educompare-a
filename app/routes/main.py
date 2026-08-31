@@ -231,6 +231,36 @@ def rapport_pdf(analyse_id):
     return send_file(chemin, as_attachment=True, download_name=nom)
 
 
+@bp.route("/rapport/<analyse_id>/annexe")
+def rapport_annexe(analyse_id):
+    """
+    Annexe d'accreditation (plan de transition, phase 2.3).
+
+    Sortie distincte du rapport complet : releve notion par notion, preuve,
+    provenance et angles morts declares, sans aucune phrase generee.
+    """
+    analyse = database.analyse_par_id(analyse_id)
+    if analyse is None:
+        abort(404)
+    if not module_auth_securite.peut_consulter_analyse(analyse):
+        abort(403)
+    if analyse.get("statut") != "TERMINEE":
+        flash("L'annexe n'est disponible qu'une fois l'analyse terminée.", "error")
+        return redirect(url_for("main.suivi", analyse_id=analyse_id))
+
+    chemin = os.path.join(Config.OUTPUT_FOLDER, f"annexe_{analyse_id}.pdf")
+    try:
+        module_rapport_restitution.export_annexe_accreditation(analyse, chemin)
+    except Exception as exc:
+        current_app.logger.exception("Echec de generation de l'annexe : %s", exc)
+        flash("La génération de l'annexe a échoué. Le rapport reste consultable en ligne.",
+              "error")
+        return redirect(url_for("main.rapport", analyse_id=analyse_id))
+
+    nom = f"EduCompare_annexe_accreditation_{analyse_id}.pdf"
+    return send_file(chemin, as_attachment=True, download_name=nom)
+
+
 @bp.route("/rapport/<analyse_id>/retour", methods=["POST"])
 def deposer_retour(analyse_id):
     """

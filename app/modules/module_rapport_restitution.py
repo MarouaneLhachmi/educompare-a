@@ -1119,3 +1119,338 @@ def export_pdf(analyse: dict, output_path: str) -> str:
 
     pdf.output(output_path)
     return output_path
+
+
+# ---------------------------------------------------------------------------
+# 3. Annexe d'accreditation (plan de transition, phase 2.3)
+# ---------------------------------------------------------------------------
+#
+# Le rapport complet est un document de travail : il interprete, il hierarchise,
+# il recommande, et il emprunte la voix d'un modele de langage pour le faire.
+# Un comite d'accreditation n'a pas besoin de cela. Il a besoin de verifier une
+# affirmation : cette notion est-elle traitee, sur quelle preuve, avec quelle
+# marge d'erreur, et contre quelle version de quel referentiel.
+#
+# D'ou un second export, volontairement austere. Il ne contient aucune phrase
+# generee, aucun classement, aucune recommandation. Il expose le releve, sa
+# provenance, et surtout **ce que le systeme n'a pas tranche** : une annexe
+# opposable se juge autant sur ce qu'elle refuse d'affirmer que sur ce qu'elle
+# affirme.
+
+# Largeurs des colonnes du releve, en millimetres (190 mm utiles en A4).
+COLONNES_RELEVE = (52, 32, 14, 14, 78)
+
+
+class AnnexePDF(RapportPDF):
+    """Meme mise en page que le rapport, en-tete distinct."""
+
+    def header(self):
+        if self.page_no() == 1:
+            return
+        self.set_font("Helvetica", "B", 9)
+        self.set_text_color(*BLEU_NUIT)
+        self.cell(0, 8, "Annexe d'accreditation", align="L")
+        self.set_font("Helvetica", "", 8)
+        self.set_text_color(*GRIS)
+        self.cell(0, 8, _nettoyer(f"Analyse {self.analyse.get('id', '')}"), align="R",
+                  new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        self.set_draw_color(*GRIS_CLAIR)
+        self.line(10, self.get_y(), 200, self.get_y())
+        self.ln(4)
+
+
+def _annexe_champ(pdf: AnnexePDF, libelle: str, valeur: str) -> None:
+    """Ligne « libelle : valeur » du bloc d'identification."""
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_text_color(*GRIS)
+    pdf.cell(56, 5.6, _nettoyer(libelle))
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_text_color(30, 30, 30)
+    pdf.multi_cell(0, 5.6, _nettoyer(valeur), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+
+def _annexe_encadre(pdf: AnnexePDF, titre: str, lignes: list[str],
+                    couleur=GRIS_CLAIR) -> None:
+    """Bloc encadre : sert aux avertissements de portee."""
+    pdf.ln(2)
+    pdf.set_fill_color(*couleur)
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_text_color(*BLEU_NUIT)
+    pdf.multi_cell(0, 6, _nettoyer(f"  {titre}"), fill=True,
+                   new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_font("Helvetica", "", 8.5)
+    pdf.set_text_color(40, 40, 40)
+    for ligne in lignes:
+        pdf.multi_cell(0, 4.6, _nettoyer(f"  {ligne}"), fill=True,
+                       new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.multi_cell(0, 2, "", fill=True, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(3)
+
+
+def _annexe_page_de_garde(pdf: AnnexePDF, analyse: dict) -> None:
+    agent6 = analyse.get("agent6") or {}
+    agent9 = analyse.get("agent9") or {}
+    officiel = bool(analyse.get("referentiel_officiel"))
+
+    pdf.add_page()
+    pdf.ln(6)
+    pdf.set_font("Helvetica", "B", 20)
+    pdf.set_text_color(*BLEU_NUIT)
+    pdf.multi_cell(0, 10, "Annexe d'accreditation", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_font("Helvetica", "", 10.5)
+    pdf.set_text_color(*GRIS)
+    pdf.multi_cell(0, 5.5, _nettoyer(
+        "Releve notion par notion : decision, marge, preuve textuelle et provenance."
+    ), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.ln(6)
+
+    pdf.set_draw_color(*GRIS_CLAIR)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(5)
+
+    _annexe_champ(pdf, "Document analyse", analyse.get("nom_fichier", "-"))
+    _annexe_champ(pdf, "Matiere et niveau vises",
+                  f"{analyse.get('matiere', '-')} - {analyse.get('niveau', '-')}")
+    _annexe_champ(pdf, "Reference de l'analyse", analyse.get("id", "-"))
+    _annexe_champ(pdf, "Analyse executee le", analyse.get("date_creation", "-"))
+    _annexe_champ(pdf, "Annexe editee le",
+                  datetime.now().strftime("%d/%m/%Y a %H:%M"))
+    pdf.ln(3)
+
+    _annexe_champ(pdf, "Socle de connaissances",
+                  analyse.get("referentiel_version") or "version non tracee")
+    _annexe_champ(pdf, "Nature du socle",
+                  "texte officiel releve a la source et relu"
+                  if officiel else
+                  "jeu RECONSTITUE - paraphrase des grandes lignes des programmes")
+    _annexe_champ(pdf, "Notions du referentiel",
+                  str(analyse.get("nb_notions_referentiel", "-")))
+    fiabilite = agent9.get("fiabilite") or {}
+    if fiabilite.get("niveau_confiance_pct") is not None:
+        _annexe_champ(pdf, "Confiance declaree par le systeme",
+                      f"{fiabilite['niveau_confiance_pct']} %")
+    seuils = (agent6.get("decision") or {}).get("seuils") or {}
+    if seuils:
+        _annexe_champ(pdf, "Seuils de decision appliques",
+                      f"couverte >= {seuils.get('couverte')}   |   "
+                      f"partielle >= {seuils.get('partielle')}")
+
+    lignes_portee = [
+        "Ce document restitue des mesures, pas un avis. Il n'ordonne pas les",
+        "referentiels entre eux, ne recommande rien, et ne contient aucune phrase",
+        "redigee par un modele de langage.",
+        "",
+        "Les decisions ci-apres proviennent d'une comparaison semantique",
+        "automatisee. Elles constituent une aide a l'instruction d'un dossier et",
+        "ne se substituent ni au jugement d'un enseignant, ni a celui d'un comite.",
+    ]
+    if not officiel:
+        lignes_portee += [
+            "",
+            "AVERTISSEMENT : les referentiels utilises sont un jeu reconstitue a",
+            "vocation de demonstration, et non le texte officiel des programmes.",
+            "Aucune conclusion opposable ne peut en etre tiree en l'etat.",
+        ]
+    _annexe_encadre(pdf, "Portee et limites de ce document", lignes_portee,
+                    couleur=(255, 244, 230) if not officiel else GRIS_CLAIR)
+
+
+def _annexe_releve_par_pays(pdf: AnnexePDF, pays: dict) -> None:
+    """Tableau du releve pour un referentiel, notion par notion."""
+    from fpdf.fonts import FontFace
+
+    pdf.ln(1)
+    _sous_titre(pdf, f"{pays.get('pays', pays.get('code', '-'))} - "
+                     f"{pays.get('referentiel', '')}")
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_text_color(*GRIS)
+    pdf.multi_cell(0, 4.4, _nettoyer(
+        f"Version du socle : {pays.get('version', 'non tracee')}   |   "
+        f"{pays.get('nb_notions', 0)} notions   |   "
+        f"{pays.get('nb_couvertes', 0)} couvertes, "
+        f"{pays.get('nb_partielles', 0)} partielles, "
+        f"{pays.get('nb_manquantes', 0)} non couvertes"
+    ), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(1.5)
+
+    pdf.set_font("Helvetica", "", 7.4)
+    entete = FontFace(emphasis="BOLD", color=(255, 255, 255), fill_color=BLEU_NUIT)
+
+    with pdf.table(col_widths=COLONNES_RELEVE,
+                   text_align=("LEFT", "LEFT", "CENTER", "CENTER", "LEFT"),
+                   headings_style=entete, line_height=4.2,
+                   first_row_as_headings=True, repeat_headings=1,
+                   borders_layout="MINIMAL") as tableau:
+        ligne = tableau.row()
+        for intitule in ("Notion attendue", "Decision", "Prob.", "Mat.",
+                         "Preuve relevee dans le document"):
+            ligne.cell(intitule)
+
+        for notion in pays.get("notions", []):
+            couleur = COULEURS_STATUT.get(notion.get("statut"), GRIS)
+            extrait = (notion.get("extrait_correspondant") or "")[:150]
+            chapitre = notion.get("chapitre_correspondant")
+            if chapitre:
+                page = notion.get("page_correspondante")
+                localisation = str(chapitre) + (f" (p. {page})" if page else "")
+                preuve = f"{localisation} : « {extrait} »"
+            else:
+                preuve = "aucun passage du document n'a ete retenu"
+
+            ligne = tableau.row()
+            ligne.cell(_nettoyer(notion.get("notion", "-")))
+            ligne.cell(_nettoyer(notion.get("libelle_ecart") or notion.get("statut", "-")),
+                       style=FontFace(color=couleur))
+            ligne.cell(f"{round(100 * float(notion.get('probabilite_couverture') or 0))} %")
+            ligne.cell(f"{round(100 * float(notion.get('suffisance') or 0))} %")
+            ligne.cell(_nettoyer(preuve))
+    pdf.ln(3)
+
+
+def _annexe_non_tranche(pdf: AnnexePDF, analyse: dict) -> None:
+    """
+    Ce que le systeme n'a pas tranche. Section volontairement placee avant la
+    provenance technique : une annexe opposable doit rendre ses angles morts
+    aussi visibles que ses resultats.
+    """
+    agent6 = analyse.get("agent6") or {}
+    agent9 = analyse.get("agent9") or {}
+
+    pdf.add_page()
+    _titre_section(pdf, "2", "Ce que le systeme n'a pas tranche")
+
+    zone = (agent6.get("decision") or {}).get("zone_incertitude") or []
+    incertaines = agent6.get("notions_incertaines") or []
+    _paragraphe(pdf, (
+        "Les notions ci-dessous se situent dans la zone d'incertitude du modele "
+        + (f"(probabilite comprise entre {zone[0]} et {zone[1]}). " if len(zone) == 2 else ". ")
+        + "Le systeme declare ne pas savoir conclure : elles appellent une "
+          "verification humaine et ne doivent etre comptees ni comme couvertes, "
+          "ni comme manquantes."
+    ))
+
+    if incertaines:
+        pdf.set_font("Helvetica", "", 8.5)
+        pdf.set_text_color(30, 30, 30)
+        for notion in incertaines:
+            pdf.multi_cell(0, 4.8, _nettoyer(
+                f"  -  {notion.get('notion', '-')}  ({notion.get('pays', '-')}) - "
+                f"probabilite {round(100 * float(notion.get('probabilite_couverture') or 0))} %"
+            ), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.set_text_color(0, 0, 0)
+        pdf.ln(2)
+    else:
+        _paragraphe(pdf, "Aucune notion ne se situe dans la zone d'incertitude "
+                         "pour cette analyse.")
+
+    sans_preuve = [
+        notion
+        for pays in (agent6.get("par_pays") or {}).values()
+        for notion in pays.get("notions", [])
+        if not notion.get("chapitre_correspondant")
+    ]
+    _sous_titre(pdf, f"Notions sans preuve textuelle relevee ({len(sans_preuve)})")
+    _paragraphe(pdf, (
+        "Aucun passage du document n'a ete retenu comme preuve pour ces notions. "
+        "L'absence de preuve n'est pas une preuve d'absence : elle peut aussi "
+        "signaler une limite de l'extraction ou du decoupage."
+    ))
+    if sans_preuve:
+        _puces(pdf, [
+            f"{n.get('notion', '-')} ({n.get('pays', '-')})" for n in sans_preuve[:25]
+        ], taille=8.5)
+        if len(sans_preuve) > 25:
+            _paragraphe(pdf, f"... et {len(sans_preuve) - 25} autres.", taille=8)
+
+    fiabilite = agent9.get("fiabilite") or {}
+    alertes = fiabilite.get("alertes") or []
+    _sous_titre(pdf, "Replis actives pendant cette analyse")
+    if alertes:
+        _paragraphe(pdf, (
+            "Chaque repli degrade une partie de la chaine. Ils sont listes ici "
+            "parce qu'ils conditionnent la portee des resultats ci-dessus."
+        ))
+        _puces(pdf, alertes, taille=8.5)
+    else:
+        _paragraphe(pdf, "Aucun repli n'a ete active : la chaine complete a ete "
+                         "executee dans ses conditions nominales.")
+
+
+def export_annexe_accreditation(analyse: dict, output_path: str) -> str:
+    """
+    Genere l'annexe d'accreditation. Retourne le chemin du fichier produit.
+
+    Contrairement a `export_pdf`, cette sortie ne contient aucun contenu
+    genere : uniquement des mesures, leur provenance et leurs limites.
+    """
+    agent1 = analyse.get("agent1") or {}
+    agent4 = analyse.get("agent4") or {}
+    agent5 = analyse.get("agent5") or {}
+    agent6 = analyse.get("agent6") or {}
+
+    pdf = AnnexePDF(analyse)
+    pdf.set_title(_nettoyer(f"Annexe d'accreditation - {analyse.get('nom_fichier', '')}"))
+    pdf.alias_nb_pages()
+    _annexe_page_de_garde(pdf, analyse)
+
+    # --- 1. Releve notion par notion ------------------------------------
+    pdf.add_page()
+    _titre_section(pdf, "1", "Releve notion par notion")
+    _paragraphe(pdf, (
+        "« Prob. » : probabilite que la notion soit abordee par le document. "
+        "« Mat. » : part de matiere effectivement consacree a la notion, mesuree "
+        "separement - un document peut mentionner une notion sans lui consacrer "
+        "assez de contenu pour qu'elle soit apprise. La preuve est le passage du "
+        "document que le systeme a retenu comme le plus pertinent."
+    ), taille=9)
+
+    versions = analyse.get("referentiel_versions_par_pays") or {}
+    pays_tries = sorted(
+        (agent6.get("par_pays") or {}).values(),
+        key=lambda p: p.get("pays", ""),
+    )
+    for pays in pays_tries:
+        pays = dict(pays)
+        pays.setdefault("version", versions.get(pays.get("code"), "non tracee"))
+        _annexe_releve_par_pays(pdf, pays)
+
+    # --- 2. Angles morts declares ---------------------------------------
+    _annexe_non_tranche(pdf, analyse)
+
+    # --- 3. Provenance technique ----------------------------------------
+    pdf.add_page()
+    _titre_section(pdf, "3", "Provenance des mesures")
+    _paragraphe(pdf, (
+        "Ces elements permettent de rejouer la mesure dans les memes conditions. "
+        "Une mesure produite avec un moteur different n'est pas comparable a "
+        "celle-ci."
+    ))
+    _annexe_champ(pdf, "Extraction du document", agent1.get("methode_extraction", "-"))
+    _annexe_champ(pdf, "Pages / mots analyses",
+                  f"{agent1.get('nb_pages', 0)} pages, {agent1.get('nb_mots', 0)} mots")
+    _annexe_champ(pdf, "Vectorisation",
+                  f"{agent4.get('moteur', '-')} ({agent4.get('dimension', 0)} dimensions)")
+    _annexe_champ(pdf, "Repli de vectorisation",
+                  "actif - resultats degrades" if agent4.get("repli_actif") else "non")
+    _annexe_champ(pdf, "Base vectorielle",
+                  (agent5.get("index") or {}).get("moteur", "-"))
+    reranking = agent6.get("reranking") or {}
+    _annexe_champ(pdf, "Re-ranking par cross-encodeur",
+                  "applique" if reranking.get("applique") else "non applique")
+    _annexe_champ(pdf, "Source de la decision",
+                  (agent6.get("decision") or {}).get("source", "-"))
+    _annexe_champ(pdf, "Duree de l'analyse", f"{analyse.get('duree_analyse_s', '-')} s")
+
+    pdf.ln(5)
+    pdf.set_font("Helvetica", "I", 7.5)
+    pdf.set_text_color(*GRIS)
+    pdf.multi_cell(0, 4, _nettoyer(
+        "Annexe generee automatiquement par EduCompare AI. Elle rend compte de ce "
+        "que le systeme a mesure et de ce qu'il n'a pas su trancher. Elle ne "
+        "constitue pas un avis d'accreditation."
+    ), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+    pdf.output(output_path)
+    return output_path

@@ -385,6 +385,66 @@ class TestRestitution:
         reponse = client.get(f"/rapport/{analyse['id']}")
         assert reponse.status_code == 200
 
+    def test_l_annexe_d_accreditation_se_genere(self, analyses_du_corpus, tmp_path):
+        destination = str(tmp_path / "annexe.pdf")
+        module_rapport_restitution.export_annexe_accreditation(
+            analyses_du_corpus["cours_maths_complet.pdf"], destination
+        )
+        assert os.path.exists(destination)
+        with open(destination, "rb") as fichier:
+            assert fichier.read(4) == b"%PDF"
+
+    def test_l_annexe_declare_sa_provenance_et_ses_angles_morts(
+            self, analyses_du_corpus, tmp_path):
+        """
+        L'annexe est destinee a etre opposable : elle doit dire d'ou viennent
+        ses mesures, sur quelle version du socle, et surtout ce qu'elle n'a
+        pas tranche. Une annexe qui n'affirmerait que ses certitudes serait
+        persuasive, pas opposable.
+        """
+        import pypdf
+
+        analyse = analyses_du_corpus["cours_maths_complet.pdf"]
+        destination = str(tmp_path / "annexe.pdf")
+        module_rapport_restitution.export_annexe_accreditation(analyse, destination)
+
+        texte = "\n".join(
+            page.extract_text() for page in pypdf.PdfReader(destination).pages
+        )
+
+        # Provenance : version du socle et nature declarees.
+        assert "Socle de connaissances" in texte
+        assert "1.0-reconstitue" in texte
+        assert "RECONSTITUE" in texte, (
+            "un socle reconstitue doit etre signale comme tel, sans quoi "
+            "l'annexe laisserait croire a un releve officiel"
+        )
+        # Angles morts : la section existe et nomme la zone d'incertitude.
+        assert "n'a pas tranche" in texte
+        assert "zone d'incertitude" in texte
+        # Provenance technique rejouable.
+        assert "Provenance des mesures" in texte
+        assert (analyse["agent4"]["moteur"] or "")[:20] in texte
+
+    def test_l_annexe_ne_contient_aucun_texte_genere(self, analyses_du_corpus,
+                                                     tmp_path):
+        """
+        Aucune phrase du modele de langage ne doit passer dans l'annexe : la
+        synthese executive de l'Agent 9 appartient au rapport, pas ici.
+        """
+        import pypdf
+
+        analyse = analyses_du_corpus["cours_maths_complet.pdf"]
+        destination = str(tmp_path / "annexe.pdf")
+        module_rapport_restitution.export_annexe_accreditation(analyse, destination)
+
+        texte = "\n".join(
+            page.extract_text() for page in pypdf.PdfReader(destination).pages
+        )
+        synthese = ((analyse.get("agent9") or {}).get("synthese_executive") or "").strip()
+        if len(synthese) > 40:
+            assert synthese[:40] not in texte
+
     def test_l_export_pdf_se_genere(self, analyses_du_corpus, tmp_path):
         destination = str(tmp_path / "rapport.pdf")
         module_rapport_restitution.export_pdf(

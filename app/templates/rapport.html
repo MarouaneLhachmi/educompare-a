@@ -19,6 +19,10 @@
                 <a class="btn btn-primaire" href="{{ url_for('main.rapport_pdf', analyse_id=r.id) }}">
                     <span class="ic">⬇</span> Télécharger le PDF
                 </a>
+                <a class="btn btn-secondaire" href="{{ url_for('main.rapport_annexe', analyse_id=r.id) }}"
+                   title="Relevé notion par notion, preuve et provenance — sans texte généré">
+                    <span class="ic">⚖</span> Annexe d'accréditation
+                </a>
                 <a class="btn btn-secondaire" href="{{ url_for('main.accueil') }}">Nouvelle analyse</a>
             </div>
         </div>

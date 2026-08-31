@@ -256,6 +256,34 @@ class TestCloisonnementHttp:
         assert "autrui" not in corps
 
 
+class TestAnnexeAccreditationHttp:
+    """
+    L'annexe suit exactement les memes regles d'acces que le rapport : elle en
+    est un extrait, plus detaille sur la preuve. La generation elle-meme est
+    verifiee par les tests d'ancrage, qui disposent d'une analyse reelle.
+    """
+
+    def test_un_tiers_recoit_403(self, client, utilisateur_figee, connecter,
+                                 creer_utilisateur):
+        creer_utilisateur(AUTRE_UTILISATEUR)
+        connecter(utilisateur_figee)
+        _analyse_de(AUTRE_UTILISATEUR["id"])
+        assert client.get("/rapport/an01/annexe").status_code == 403
+
+    def test_analyse_inconnue_donne_404(self, client, utilisateur_figee, connecter):
+        connecter(utilisateur_figee)
+        assert client.get("/rapport/inexistante/annexe").status_code == 404
+
+    def test_analyse_non_terminee_redirige_vers_le_suivi(self, client,
+                                                         utilisateur_figee, connecter):
+        connecter(utilisateur_figee)
+        analyse = _analyse_de(utilisateur_figee["id"])
+        database.mettre_a_jour_analyse(analyse["id"], {"statut": "EN_COURS"})
+        reponse = client.get("/rapport/an01/annexe")
+        assert reponse.status_code in (301, 302)
+        assert "suivi" in reponse.headers.get("Location", "")
+
+
 class TestRetourEnseignantHttp:
     """
     Route de la boucle de retour (plan de transition, phase 1.2, mode ombre) :
