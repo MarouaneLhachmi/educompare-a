@@ -10,3 +10,25 @@ outputs/*
 sample_data/
 .claude/
 dossier_passation.pdf
+
+# --- Modeles : caches d'execution contre artefacts deposes ----------------
+# `app/models/` melange deux choses de nature opposee :
+#
+#   - les CACHES d'entrainement, ecrits par `services/entrainement.obtenir()`
+#     pendant l'execution du pipeline (`<nom>.joblib`). Ils dependent des
+#     donnees de l'instance, se reconstruisent seuls quand le fichier est
+#     absent, et n'ont donc rien a faire sous suivi de version : les commiter
+#     revient a figer le bruit d'une machine dans le depot ;
+#   - les ARTEFACTS entraines hors ligne (notebooks Colab) et deposes a la
+#     main, declares dans `services/model_registry.py`. Ceux-la sont du
+#     contenu livre, pas du cache.
+#
+# La regle ignore donc tous les .joblib du dossier, puis reintroduit
+# explicitement les artefacts deposes. Le sens du defaut est deliberé : un
+# nouveau cache d'execution est ignore sans qu'on ait a y penser. En
+# contrepartie, un NOUVEL artefact depose manuellement doit etre ajoute a la
+# liste ci-dessous, sans quoi il resterait invisible.
+app/models/*.joblib
+!app/models/couverture_clf.joblib
+!app/models/bloom_clf.joblib
+!app/models/niveau_reg.joblib
