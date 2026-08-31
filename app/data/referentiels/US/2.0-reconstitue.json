@@ -10,9 +10,9 @@
     "date_releve": null,
     "relu_par": null,
     "avertissement": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes du programme officiel, a vocation de demonstration. Ce n'est pas le texte officiel : toute conclusion tiree de cette version est bornee par cette approximation.",
-    "nb_referentiels": 3,
-    "nb_notions": 30,
-    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques (retrait du francais) et ajout du niveau « Derniere annee du college »."
+    "nb_referentiels": 2,
+    "nb_notions": 24,
+    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques seules (retrait du francais et des sciences) et ajout du niveau « Derniere annee du college »."
   },
   "referentiels": {
     "Mathématiques - Dernière année du primaire": {
@@ -65,35 +65,6 @@
         {
           "intitule": "Represent and interpret data with line plots",
           "descriptif": "Make a line plot with fractional measurement units and use operations on fractions to answer questions."
-        }
-      ]
-    },
-    "Sciences - Dernière année du primaire": {
-      "referentiel": "Next Generation Science Standards — Grade 5",
-      "notions": [
-        {
-          "intitule": "Structure and properties of matter",
-          "descriptif": "Develop models to describe that matter is made of particles too small to be seen and that mass is conserved."
-        },
-        {
-          "intitule": "Matter and energy in ecosystems",
-          "descriptif": "Model the movement of matter among plants, animals, decomposers and the environment."
-        },
-        {
-          "intitule": "Earth's systems and interactions",
-          "descriptif": "Describe interactions among the geosphere, biosphere, hydrosphere and atmosphere."
-        },
-        {
-          "intitule": "Space systems: stars and the solar system",
-          "descriptif": "Support an argument that gravity is directed down and explain daily and seasonal patterns of the sky."
-        },
-        {
-          "intitule": "Protecting Earth's resources",
-          "descriptif": "Obtain and combine information about ways communities protect Earth's resources and environment."
-        },
-        {
-          "intitule": "Engineering design practices",
-          "descriptif": "Define a problem, generate and compare multiple solutions and improve a design based on test results."
         }
       ]
     },

@@ -313,13 +313,25 @@ def _corpus_pedagogique() -> tuple[list[str], list[str]]:
     Les notions apportent la couverture thematique, les unites apportent le
     registre reel d'un support de cours. Le corpus s'enrichit donc a chaque
     analyse, sans intervention.
+
+    **Le perimetre fait autorite.** Seules les analyses portant une matiere
+    encore presente dans les referentiels alimentent le corpus. Les analyses
+    des matieres retirees restent en base — elles sont conservees pour la
+    tracabilite, et supprimer un historique pour faire plaisir a un modele
+    serait une mauvaise facon de regler le probleme — mais elles ne doivent
+    plus apprendre au classifieur a predire une matiere que le systeme ne sait
+    plus comparer. Le filtre est deduit des referentiels, pas ecrit en dur :
+    il suit automatiquement le prochain changement de perimetre.
     """
     reference = entrainement.corpus_referentiels()
     textes = list(reference["textes"])
     matieres = list(reference["matieres"])
+    perimetre = set(reference["matieres_distinctes"])
 
     for analyse in entrainement.corpus_analyses():
         matiere = analyse.get("matiere")
+        if matiere not in perimetre:
+            continue
         for unite in ((analyse.get("agent3") or {}).get("unites") or [])[:12]:
             texte = (unite.get("texte") or "").strip()
             if len(texte.split()) >= 15:

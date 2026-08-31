@@ -10,9 +10,9 @@
     "date_releve": null,
     "relu_par": null,
     "avertissement": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes du programme officiel, a vocation de demonstration. Ce n'est pas le texte officiel : toute conclusion tiree de cette version est bornee par cette approximation.",
-    "nb_referentiels": 3,
-    "nb_notions": 30,
-    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques (retrait du francais) et ajout du niveau « Derniere annee du college »."
+    "nb_referentiels": 2,
+    "nb_notions": 24,
+    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques seules (retrait du francais et des sciences) et ajout du niveau « Derniere annee du college »."
   },
   "referentiels": {
     "Mathématiques - Dernière année du primaire": {
@@ -65,35 +65,6 @@
         {
           "intitule": "Mental arithmetic and estimation",
           "descriptif": "Perform mental calculations with large numbers and use estimation and rounding to check answers."
-        }
-      ]
-    },
-    "Sciences - Dernière année du primaire": {
-      "referentiel": "National Curriculum Science — Key Stage 2, Year 6",
-      "notions": [
-        {
-          "intitule": "Living things and their habitats",
-          "descriptif": "Classify living things into broad groups according to observable characteristics and similarities."
-        },
-        {
-          "intitule": "Animals including humans",
-          "descriptif": "Describe the circulatory system, the impact of diet, exercise and lifestyle on the human body."
-        },
-        {
-          "intitule": "Evolution and inheritance",
-          "descriptif": "Recognise that living things produce offspring that vary and that adaptation may lead to evolution."
-        },
-        {
-          "intitule": "Light and how we see",
-          "descriptif": "Explain that light travels in straight lines and use this to explain shadows and reflection."
-        },
-        {
-          "intitule": "Electricity and simple circuits",
-          "descriptif": "Compare the brightness of lamps with the voltage of cells and use recognised circuit symbols."
-        },
-        {
-          "intitule": "Working scientifically",
-          "descriptif": "Plan enquiries, take accurate measurements, record data and report findings with conclusions and causal relationships."
         }
       ]
     },

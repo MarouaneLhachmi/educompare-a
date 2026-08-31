@@ -12,7 +12,7 @@
     "avertissement": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes du programme officiel, a vocation de demonstration. Ce n'est pas le texte officiel : toute conclusion tiree de cette version est bornee par cette approximation.",
     "nb_referentiels": 2,
     "nb_notions": 18,
-    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques (retrait du francais) et ajout du niveau « Derniere annee du college »."
+    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques seules (retrait du francais et des sciences) et ajout du niveau « Derniere annee du college »."
   },
   "referentiels": {
     "Mathématiques - Dernière année du primaire": {

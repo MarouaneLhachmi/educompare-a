@@ -132,6 +132,59 @@ class TestPreExtraction:
         assert any(a["niveau"] == "erreur" for a in diagnostic["alertes"])
 
 
+class TestCorpusDuClassifieurDeMatiere:
+    """
+    Le corpus d'apprentissage du triage doit suivre le perimetre des
+    referentiels, pas l'historique des analyses.
+
+    Les analyses des matieres retirees restent en base — la tracabilite
+    l'exige — mais elles ne doivent plus apprendre au classifieur a predire
+    une matiere que le systeme ne sait plus comparer.
+    """
+
+    def _analyse(self, identifiant, matiere, nb_unites=3):
+        return {
+            "id": identifiant, "statut": "TERMINEE", "matiere": matiere,
+            "niveau": "Dernière année du primaire",
+            "agent3": {"unites": [
+                {"texte": f"Contenu pédagogique numéro {i} portant sur {matiere} "
+                          f"avec suffisamment de mots pour être retenu par le corpus."}
+                for i in range(nb_unites)
+            ]},
+        }
+
+    def test_les_analyses_hors_perimetre_sont_ecartees_du_corpus(self):
+        from app.services import referentiels
+
+        database.creer_analyse(self._analyse("m1", "Mathématiques"))
+        database.creer_analyse(self._analyse("f1", "Français"))
+        database.creer_analyse(self._analyse("s1", "Sciences"))
+
+        _, matieres = module_depot_documents._corpus_pedagogique()
+
+        assert set(matieres) <= set(referentiels.matieres())
+        assert "Français" not in matieres
+        assert "Sciences" not in matieres
+
+    def test_les_analyses_hors_perimetre_restent_en_base(self):
+        """Filtrer le corpus ne doit pas supprimer d'historique."""
+        database.creer_analyse(self._analyse("f1", "Français"))
+        module_depot_documents._corpus_pedagogique()
+        assert database.analyse_par_id("f1") is not None
+
+    def test_le_filtre_suit_les_referentiels_et_n_est_pas_ecrit_en_dur(self):
+        """
+        Le perimetre est deduit des referentiels : un changement de perimetre
+        se propage sans toucher au code du module.
+        """
+        from app.services import referentiels
+
+        database.creer_analyse(self._analyse("m1", "Mathématiques"))
+        _, matieres = module_depot_documents._corpus_pedagogique()
+        assert "Mathématiques" in matieres
+        assert set(referentiels.matieres()) >= set(matieres)
+
+
 class TestUtilitairesDepot:
 
     def test_taille_lisible(self):

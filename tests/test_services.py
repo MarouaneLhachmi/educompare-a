@@ -194,9 +194,11 @@ class TestReferentiels:
         assert "Mathématiques - Dernière année du primaire" in cles
         assert "Mathématiques - Dernière année du collège" in cles
 
-    def test_le_francais_ne_fait_plus_partie_du_perimetre(self):
-        assert not any(cle.startswith("Français") for cle in referentiels.cles_disponibles())
-        assert "Français" not in referentiels.matieres()
+    def test_le_perimetre_est_reduit_aux_seules_mathematiques(self):
+        """Le francais et les sciences sont sortis du perimetre comparable."""
+        assert referentiels.matieres() == ["Mathématiques"]
+        for cle in referentiels.cles_disponibles():
+            assert cle.startswith("Mathématiques - "), f"hors périmètre : {cle}"
 
     def test_les_deux_niveaux_couvrent_les_memes_pays(self):
         """
