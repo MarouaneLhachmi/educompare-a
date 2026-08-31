@@ -26,7 +26,13 @@
             <section class="ligne-espace anim-monter" style="margin-bottom:var(--sp-4)">
                 <div>
                     <h1 style="margin-bottom:4px">{{ titre }}</h1>
-                    <p class="muet petit" style="margin:0">{{ analyses | length }} résultat(s) sur {{ total }} analyse(s)</p>
+                    <p class="muet petit" style="margin:0">
+                        {%- if pagination and pagination.paginee -%}
+                        {{ pagination.premier }}–{{ pagination.dernier }} sur {{ nb_filtres }} résultat(s)
+                        {%- else -%}
+                        {{ nb_filtres }} résultat(s)
+                        {%- endif %} · {{ total }} analyse(s) au total
+                    </p>
                 </div>
                 <a class="btn btn-primaire btn-sm" href="{{ url_for('main.accueil') }}"><span class="ic">➕</span> Nouvelle analyse</a>
             </section>
@@ -54,6 +60,14 @@
                             <option value="ECHEC" {{ 'selected' if statut == 'ECHEC' }}>Échec</option>
                         </select>
                     </div>
+                    <div class="champ" style="margin:0">
+                        <label for="tri">Trier par</label>
+                        <select class="saisie" id="tri" name="tri" data-soumettre-au-changement>
+                            {% for cle, definition in tris.items() %}
+                            <option value="{{ cle }}" {{ 'selected' if tri == cle }}>{{ definition[0] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div class="ligne" style="margin-top:var(--sp-4)">
                     <button class="btn btn-primaire btn-sm" type="submit">Filtrer</button>
@@ -67,7 +81,7 @@
                 {% for a in analyses %}
                 <article class="carte carte-survol carte-lueur reveler">
                     <div class="ligne-espace" style="margin-bottom:var(--sp-3)">
-                        <span class="badge badge-{{ a.statut | classe_statut }}">{{ a.statut | replace('_',' ') | title }}</span>
+                        {{ c.badge_statut(a.statut, pulse=(a.statut == 'EN_COURS')) }}
                         {% if a.statut == 'TERMINEE' %}
                         <div class="jauge jauge-sm" style="width:64px;height:64px">
                             <svg viewBox="0 0 160 160">
@@ -106,19 +120,47 @@
                         {% endif %}
                         <form class="pousser" method="post"
                               action="{{ url_for('admin.supprimer_analyse', analyse_id=a.id) if mode_admin else url_for('dashboard.supprimer', analyse_id=a.id) }}"
-                              data-confirmer="Supprimer définitivement cette analyse ainsi que le document déposé ?">
+                              data-modale-titre="Supprimer cette analyse ?"
+                              data-modale-message="« {{ (a.titre_cours or a.nom_fichier)[:60] }} » et le document déposé seront supprimés définitivement. Le rapport ne sera plus consultable."
+                              data-modale-confirmation="Supprimer définitivement">
                             <button class="btn btn-danger btn-sm" type="submit">Supprimer</button>
                         </form>
                     </div>
                 </article>
                 {% endfor %}
             </div>
+            {% if pagination and pagination.paginee %}
+            {# La pagination conserve filtres et tri : perdre son filtrage en
+               changeant de page est la façon la plus sûre de rendre un
+               historique inutilisable. #}
+            <nav class="pagination" aria-label="Pages de résultats">
+                {% set params = request.args.to_dict() %}
+                {% if pagination.a_precedent %}
+                {% set _ = params.update({'page': pagination.page - 1}) %}
+                <a class="btn btn-secondaire btn-sm" href="{{ url_for(request.endpoint, **params) }}">← Précédent</a>
+                {% else %}
+                <span class="btn btn-secondaire btn-sm" aria-disabled="true" style="opacity:.45;pointer-events:none">← Précédent</span>
+                {% endif %}
+
+                <span class="pagination-position petit muet">
+                    Page {{ pagination.page }} sur {{ pagination.nb_pages }}
+                </span>
+
+                {% if pagination.a_suivant %}
+                {% set _ = params.update({'page': pagination.page + 1}) %}
+                <a class="btn btn-secondaire btn-sm" href="{{ url_for(request.endpoint, **params) }}">Suivant →</a>
+                {% else %}
+                <span class="btn btn-secondaire btn-sm" aria-disabled="true" style="opacity:.45;pointer-events:none">Suivant →</span>
+                {% endif %}
+            </nav>
+            {% endif %}
+
             {% else %}
-            <div class="vide">
-                <div class="vide-icone">🔍</div>
-                <p>Aucune analyse ne correspond à ces critères.</p>
-                <a class="btn btn-primaire" href="{{ url_for('main.accueil') }}">Lancer une analyse</a>
-            </div>
+            {{ c.etat_vide(
+                "Aucune analyse ne correspond à ces critères.",
+                aide="Élargissez la recherche, ou déposez un nouveau document.",
+                icone="🔍",
+                action={'url': url_for('main.accueil'), 'libelle': 'Déposer un cours'}) }}
             {% endif %}
         </div>
     </div>

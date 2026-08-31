@@ -24,7 +24,7 @@ from app.modules import (
     module_rapport_restitution,
     module_traitement_analyse,
 )
-from app.services import database, referentiels
+from app.services import database, prediction_execution, referentiels
 
 bp = Blueprint("main", __name__)
 
@@ -98,6 +98,20 @@ def analyser():
             "niveau": niveau,
             "pays": pays_reference,
         }
+        # Duree prevue : le modele de prediction existe deja et sert la barre
+        # de progression. L'exposer AVANT le lancement evite la question que
+        # l'ecran de confirmation laissait sans reponse — « combien de temps
+        # cela va-t-il prendre ? ».
+        try:
+            prediction = prediction_execution.predire_durees({
+                "matiere": matiere,
+                "niveau": niveau,
+                "pays_reference": pays_reference,
+                "document": document,
+            })
+        except Exception:
+            prediction = None
+
         return render_template(
             "confirmation_depot.html",
             document=document,
@@ -105,6 +119,7 @@ def analyser():
             matiere=matiere,
             niveau=niveau,
             pays=pays_reference,
+            prediction=prediction,
         )
 
     return _lancer(document, matiere, niveau, pays_reference, utilisateur)

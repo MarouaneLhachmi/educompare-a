@@ -13,7 +13,7 @@
                 <h1 style="margin-bottom:4px">{{ utilisateur.nom }}</h1>
                 <p style="margin:0">{{ utilisateur.email }}</p>
                 <span class="badge" style="background:rgba(255,255,255,.22);color:#fff;margin-top:8px">
-                    {{ 'Administrateur' if utilisateur.role == 'administrateur' else 'Utilisateur' }}
+                    {{ 'Administrateur' if utilisateur.role == 'administrateur' else 'Enseignant' }}
                 </span>
             </div>
         </div>
@@ -25,9 +25,11 @@
             <ul class="liste-nue petit" style="margin-top:var(--sp-2)">
                 <li class="ligne-espace"><span>Identifiant interne</span><strong class="mono">{{ utilisateur.id }}</strong></li>
                 <li class="ligne-espace"><span>Fournisseur d'identité</span><strong>{{ utilisateur.fournisseur }}</strong></li>
-                <li class="ligne-espace"><span>Rôle</span><strong>{{ utilisateur.role }}</strong></li>
+                <li class="ligne-espace"><span>Rôle</span>{{ c.badge_role(utilisateur.role) }}</li>
                 <li class="ligne-espace"><span>Compte actif</span><strong>{{ 'oui' if utilisateur.actif else 'non' }}</strong></li>
                 <li class="ligne-espace"><span>Connexions</span><strong>{{ utilisateur.nb_connexions or 1 }}</strong></li>
+                <li class="ligne-espace"><span>Compte créé le</span><strong>{{ utilisateur.date_creation | horodatage }}</strong></li>
+                <li class="ligne-espace"><span>Dernière connexion</span><strong>{{ utilisateur.derniere_connexion | horodatage }}</strong></li>
             </ul>
             <p class="aide" style="margin-top:var(--sp-4)">
                 Aucun mot de passe n'est stocké par la plateforme : l'authentification est entièrement
@@ -57,6 +59,51 @@
             </div>
             <a class="btn btn-secondaire btn-bloc btn-sm" href="{{ url_for('dashboard.historique') }}" style="margin-top:var(--sp-4)">Voir mon historique</a>
         </section>
+    </div>
+
+    {# Les chiffres bruts ci-dessus disent COMBIEN ; ce bloc dit SUR QUOI.
+       Les matières les plus déposées sont la lecture la plus parlante d'une
+       activité d'enseignant. #}
+    <div class="grille g-2" style="margin-bottom:var(--sp-5)">
+        {{ c.carte_debut("Matières les plus déposées", icone="📚") }}
+            {% if d.par_matiere %}
+            <div class="pile" style="gap:var(--sp-3);margin-top:var(--sp-3)">
+                {% for m in d.par_matiere %}
+                <div>
+                    <div class="ligne-espace petit" style="margin-bottom:5px">
+                        <span><strong>{{ m.matiere }}</strong>
+                            <span class="muet">— {{ m.nb }} analyse(s)</span></span>
+                        <span class="mono">{{ m.note_moyenne }}/100</span>
+                    </div>
+                    {{ c.barre_valeur((100 * m.nb / d.nb_terminees) | round if d.nb_terminees else 0) }}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            {{ c.etat_vide("Aucune analyse terminée pour le moment.",
+                           aide="Le détail par matière apparaîtra dès votre première analyse.",
+                           icone="📚") }}
+            {% endif %}
+        {{ c.carte_fin() }}
+
+        {{ c.carte_debut("Repères d'activité", icone="🕘") }}
+            <ul class="liste-nue petit" style="margin-top:var(--sp-2)">
+                {{ c.ligne_cle_valeur("Analyses terminées", d.nb_terminees) }}
+                {{ c.ligne_cle_valeur("Analyses en cours", d.nb_en_cours) }}
+                {{ c.ligne_cle_valeur("Analyses en échec", d.nb_echecs) }}
+                {{ c.ligne_cle_valeur("Couverture moyenne", d.couverture_moyenne ~ ' %') }}
+                {{ c.ligne_cle_valeur("Notions à combler", d.total_notions_manquantes) }}
+                {{ c.ligne_cle_valeur("Matières travaillées", d.matieres_utilisees | length) }}
+            </ul>
+            {% if d.evolution_note is not none %}
+            <p class="aide" style="margin-top:var(--sp-4)">
+                Vos trois analyses les plus récentes obtiennent en moyenne
+                <strong>{{ '%+.1f' % d.evolution_note }}</strong> point(s) par rapport aux trois
+                précédentes. Cet écart mêle progression réelle et diversité des supports :
+                la trajectoire du tableau de bord en donne une lecture plus fiable.
+            </p>
+            {% endif %}
+        {{ c.carte_fin() }}
     </div>
 
     <section class="carte reveler">

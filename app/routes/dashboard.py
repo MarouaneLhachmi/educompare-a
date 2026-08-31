@@ -7,6 +7,7 @@ Perimetre strictement limite aux analyses de l'utilisateur connecte.
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from app.modules import module_auth_securite, module_depot_documents, module_historique_dashboard
+from app.routes import _presentation
 from app.services import database
 
 bp = Blueprint("dashboard", __name__, url_prefix="/espace")
@@ -30,14 +31,21 @@ def historique():
 
     analyses = database.lister_analyses(utilisateur_id=utilisateur["id"])
     resultats = module_historique_dashboard.filtrer(analyses, recherche, matiere, statut)
+    tri = request.args.get("tri", _presentation.TRI_PAR_DEFAUT)
+    resultats = _presentation.trier_analyses(resultats, tri)
+    pagination = _presentation.paginer(resultats, _presentation.page_demandee(request.args))
 
     return render_template(
         "historique.html",
-        analyses=resultats,
+        analyses=pagination["elements"],
+        pagination=pagination,
+        nb_filtres=len(resultats),
         total=len(analyses),
         recherche=recherche,
         matiere=matiere,
         statut=statut,
+        tri=tri,
+        tris=_presentation.TRIS_ANALYSES,
         matieres=sorted({a.get("matiere", "") for a in analyses if a.get("matiere")}),
         titre="Mon historique d'analyses",
         mode_admin=False,

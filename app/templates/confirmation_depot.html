@@ -95,10 +95,29 @@
         </div>
         {% endif %}
 
+        {% if prediction and prediction.duree_totale_prevue_s %}
+        <div class="carte estimation" style="margin-top:var(--sp-5)">
+            <div class="ligne" style="gap:var(--sp-4);align-items:flex-start">
+                <span class="estimation-ic">⏱</span>
+                <div>
+                    <strong class="petit">Traitement estimé à {{ prediction.duree_totale_prevue_s | duree }}</strong>
+                    <p class="petit muet" style="margin:4px 0 0">
+                        Estimation du modèle de prédiction de durée, à partir des
+                        caractéristiques de ce document
+                        {%- if prediction.amorcage %} — encore en amorçage, l'écart peut
+                        atteindre une vingtaine de pour cent{% endif %}.
+                        Vous serez redirigé vers l'écran de suivi, qui affiche l'avancement
+                        agent par agent et bascule seul sur le rapport.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="ligne" style="margin-top:var(--sp-5)">
             <form method="post" action="{{ url_for('main.analyser_confirmer') }}">
                 <button class="btn btn-primaire" type="submit">
-                    <span class="ic">✓</span> Lancer l'analyse quand même
+                    <span class="ic">✓</span> Lancer l'analyse et suivre l'avancement
                 </button>
             </form>
             <a class="btn btn-secondaire" href="{{ url_for('main.accueil') }}">Déposer un autre document</a>

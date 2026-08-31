@@ -2,63 +2,82 @@
 {% block titre %}Analyse en cours — EduCompare AI{% endblock %}
 
 {% block contenu %}
-<div class="conteneur" style="max-width:1080px" data-suivi="{{ url_for('main.api_progression', analyse_id=analyse.id) }}">
+<div class="conteneur" style="max-width:1080px"
+     data-suivi="{{ url_for('main.api_progression', analyse_id=analyse.id) }}"
+     data-suivi-total="{{ agents | length }}">
 
-    <section class="carte anim-monter" style="text-align:center;padding:var(--sp-6)">
-        <span class="badge badge-encours badge-pulse">Module Traitement et Analyse</span>
-        <h1 style="margin-top:var(--sp-4)">Analyse en cours</h1>
-        <p class="muet">
-            {{ analyse.nom_fichier }} · {{ analyse.matiere }} · {{ analyse.niveau }}
-        </p>
-
-        <div class="compteur-global" style="margin:var(--sp-5) 0 var(--sp-2)">
-            <span data-suivi-pourcentage>0</span>%
+    <!-- =================== État courant =================== -->
+    <section class="carte anim-monter" style="padding:var(--sp-6)">
+        <div class="ligne-espace" style="align-items:flex-start;gap:var(--sp-5)">
+            <div style="min-width:0">
+                <span class="badge badge-encours badge-pulse" data-suivi-phase>Analyse en cours</span>
+                <h1 style="margin:var(--sp-3) 0 4px" data-suivi-agent>Initialisation du pipeline…</h1>
+                <p class="muet petit" style="margin:0">
+                    {{ analyse.nom_fichier }} · {{ analyse.matiere }} · {{ analyse.niveau }}
+                </p>
+            </div>
+            <div style="text-align:right;flex:none">
+                <div class="compteur-global"><span data-suivi-pourcentage>0</span>%</div>
+                <div class="petit muet" style="margin-top:4px">
+                    <span data-suivi-position>Étape 1 sur {{ agents | length }}</span>
+                </div>
+            </div>
         </div>
-        <div class="barre" style="max-width:620px;margin:0 auto">
+
+        <div class="barre" style="margin-top:var(--sp-5)">
             <div class="barre-remplissage" data-suivi-barre style="width:0"></div>
         </div>
-        <p class="petit muet" style="margin-top:var(--sp-4)" data-suivi-message>Initialisation du pipeline…</p>
-        <p class="petit" style="margin-top:6px">
+
+        <div class="ligne-espace petit" style="margin-top:var(--sp-3)">
+            <span class="muet" data-suivi-message>Initialisation du pipeline…</span>
             <span class="badge badge-neutre" data-suivi-restant style="display:none"></span>
-        </p>
+        </div>
     </section>
 
-    <div class="grille g-2-1" style="margin-top:var(--sp-5)">
-        <!-- Étapes du pipeline -->
-        <section class="carte">
-            <h2 class="carte-titre"><span class="ic">⚙️</span> Pipeline des neuf agents</h2>
+    <div class="grille g-2-1" style="margin-top:var(--sp-5);align-items:start">
+
+        <!-- =================== Étapes du pipeline =================== -->
+        {{ c.carte_debut("Progression par étape", icone="⚙️",
+                         badge=(agents | length) ~ " agents", reveler=false) }}
+            <p class="petit muet" style="margin-top:-4px">
+                Chaque agent publie son état et sa durée. Un agent en repli a produit
+                un résultat par sa voie déterministe locale : l'analyse aboutit, avec
+                une finesse moindre.
+            </p>
             <div class="pipeline" data-suivi-etapes style="margin-top:var(--sp-4)">
                 {% for agent in agents %}
-                <div class="etape en_attente" data-agent="{{ agent.cle }}">
+                <div class="etape en_attente" data-agent="{{ agent.cle }}" data-rang="{{ loop.index }}">
                     <div class="etape-num">{{ agent.numero }}</div>
                     <div class="etape-corps">
                         <div class="etape-nom">{{ agent.icone }} {{ agent.nom }}</div>
                         <div class="etape-detail" data-agent-detail>{{ agent.technologie }}</div>
+                        <div class="etape-jauge"><span data-agent-jauge></span></div>
                     </div>
                     <div class="etape-statut" data-agent-statut>En attente</div>
                 </div>
                 {% endfor %}
             </div>
-        </section>
+        {{ c.carte_fin() }}
 
-        <!-- Journal d'exécution -->
-        <section class="pile">
-            <div class="carte">
-                <h2 class="carte-titre"><span class="ic">🧾</span> Journal d'exécution</h2>
+        <!-- =================== Journal et repères =================== -->
+        <div class="pile">
+            {{ c.carte_debut("Journal d'exécution", icone="🧾", reveler=false) }}
                 <div class="journal" data-suivi-journal style="margin-top:var(--sp-3)"></div>
-            </div>
+            {{ c.carte_fin() }}
 
-            <div class="carte">
-                <h3 class="carte-titre" style="font-size:.95rem"><span class="ic">ℹ️</span> Pendant ce temps…</h3>
-                <ul class="liste-nue petit muet">
-                    <li>Le texte du PDF est extrait sans modèle d'IA, par règles déterministes.</li>
+            {{ c.carte_debut("Pendant ce temps…", icone="ℹ️", reveler=false) }}
+                <ul class="liste-nue petit muet" style="margin-top:var(--sp-2)">
+                    <li>Le texte du document est extrait sans modèle d'IA, par règles déterministes.</li>
                     <li>Chaque unité de sens est projetée dans un espace vectoriel multilingue.</li>
                     <li>La base FAISS retrouve les notions étrangères les plus proches.</li>
-                    <li>Un modèle de régression calcule votre note d'alignement.</li>
+                    <li>Un modèle d'ensemble calcule votre note d'alignement.</li>
                 </ul>
-                <p class="aide">Vous pouvez laisser cette page ouverte : elle bascule automatiquement sur le rapport dès la fin du traitement.</p>
-            </div>
-        </section>
+                <p class="aide">
+                    Vous pouvez laisser cette page ouverte : elle bascule automatiquement
+                    sur le rapport dès la fin du traitement.
+                </p>
+            {{ c.carte_fin() }}
+        </div>
     </div>
 </div>
 {% endblock %}

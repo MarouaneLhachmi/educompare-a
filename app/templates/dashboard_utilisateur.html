@@ -39,6 +39,42 @@
                 </div>
             </section>
 
+            <!-- Raccourcis actionnables -->
+            {# Les statistiques disent où l'on en est ; elles ne disent pas quoi
+               faire ensuite. Ces raccourcis mènent directement aux trois gestes
+               qui suivent la consultation d'un tableau de bord. #}
+            <section class="raccourcis reveler" style="margin-bottom:var(--sp-5)">
+                <a class="raccourci" href="{{ url_for('main.accueil') }}">
+                    <span class="raccourci-ic">➕</span>
+                    <span class="raccourci-corps">
+                        <strong>Déposer un nouveau cours</strong>
+                        <span class="petit muet">PDF, Word ou PowerPoint — analyse en moins d'une minute</span>
+                    </span>
+                    <span class="raccourci-fleche">→</span>
+                </a>
+
+                {% if d.dernieres_analyses %}
+                {% set derniere = d.dernieres_analyses[0] %}
+                <a class="raccourci" href="{{ url_for('main.rapport', analyse_id=derniere.id) if derniere.statut == 'TERMINEE' else url_for('main.suivi', analyse_id=derniere.id) }}">
+                    <span class="raccourci-ic">📄</span>
+                    <span class="raccourci-corps">
+                        <strong>{{ 'Voir ma dernière analyse' if derniere.statut == 'TERMINEE' else 'Reprendre l\'analyse en cours' }}</strong>
+                        <span class="petit muet">{{ derniere.titre_cours or derniere.nom_fichier }} · {{ derniere.date_creation }}</span>
+                    </span>
+                    <span class="raccourci-fleche">→</span>
+                </a>
+                {% endif %}
+
+                <a class="raccourci" href="{{ url_for('programmes.liste') }}">
+                    <span class="raccourci-ic">🎓</span>
+                    <span class="raccourci-corps">
+                        <strong>Mes programmes</strong>
+                        <span class="petit muet">Regrouper des documents pour évaluer un cursus entier</span>
+                    </span>
+                    <span class="raccourci-fleche">→</span>
+                </a>
+            </section>
+
             <!-- Indicateurs -->
             <section class="grille g-4" style="margin-bottom:var(--sp-5)">
                 <div class="tuile-stat reveler">

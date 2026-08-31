@@ -63,6 +63,21 @@ def _enregistrer_filtres(app: Flask) -> None:
         except (TypeError, ValueError):
             return "—"
 
+    @app.template_filter("horodatage")
+    def horodatage(valeur):
+        """Date lisible a partir d'un datetime ou d'une chaine ISO."""
+        if not valeur:
+            return "—"
+        if hasattr(valeur, "strftime"):
+            return valeur.strftime("%d/%m/%Y à %H:%M")
+        texte = str(valeur)
+        try:
+            from datetime import datetime
+
+            return datetime.fromisoformat(texte).strftime("%d/%m/%Y à %H:%M")
+        except ValueError:
+            return texte
+
     @app.template_filter("duree")
     def duree(secondes):
         try:

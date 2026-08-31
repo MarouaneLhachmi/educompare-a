@@ -1155,6 +1155,47 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
 
 @keyframes rotation { to { transform: rotate(360deg); } }
 
+/* Rail reliant les étapes : rend visible qu'il s'agit d'une chaîne, et non de
+   neuf voyants indépendants. */
+.pipeline { position: relative; }
+.pipeline .etape { position: relative; }
+.pipeline .etape:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 37px;
+    top: 100%;
+    width: 2px; height: 10px;
+    background: var(--border-strong);
+}
+.pipeline .etape.termine:not(:last-child)::after,
+.pipeline .etape.repli:not(:last-child)::after { background: var(--ok); opacity: .45; }
+
+/* Jauge par étape : le pourcentage global dit COMBIEN il reste, celle-ci dit
+   OÙ l'analyse se trouve. */
+.etape-jauge {
+    height: 3px;
+    margin-top: 6px;
+    border-radius: var(--r-full);
+    background: var(--surface-3);
+    overflow: hidden;
+}
+.etape-jauge span {
+    display: block; height: 100%; width: 0;
+    border-radius: var(--r-full);
+    background: var(--gradient-brand);
+    transition: width .5s var(--ease);
+}
+.etape.termine .etape-jauge span, .etape.repli .etape-jauge span { background: var(--ok); }
+.etape.echec .etape-jauge span { background: var(--danger); }
+.etape.en_cours .etape-jauge span { animation: jaugeIndeterminee 1.6s var(--ease) infinite; }
+.etape.en_attente .etape-jauge { opacity: .5; }
+
+@keyframes jaugeIndeterminee {
+    0%   { width: 15%; margin-left: 0; }
+    50%  { width: 55%; margin-left: 25%; }
+    100% { width: 15%; margin-left: 85%; }
+}
+
 .compteur-global { font-size: 3.6rem; font-weight: 600; letter-spacing: -.05em; line-height: 1; background: var(--gradient-brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 .journal {
@@ -1384,6 +1425,62 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
 .tuile-stat-lien:hover { color: var(--brand-600); }
 
 .form-destructif { display: inline-flex; }
+
+/* --- Raccourcis actionnables --- */
+/* Un tableau de bord qui ne montre que des chiffres laisse l'utilisateur
+   devant la question « et maintenant ? ». Ces cartes portent les trois gestes
+   qui suivent naturellement la consultation. */
+.raccourcis { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--sp-3); }
+.raccourci {
+    display: flex; align-items: center; gap: var(--sp-3);
+    padding: 14px 16px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--surface-solid);
+    color: var(--text);
+    transition: border-color .18s var(--ease), transform .18s var(--ease), box-shadow .18s var(--ease);
+}
+.raccourci:hover {
+    color: var(--text);
+    border-color: var(--brand-500);
+    transform: translateY(-2px);
+    box-shadow: var(--sh-md);
+}
+.raccourci-ic {
+    width: 36px; height: 36px; flex: none;
+    display: grid; place-items: center;
+    border-radius: var(--r-md);
+    background: var(--brand-soft);
+    font-size: 1.05rem;
+}
+.raccourci-corps { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.raccourci-corps strong { font-size: .88rem; font-weight: 600; }
+.raccourci-corps .petit { line-height: 1.4; }
+.raccourci-fleche { margin-left: auto; color: var(--text-3); transition: transform .18s var(--ease), color .18s; }
+.raccourci:hover .raccourci-fleche { transform: translateX(3px); color: var(--brand-500); }
+
+/* --- Encart d'estimation de durée --- */
+.estimation {
+    background: var(--brand-soft);
+    border: 1px solid var(--border);
+    box-shadow: none;
+    padding: var(--sp-4);
+}
+.estimation-ic {
+    width: 34px; height: 34px; flex: none;
+    display: grid; place-items: center;
+    border-radius: var(--r-md);
+    background: var(--surface-solid);
+    font-size: 1rem;
+}
+
+/* --- Pagination --- */
+.pagination {
+    display: flex; align-items: center; justify-content: center;
+    gap: var(--sp-4);
+    margin-top: var(--sp-5);
+}
+.pagination-position { font-variant-numeric: tabular-nums; }
 
 /* --- Modale de confirmation --- */
 /* `window.confirm` est brutal, non stylable, et ne rappelle pas ce qui va être

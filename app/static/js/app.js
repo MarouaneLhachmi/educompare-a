@@ -526,6 +526,26 @@
     /* ------------------------------------------------------------------ */
     /* Filtrage instantané des tableaux                                    */
     /* ------------------------------------------------------------------ */
+    /* ------------------------------------------------------------------ */
+    /* Contrôles qui soumettent leur formulaire au changement               */
+    /* ------------------------------------------------------------------ */
+    /* Choisir un tri puis devoir cliquer « Filtrer » est un pas de trop :
+       le choix EST l'action. Les filtres, eux, gardent leur bouton — on en
+       règle souvent plusieurs avant de valider. */
+    function initSoumissionAuChangement() {
+        $$("[data-soumettre-au-changement]").forEach((controle) => {
+            controle.addEventListener("change", () => {
+                const formulaire = controle.closest("form");
+                if (!formulaire) return;
+                // Un changement de tri ramène à la première page : rester
+                // page 4 d'un classement qui vient de changer n'a pas de sens.
+                const page = formulaire.querySelector("[name=page]");
+                if (page) page.value = "1";
+                formulaire.submit();
+            });
+        });
+    }
+
     function initFiltreTableau() {
         $$("[data-filtre-tableau]").forEach((champ) => {
             const table = $("#" + champ.getAttribute("data-filtre-tableau"));
@@ -754,6 +774,10 @@
         const restant = $("[data-suivi-restant]", racine);
         const journal = $("[data-suivi-journal]", racine);
         const etapes = $("[data-suivi-etapes]", racine);
+        const agentCourant = $("[data-suivi-agent]", racine);
+        const position = $("[data-suivi-position]", racine);
+        const phase = $("[data-suivi-phase]", racine);
+        const nbAgents = parseInt(racine.getAttribute("data-suivi-total") || "9", 10);
 
         const LIBELLES = {
             en_attente: "En attente", en_cours: "En cours…",
@@ -794,7 +818,10 @@
                 }
 
                 if (etapes && Array.isArray(etat.agents)) {
-                    etat.agents.forEach((agent) => {
+                    let acheves = 0;
+                    let courant = null;
+
+                    etat.agents.forEach((agent, index) => {
                         const ligne = $(`[data-agent="${agent.cle}"]`, etapes);
                         if (!ligne) return;
                         ligne.className = "etape " + agent.statut;
@@ -805,7 +832,39 @@
                         }
                         const detail = $("[data-agent-detail]", ligne);
                         if (detail && agent.detail) detail.textContent = agent.detail;
+
+                        // Jauge par étape : pleine dès qu'elle est achevée,
+                        // indéterminée pendant l'exécution. Elle donne une
+                        // lecture d'un coup d'œil de l'avancement dans la
+                        // chaîne, là où le pourcentage global ne dit pas OÙ
+                        // l'analyse se trouve.
+                        const jauge = $("[data-agent-jauge]", ligne);
+                        if (jauge) {
+                            const fini = ["termine", "repli", "echec"].includes(agent.statut);
+                            jauge.style.width = fini ? "100%" : (agent.statut === "en_cours" ? "45%" : "0%");
+                        }
+
+                        if (["termine", "repli", "echec"].includes(agent.statut)) acheves += 1;
+                        if (agent.statut === "en_cours" && courant === null) {
+                            courant = { agent: agent, rang: index + 1 };
+                        }
                     });
+
+                    if (agentCourant) {
+                        agentCourant.textContent = courant
+                            ? courant.agent.nom
+                            : (etat.statut === "EN_COURS" ? "Préparation…" : "Analyse terminée");
+                    }
+                    if (position) {
+                        const rang = courant ? courant.rang : Math.min(acheves + 1, nbAgents);
+                        position.textContent =
+                            etat.statut === "EN_COURS"
+                                ? `Étape ${rang} sur ${nbAgents}`
+                                : `${acheves} étape(s) sur ${nbAgents} achevée(s)`;
+                    }
+                    if (phase && courant) {
+                        phase.textContent = `Agent ${courant.agent.numero} · ${courant.agent.nature}`;
+                    }
                 }
 
                 if (journal && Array.isArray(etat.journal)) {
@@ -899,6 +958,7 @@
         initSoumission();
         initOnglets();
         initAccordeons();
+        initSoumissionAuChangement();
         initFiltreTableau();
         initSelecteurPays();
         initConfirmations();
