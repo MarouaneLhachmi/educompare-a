@@ -587,10 +587,101 @@
     /* ------------------------------------------------------------------ */
     /* Confirmation avant action destructrice                              */
     /* ------------------------------------------------------------------ */
+    /* ------------------------------------------------------------------ */
+    /* Confirmation des actions destructives                               */
+    /* ------------------------------------------------------------------ */
+    /* Remplace window.confirm : non stylable, brutal, et surtout incapable de
+       rappeler ce qui va être détruit ET ce qui sera conservé. La distinction
+       est ce qui manque le plus au moment de décider — supprimer un programme
+       n'efface pas les analyses, et l'utilisateur doit le savoir avant de
+       cliquer, pas après.
+
+       Le formulaire reste un POST classique : la modale ne fait qu'intercepter
+       la soumission. Sans JavaScript, l'action fonctionne toujours. */
     function initConfirmations() {
-        $$("[data-confirmer]").forEach((formulaire) => {
+        const formulaires = $$("[data-modale-titre], [data-confirmer]");
+        if (!formulaires.length) return;
+
+        let superposition = null;
+        let formulaireEnAttente = null;
+        let elementDeclencheur = null;
+
+        function construire() {
+            superposition = document.createElement("div");
+            superposition.className = "superposition";
+            superposition.setAttribute("role", "dialog");
+            superposition.setAttribute("aria-modal", "true");
+            superposition.innerHTML = `
+                <div class="modale">
+                    <div class="modale-icone" data-modale-icone>⚠</div>
+                    <h2 class="modale-titre" data-modale-titre></h2>
+                    <p class="modale-message" data-modale-message></p>
+                    <div class="modale-conserve" data-modale-conserve hidden></div>
+                    <div class="modale-actions">
+                        <button type="button" class="btn btn-secondaire btn-sm" data-modale-annuler>Annuler</button>
+                        <button type="button" class="btn btn-danger btn-sm" data-modale-valider>Confirmer</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(superposition);
+
+            superposition.addEventListener("click", (evt) => {
+                if (evt.target === superposition) fermer();
+            });
+            $("[data-modale-annuler]", superposition).addEventListener("click", fermer);
+            $("[data-modale-valider]", superposition).addEventListener("click", () => {
+                const formulaire = formulaireEnAttente;
+                fermer();
+                // `requestSubmit` déclencherait de nouveau notre écouteur :
+                // on marque le formulaire comme déjà confirmé.
+                if (formulaire) {
+                    formulaire.dataset.confirme = "1";
+                    formulaire.submit();
+                }
+            });
+            document.addEventListener("keydown", (evt) => {
+                if (evt.key === "Escape" && superposition.classList.contains("ouverte")) fermer();
+            });
+        }
+
+        function fermer() {
+            superposition.classList.remove("ouverte");
+            formulaireEnAttente = null;
+            if (elementDeclencheur) elementDeclencheur.focus();
+        }
+
+        function ouvrir(formulaire) {
+            if (!superposition) construire();
+            formulaireEnAttente = formulaire;
+
+            const jeu = formulaire.dataset;
+            const simple = !jeu.modaleTitre;
+            $("[data-modale-icone]", superposition).textContent = jeu.modaleIcone || "⚠";
+            $("[data-modale-titre]", superposition).textContent =
+                jeu.modaleTitre || "Confirmer cette action";
+            $("[data-modale-message]", superposition).textContent =
+                jeu.modaleMessage || jeu.confirmer || "";
+
+            const conserve = $("[data-modale-conserve]", superposition);
+            if (jeu.modaleConserve) {
+                conserve.textContent = jeu.modaleConserve;
+                conserve.hidden = false;
+            } else {
+                conserve.hidden = true;
+            }
+
+            const valider = $("[data-modale-valider]", superposition);
+            valider.textContent = jeu.modaleConfirmation || (simple ? "Confirmer" : "Confirmer");
+
+            superposition.classList.add("ouverte");
+            valider.focus();
+        }
+
+        formulaires.forEach((formulaire) => {
             formulaire.addEventListener("submit", (evt) => {
-                if (!window.confirm(formulaire.getAttribute("data-confirmer"))) evt.preventDefault();
+                if (formulaire.dataset.confirme === "1") return;
+                evt.preventDefault();
+                elementDeclencheur = document.activeElement;
+                ouvrir(formulaire);
             });
         });
     }

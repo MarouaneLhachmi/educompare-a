@@ -105,6 +105,22 @@ def _enregistrer_filtres(app: Flask) -> None:
         return Markup(f"{brut[:position]}<mark>{brut[position:fin]}</mark>{brut[fin:]}")
 
 
+def _enregistrer_composants(app: Flask) -> None:
+    """
+    Rend les macros de `_composants.html` disponibles dans tous les gabarits
+    sous le nom `c`, sans import local.
+
+    Un `{% import %}` place dans `base.html` ne serait pas visible depuis les
+    gabarits qui l'etendent : en Jinja, un bloc enfant ne voit pas les imports
+    du parent. Les enregistrer comme variable globale de l'environnement est
+    la seule facon d'obtenir « defini une fois, disponible partout ».
+
+    Aucune macro n'appelle `url_for` : le module est donc charge hors contexte
+    de requete, une seule fois au demarrage.
+    """
+    app.jinja_env.globals["c"] = app.jinja_env.get_template("_composants.html").module
+
+
 def _prechauffer(app: Flask) -> None:
     """
     Charge l'encodeur semantique dans un fil de fond, des le demarrage.
@@ -153,6 +169,7 @@ def create_app() -> Flask:
 
     _enregistrer_oauth(app)
     _enregistrer_filtres(app)
+    _enregistrer_composants(app)
 
     from app.routes.main import bp as bp_main
     from app.routes.auth import bp as bp_auth

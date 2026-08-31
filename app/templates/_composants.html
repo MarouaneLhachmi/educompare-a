@@ -1,0 +1,201 @@
+{#
+    Composants partagés — EduCompare AI
+    ===================================
+
+    Les dix-huit gabarits recopiaient les mêmes structures : une carte avec son
+    en-tête, une tuile de statistique, un badge de statut, un état vide, un
+    tableau dense. Chaque copie dérivait un peu, et l'incohérence visuelle
+    venait de là bien plus que du CSS.
+
+    Ces macros sont importées par `base.html` sous le nom `c`, donc disponibles
+    partout sans import local :
+
+        {{ c.carte_debut("Titre", icone="📊") }} … {{ c.carte_fin() }}
+        {{ c.badge_statut(analyse.statut) }}
+        {{ c.etat_vide("Aucune analyse", "Déposez un premier cours.") }}
+
+    Règle d'usage : une macro décrit une INTENTION (« ceci est un état vide »),
+    pas une apparence (« ceci est une div grise centrée »). Quand l'apparence
+    changera, elle changera ici, une fois.
+#}
+
+{# ------------------------------------------------------------------ #}
+{# Cartes                                                              #}
+{# ------------------------------------------------------------------ #}
+
+{% macro carte_debut(titre=None, icone=None, badge=None, badge_ton='neutre',
+                     classe='', style='', reveler=true) -%}
+<section class="carte {{ 'reveler' if reveler }} {{ classe }}"{% if style %} style="{{ style }}"{% endif %}>
+    {%- if titre %}
+    <div class="carte-entete">
+        <h2 class="carte-titre">{% if icone %}<span class="ic">{{ icone }}</span> {% endif %}{{ titre }}</h2>
+        {%- if badge %}<span class="badge badge-{{ badge_ton }}">{{ badge }}</span>{% endif %}
+    </div>
+    {%- endif %}
+{%- endmacro %}
+
+{% macro carte_fin() -%}
+</section>
+{%- endmacro %}
+
+
+{# ------------------------------------------------------------------ #}
+{# Tuiles de statistique                                               #}
+{# ------------------------------------------------------------------ #}
+{#
+    `valeur` est animée au défilement par `initCompteurs` : le nombre compte
+    depuis zéro. C'est l'une des rares animations qui informe — elle attire
+    l'œil sur une valeur qui vient d'être calculée.
+#}
+
+{% macro tuile_stat(libelle, valeur, detail=None, suffixe='', decimales=0,
+                    accent=false, lien=None) -%}
+<div class="tuile-stat">
+    <div class="tuile-stat-libelle">{{ libelle }}</div>
+    <div class="tuile-stat-valeur {{ 'texte-degrade' if accent }}">
+        <span data-compteur="{{ valeur }}"{% if decimales %} data-decimales="{{ decimales }}"{% endif %}{% if suffixe %} data-suffixe="{{ suffixe }}"{% endif %}>0</span>
+    </div>
+    {%- if detail %}<div class="tuile-stat-detail">{{ detail }}</div>{% endif %}
+    {%- if lien %}<a class="tuile-stat-lien" href="{{ lien.url }}">{{ lien.libelle }} →</a>{% endif %}
+</div>
+{%- endmacro %}
+
+
+{# ------------------------------------------------------------------ #}
+{# Badges de statut                                                    #}
+{# ------------------------------------------------------------------ #}
+{#
+    Un même statut doit avoir la même couleur partout. Centraliser la table de
+    correspondance est le seul moyen de le garantir.
+#}
+
+{% set _TONS_STATUT = {
+    'TERMINEE': ('ok', 'Terminée'),
+    'EN_COURS': ('encours', 'En cours'),
+    'ECHEC': ('ko', 'Échec'),
+    'Couverte': ('ok', 'Couverte'),
+    'Partiellement couverte': ('moyen', 'Partielle'),
+    'Non couverte': ('ko', 'Non couverte'),
+    'operationnel': ('ok', 'Opérationnel'),
+    'degrade': ('moyen', 'Dégradé'),
+    'hors_service': ('ko', 'Hors service'),
+} %}
+
+{% macro badge_statut(statut, libelle=None, pulse=false) -%}
+{%- set paire = _TONS_STATUT.get(statut, ('neutre', statut)) -%}
+<span class="badge badge-{{ paire[0] }}{{ ' badge-pulse' if pulse }}">{{ libelle or paire[1] }}</span>
+{%- endmacro %}
+
+{% macro badge_role(role) -%}
+{#- « Utilisateur » ne dit rien du métier : dans ce système, ce sont des
+    enseignants qui déposent des cours. Le back-office le nomme ainsi. -#}
+{%- if role == 'administrateur' -%}
+<span class="badge badge-marque">Administrateur</span>
+{%- else -%}
+<span class="badge badge-neutre">Enseignant</span>
+{%- endif -%}
+{%- endmacro %}
+
+
+{# ------------------------------------------------------------------ #}
+{# États vides                                                         #}
+{# ------------------------------------------------------------------ #}
+{#
+    Un écran vide doit dire quoi faire ensuite. Sans action proposée, il se lit
+    comme une panne.
+#}
+
+{% macro etat_vide(message, aide=None, icone='📭', action=None) -%}
+<div class="vide">
+    <div class="vide-icone">{{ icone }}</div>
+    <div class="vide-message">{{ message }}</div>
+    {%- if aide %}<p class="petit muet vide-aide">{{ aide }}</p>{% endif %}
+    {%- if action %}
+    <a class="btn btn-primaire btn-sm" style="margin-top:var(--sp-4)" href="{{ action.url }}">{{ action.libelle }}</a>
+    {%- endif %}
+</div>
+{%- endmacro %}
+
+
+{# ------------------------------------------------------------------ #}
+{# Tableaux denses                                                     #}
+{# ------------------------------------------------------------------ #}
+{#
+    L'enveloppe porte le défilement horizontal : un tableau d'administration
+    large doit défiler dans son cadre, jamais faire déborder la page.
+#}
+
+{% macro tableau_debut(entetes, classe='', hauteur_max=None) -%}
+<div class="tableau-enveloppe"{% if hauteur_max %} style="max-height:{{ hauteur_max }};overflow:auto"{% endif %}>
+    <table class="tableau {{ classe }}">
+        <thead>
+            <tr>
+            {%- for entete in entetes %}
+                {%- if entete is mapping %}
+                <th{% if entete.get('numerique') %} style="text-align:right"{% endif %}{% if entete.get('largeur') %} style="min-width:{{ entete.largeur }}"{% endif %}>{{ entete.libelle }}</th>
+                {%- else %}
+                <th>{{ entete }}</th>
+                {%- endif %}
+            {%- endfor %}
+            </tr>
+        </thead>
+        <tbody>
+{%- endmacro %}
+
+{% macro tableau_fin() -%}
+        </tbody>
+    </table>
+</div>
+{%- endmacro %}
+
+
+{# ------------------------------------------------------------------ #}
+{# Confirmation d'action destructive                                   #}
+{# ------------------------------------------------------------------ #}
+{#
+    Remplace `window.confirm`, qui est brutal, non stylable et ne rappelle pas
+    ce qui va être détruit. La modale nomme la cible et distingue ce qui est
+    supprimé de ce qui est conservé — c'est l'information qui manque le plus
+    au moment de décider.
+
+    Le formulaire reste un formulaire POST classique : la modale ne fait
+    qu'intercepter la soumission. Sans JavaScript, l'action fonctionne
+    toujours.
+#}
+
+{% macro form_destructif(action, libelle, titre, message, confirmation='Confirmer',
+                         conserve=None, classe_bouton='btn-danger', taille='btn-sm',
+                         icone='⚠') -%}
+<form method="post" action="{{ action }}" class="form-destructif"
+      data-modale-titre="{{ titre }}"
+      data-modale-message="{{ message }}"
+      data-modale-confirmation="{{ confirmation }}"
+      data-modale-icone="{{ icone }}"
+      {%- if conserve %} data-modale-conserve="{{ conserve }}"{% endif %}>
+    {{ caller() if caller else '' }}
+    <button class="btn {{ classe_bouton }} {{ taille }}" type="submit">{{ libelle }}</button>
+</form>
+{%- endmacro %}
+
+
+{# ------------------------------------------------------------------ #}
+{# Divers                                                              #}
+{# ------------------------------------------------------------------ #}
+
+{% macro barre_valeur(pourcentage, ton='') -%}
+<div class="barre">
+    <div class="barre-remplissage {{ 'barre-' ~ ton if ton }}" data-pct="{{ pourcentage }}"></div>
+</div>
+{%- endmacro %}
+
+{% macro ligne_cle_valeur(cle, valeur, mono=false) -%}
+<li class="ligne-espace"><span>{{ cle }}</span><strong{% if mono %} class="mono"{% endif %}>{{ valeur }}</strong></li>
+{%- endmacro %}
+
+{% macro entete_page(titre, sous_titre=None, badge=None, badge_ton='marque') -%}
+<div style="min-width:0">
+    {%- if badge %}<span class="badge badge-{{ badge_ton }}">{{ badge }}</span>{% endif %}
+    <h1 style="margin:{{ 'var(--sp-3) 0 6px' if badge else '0 0 6px' }}">{{ titre }}</h1>
+    {%- if sous_titre %}<p class="muet petit" style="margin:0">{{ sous_titre }}</p>{% endif %}
+</div>
+{%- endmacro %}

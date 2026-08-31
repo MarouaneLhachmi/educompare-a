@@ -16,55 +16,75 @@
    ========================================================================= */
 
 /* ============================ 01. JETONS ================================ */
+/* Direction : le minimalisme structure de Linear (hierarchie nette, interface
+   d'outil) rencontre la chaleur feutree de Notion (neutres tirant vers le
+   beige, respiration). Deux consequences directes sur la palette :
+
+   - UNE seule teinte de marque, un indigo desature. Le degrade tricolore
+     indigo -> violet -> cyan de la version precedente decorait tout, donc ne
+     signalait plus rien ; `--gradient-brand` reste un degrade, mais dans une
+     seule teinte, pour donner de la matiere sans crier.
+   - Les couleurs semantiques (vert, ambre, rouge, bleu) sont reservees au
+     STATUT. Si une couleur ne dit rien, elle est neutre.
+
+   Les neutres sont chauds : leur composante rouge depasse legerement la bleue.
+   C'est ce qui separe une interface sobre d'une interface froide. */
 :root {
-    /* Marque */
-    --brand-500: #4f6df5;
-    --brand-600: #3b55e0;
-    --brand-400: #7b91ff;
-    --violet-500: #8b5cf6;
-    --cyan-400: #22d3ee;
-    --gradient-brand: linear-gradient(135deg, #4f6df5 0%, #8b5cf6 55%, #22d3ee 120%);
-    --gradient-soft: linear-gradient(135deg, rgba(79, 109, 245, .12), rgba(139, 92, 246, .10));
+    /* Marque — indigo desature, une seule teinte */
+    --brand-500: #5761cc;
+    --brand-600: #454fb4;
+    --brand-400: #8f96e4;
+    --brand-soft: rgba(87, 97, 204, .10);
+    --brand-soft-fort: rgba(87, 97, 204, .18);
+    --gradient-brand: linear-gradient(135deg, #5761cc 0%, #6b74d8 100%);
+    --gradient-soft: linear-gradient(135deg, rgba(87, 97, 204, .10), rgba(87, 97, 204, .05));
 
-    /* Sémantique */
-    --ok: #16a34a;
-    --ok-soft: rgba(22, 163, 74, .12);
-    --warn: #f59e0b;
-    --warn-soft: rgba(245, 158, 11, .14);
-    --danger: #ef4444;
-    --danger-soft: rgba(239, 68, 68, .12);
-    --info: #0ea5e9;
-    --info-soft: rgba(14, 165, 233, .12);
+    /* Conservees : quelques composants les emploient pour distinguer deux
+       familles d'information (paliers de maitrise, niveaux de Bloom). */
+    --violet-500: #7c6bc4;
+    --cyan-400: #4a9db5;
 
-    /* Surfaces — thème clair */
-    --bg: #eef1f8;
-    --bg-deep: #e3e8f4;
-    --surface: rgba(255, 255, 255, .82);
+    /* Semantique — reservee au statut */
+    --ok: #2b7a50;
+    --ok-soft: rgba(47, 133, 86, .12);
+    --warn: #96631a;
+    --warn-soft: rgba(176, 118, 23, .14);
+    --danger: #c04a42;
+    --danger-soft: rgba(192, 74, 66, .12);
+    --info: #316d92;
+    --info-soft: rgba(58, 124, 165, .12);
+
+    /* Surfaces — neutres chauds, theme clair */
+    --bg: #f7f6f3;
+    --bg-deep: #f0eeea;
+    --surface: rgba(255, 255, 255, .86);
     --surface-solid: #ffffff;
-    --surface-2: #f6f8fc;
-    --surface-3: #eceff7;
-    --border: rgba(16, 27, 62, .10);
-    --border-strong: rgba(16, 27, 62, .18);
+    --surface-2: #faf9f7;
+    --surface-3: #f1efeb;
+    --border: rgba(55, 53, 47, .11);
+    --border-strong: rgba(55, 53, 47, .19);
 
     /* Texte */
-    --text: #131a2e;
-    --text-2: #4a5570;
-    --text-3: #7c86a0;
+    --text: #2b2926;
+    --text-2: #5c584f;
+    --text-3: #756f64;
     --on-brand: #ffffff;
 
-    /* Formes */
-    --r-sm: 8px;
-    --r-md: 14px;
-    --r-lg: 20px;
-    --r-xl: 28px;
+    /* Formes — legerement resserrees : un rayon trop grand infantilise une
+       interface professionnelle. */
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 14px;
+    --r-xl: 20px;
     --r-full: 999px;
 
-    /* Ombres */
-    --sh-xs: 0 1px 2px rgba(16, 27, 62, .06);
-    --sh-sm: 0 2px 8px rgba(16, 27, 62, .07);
-    --sh-md: 0 10px 30px -12px rgba(16, 27, 62, .28);
-    --sh-lg: 0 24px 60px -20px rgba(16, 27, 62, .34);
-    --sh-glow: 0 0 0 1px rgba(79, 109, 245, .18), 0 18px 40px -18px rgba(79, 109, 245, .55);
+    /* Ombres — portees courtes et peu contrastees ; la hierarchie repose sur
+       la bordure et la surface, pas sur l'elevation. */
+    --sh-xs: 0 1px 2px rgba(41, 37, 30, .05);
+    --sh-sm: 0 1px 3px rgba(41, 37, 30, .07), 0 1px 2px rgba(41, 37, 30, .04);
+    --sh-md: 0 6px 18px -8px rgba(41, 37, 30, .18);
+    --sh-lg: 0 16px 40px -16px rgba(41, 37, 30, .24);
+    --sh-glow: 0 0 0 1px rgba(87, 97, 204, .22), 0 8px 24px -12px rgba(87, 97, 204, .45);
 
     /* Typographie */
     --font: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
@@ -80,51 +100,79 @@
     --sp-7: 48px;
     --sp-8: 64px;
 
-    --header-h: 68px;
-    --sidebar-w: 252px;
+    --header-h: 60px;
+    --sidebar-w: 240px;
     --ease: cubic-bezier(.22, 1, .36, 1);
     --ease-out: cubic-bezier(.16, 1, .3, 1);
 }
 
-/* Thème sombre */
+/* Theme sombre — neutres chauds egalement : un gris bleute rendrait
+   l'ensemble clinique, exactement ce que la direction ecarte. */
 :root[data-theme="dark"] {
-    --bg: #080b16;
-    --bg-deep: #05070f;
-    --surface: rgba(20, 26, 44, .72);
-    --surface-solid: #141a2c;
-    --surface-2: #1a2136;
-    --surface-3: #222a42;
-    --border: rgba(255, 255, 255, .09);
-    --border-strong: rgba(255, 255, 255, .17);
+    --bg: #1a1918;
+    --bg-deep: #141312;
+    --surface: rgba(35, 34, 32, .78);
+    --surface-solid: #232220;
+    --surface-2: #2a2927;
+    --surface-3: #33322f;
+    --border: rgba(255, 253, 250, .10);
+    --border-strong: rgba(255, 253, 250, .18);
 
-    --text: #eef1fb;
-    --text-2: #a9b3cc;
-    --text-3: #737f9d;
+    --text: #ece9e4;
+    --text-2: #aaa49a;
+    --text-3: #8f8a7e;
 
-    --ok-soft: rgba(34, 197, 94, .16);
-    --warn-soft: rgba(245, 158, 11, .18);
-    --danger-soft: rgba(239, 68, 68, .16);
-    --info-soft: rgba(14, 165, 233, .16);
+    --brand-500: #7b85dd;
+    --brand-600: #6570d0;
+    --brand-400: #9aa2e8;
+    --brand-soft: rgba(123, 133, 221, .14);
+    --brand-soft-fort: rgba(123, 133, 221, .24);
+    --gradient-brand: linear-gradient(135deg, #6570d0 0%, #7b85dd 100%);
+    --gradient-soft: linear-gradient(135deg, rgba(123, 133, 221, .14), rgba(123, 133, 221, .07));
 
-    --sh-md: 0 10px 30px -12px rgba(0, 0, 0, .7);
-    --sh-lg: 0 30px 70px -24px rgba(0, 0, 0, .8);
+    --ok: #4caf7d;
+    --ok-soft: rgba(76, 175, 125, .16);
+    --warn: #d59b3f;
+    --warn-soft: rgba(213, 155, 63, .18);
+    --danger: #e0716a;
+    --danger-soft: rgba(224, 113, 106, .16);
+    --info: #5fa8cc;
+    --info-soft: rgba(95, 168, 204, .16);
+
+    --sh-md: 0 6px 18px -8px rgba(0, 0, 0, .6);
+    --sh-lg: 0 16px 40px -16px rgba(0, 0, 0, .7);
 }
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --bg: #080b16;
-        --bg-deep: #05070f;
-        --surface: rgba(20, 26, 44, .72);
-        --surface-solid: #141a2c;
-        --surface-2: #1a2136;
-        --surface-3: #222a42;
-        --border: rgba(255, 255, 255, .09);
-        --border-strong: rgba(255, 255, 255, .17);
-        --text: #eef1fb;
-        --text-2: #a9b3cc;
-        --text-3: #737f9d;
-        --sh-md: 0 10px 30px -12px rgba(0, 0, 0, .7);
-        --sh-lg: 0 30px 70px -24px rgba(0, 0, 0, .8);
+        --bg: #1a1918;
+        --bg-deep: #141312;
+        --surface: rgba(35, 34, 32, .78);
+        --surface-solid: #232220;
+        --surface-2: #2a2927;
+        --surface-3: #33322f;
+        --border: rgba(255, 253, 250, .10);
+        --border-strong: rgba(255, 253, 250, .18);
+        --text: #ece9e4;
+        --text-2: #aaa49a;
+        --text-3: #8f8a7e;
+        --brand-500: #7b85dd;
+        --brand-600: #6570d0;
+        --brand-400: #9aa2e8;
+        --brand-soft: rgba(123, 133, 221, .14);
+        --brand-soft-fort: rgba(123, 133, 221, .24);
+        --gradient-brand: linear-gradient(135deg, #6570d0 0%, #7b85dd 100%);
+        --gradient-soft: linear-gradient(135deg, rgba(123, 133, 221, .14), rgba(123, 133, 221, .07));
+        --ok: #4caf7d;
+        --ok-soft: rgba(76, 175, 125, .16);
+        --warn: #d59b3f;
+        --warn-soft: rgba(213, 155, 63, .18);
+        --danger: #e0716a;
+        --danger-soft: rgba(224, 113, 106, .16);
+        --info: #5fa8cc;
+        --info-soft: rgba(95, 168, 204, .16);
+        --sh-md: 0 6px 18px -8px rgba(0, 0, 0, .6);
+        --sh-lg: 0 16px 40px -16px rgba(0, 0, 0, .7);
     }
 }
 
@@ -137,27 +185,39 @@ body {
     margin: 0;
     min-height: 100vh;
     font-family: var(--font);
-    font-size: 15px;
+    /* 14,5 px : la densite d'un outil professionnel, sans tomber dans
+       l'illisible. Les tableaux denses de l'administration en dependent. */
+    font-size: 14.5px;
     line-height: 1.6;
     color: var(--text);
     background: var(--bg);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
     overflow-x: hidden;
     transition: background .4s var(--ease), color .3s var(--ease);
 }
 
-h1, h2, h3, h4 { margin: 0 0 var(--sp-3); line-height: 1.22; font-weight: 700; letter-spacing: -.02em; }
-h1 { font-size: clamp(1.85rem, 3.4vw, 2.7rem); }
-h2 { font-size: clamp(1.35rem, 2.2vw, 1.75rem); }
-h3 { font-size: 1.12rem; }
-h4 { font-size: .98rem; }
+/* Echelle resserree : les ecarts entre niveaux sont plus faibles qu'avant, et
+   c'est le poids et la couleur qui portent la hierarchie plutot que la seule
+   taille. Une seule graisse forte — 600 — partout : le 700/800 generalise
+   ecrasait la distinction entre un titre de page et un libelle de tableau. */
+h1, h2, h3, h4 {
+    margin: 0 0 var(--sp-3);
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -.021em;
+}
+h1 { font-size: clamp(1.55rem, 2.6vw, 1.95rem); letter-spacing: -.028em; }
+h2 { font-size: clamp(1.15rem, 1.8vw, 1.35rem); letter-spacing: -.024em; }
+h3 { font-size: 1.02rem; }
+h4 { font-size: .92rem; }
 p { margin: 0 0 var(--sp-3); }
-a { color: var(--brand-500); text-decoration: none; transition: color .2s; }
-a:hover { color: var(--violet-500); }
+a { color: var(--brand-500); text-decoration: none; transition: color .15s; }
+a:hover { color: var(--brand-600); }
 img { max-width: 100%; display: block; }
-mark { background: linear-gradient(transparent 55%, rgba(245, 158, 11, .55) 55%); color: inherit; padding: 0 2px; }
+mark { background: linear-gradient(transparent 55%, var(--warn-soft) 55%); color: inherit; padding: 0 2px; }
 
-::selection { background: rgba(79, 109, 245, .28); }
+::selection { background: var(--brand-soft-fort); }
 
 /* Barres de défilement */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -165,17 +225,31 @@ mark { background: linear-gradient(transparent 55%, rgba(245, 158, 11, .55) 55%)
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--r-full); border: 3px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-3); background-clip: content-box; }
 
-/* ==================== 03. ARRIÈRE-PLAN ANIMÉ =========================== */
+/* ==================== 03. ARRIÈRE-PLAN ================================= */
+/* Les trois grands blobs floutes de la version precedente tiraient vers la
+   page d'accueil de logiciel en ligne. Ils sont remplaces par un voile : deux
+   halos tres pales, une derive lente de plusieurs dizaines de secondes, et une
+   trame a peine visible. Le mouvement subsiste — il ne se remarque plus, ce
+   qui est exactement le but. L'attention reste disponible pour les
+   animations qui, elles, informent : progression et compteurs. */
 .fond-anime {
     position: fixed;
     inset: 0;
     z-index: -2;
     overflow: hidden;
     background:
-        radial-gradient(1200px 700px at 12% -10%, rgba(79, 109, 245, .18), transparent 60%),
-        radial-gradient(1000px 600px at 90% 0%, rgba(139, 92, 246, .16), transparent 55%),
-        radial-gradient(900px 700px at 60% 110%, rgba(34, 211, 238, .12), transparent 60%),
+        radial-gradient(1400px 800px at 15% -15%, var(--brand-soft), transparent 62%),
+        radial-gradient(1100px 700px at 88% 5%, rgba(124, 107, 196, .06), transparent 58%),
         var(--bg);
+}
+
+.fond-anime::before {
+    content: "";
+    position: absolute;
+    inset: -12%;
+    background: radial-gradient(closest-side, var(--brand-soft), transparent 70%);
+    opacity: .5;
+    animation: deriver 48s var(--ease) infinite alternate;
 }
 
 .fond-anime::after {
@@ -185,27 +259,16 @@ mark { background: linear-gradient(transparent 55%, rgba(245, 158, 11, .55) 55%)
     background-image:
         linear-gradient(var(--border) 1px, transparent 1px),
         linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 25%, transparent 75%);
-    opacity: .55;
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 45% at 50% 0%, #000 10%, transparent 70%);
+    opacity: .3;
 }
 
-.blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: .45;
-    animation: flotter 22s var(--ease) infinite alternate;
+@keyframes deriver {
+    from { transform: translate3d(-4%, -2%, 0) scale(1); }
+    to   { transform: translate3d(4%, 3%, 0) scale(1.08); }
 }
-.blob-1 { width: 420px; height: 420px; background: rgba(79, 109, 245, .55); top: -120px; left: -100px; }
-.blob-2 { width: 380px; height: 380px; background: rgba(139, 92, 246, .5); top: 20%; right: -140px; animation-delay: -7s; }
-.blob-3 { width: 340px; height: 340px; background: rgba(34, 211, 238, .38); bottom: -140px; left: 30%; animation-delay: -14s; }
 
-@keyframes flotter {
-    0%   { transform: translate(0, 0) scale(1); }
-    50%  { transform: translate(60px, -40px) scale(1.12); }
-    100% { transform: translate(-40px, 50px) scale(.94); }
-}
 
 /* ========================== 04. MISE EN PAGE =========================== */
 .conteneur {
@@ -246,7 +309,7 @@ mark { background: linear-gradient(transparent 55%, rgba(245, 158, 11, .55) 55%)
     display: flex;
     align-items: center;
     gap: 10px;
-    font-weight: 800;
+    font-weight: 600;
     font-size: 1.06rem;
     letter-spacing: -.03em;
     color: var(--text);
@@ -258,7 +321,7 @@ mark { background: linear-gradient(transparent 55%, rgba(245, 158, 11, .55) 55%)
     border-radius: 10px;
     background: var(--gradient-brand);
     display: grid; place-items: center;
-    color: #fff; font-size: 15px; font-weight: 800;
+    color: #fff; font-size: 15px; font-weight: 600;
     box-shadow: var(--sh-glow);
     animation: pulseLogo 4.5s ease-in-out infinite;
 }
@@ -326,7 +389,7 @@ mark { background: linear-gradient(transparent 55%, rgba(245, 158, 11, .55) 55%)
     background: var(--gradient-brand);
     color: #fff;
     display: grid; place-items: center;
-    font-size: .72rem; font-weight: 800;
+    font-size: .72rem; font-weight: 600;
     overflow: hidden;
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -388,7 +451,7 @@ main { padding: var(--sp-6) 0 var(--sp-8); min-height: calc(100vh - var(--header
     box-shadow: var(--sh-sm);
 }
 .barre-laterale-titre {
-    font-size: .68rem; font-weight: 800; letter-spacing: .12em;
+    font-size: .68rem; font-weight: 600; letter-spacing: .12em;
     text-transform: uppercase; color: var(--text-3);
     padding: 0 10px var(--sp-2);
 }
@@ -543,7 +606,7 @@ main { padding: var(--sp-6) 0 var(--sp-8); min-height: calc(100vh - var(--header
     display: inline-flex; align-items: center; gap: 6px;
     padding: 4px 11px;
     border-radius: var(--r-full);
-    font-size: .74rem; font-weight: 700;
+    font-size: .74rem; font-weight: 600;
     letter-spacing: .01em;
     white-space: nowrap;
 }
@@ -611,7 +674,7 @@ main { padding: var(--sp-6) 0 var(--sp-8); min-height: calc(100vh - var(--header
 .champ label, .etiquette-champ {
     display: block;
     margin-bottom: 7px;
-    font-size: .82rem; font-weight: 700;
+    font-size: .82rem; font-weight: 600;
     color: var(--text-2);
     letter-spacing: .01em;
 }
@@ -681,7 +744,7 @@ select.saisie {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-9px); }
 }
-.zone-depot-titre { font-weight: 700; font-size: 1.02rem; }
+.zone-depot-titre { font-weight: 600; font-size: 1.02rem; }
 .zone-depot.rempli { border-style: solid; border-color: var(--ok); background: var(--ok-soft); }
 .fichier-choisi { display: none; align-items: center; gap: 12px; text-align: left; }
 .zone-depot.rempli .fichier-choisi { display: flex; }
@@ -725,7 +788,7 @@ table.tableau thead th {
     padding: 12px 14px;
     background: var(--surface-2);
     text-align: left;
-    font-size: .73rem; font-weight: 800;
+    font-size: .73rem; font-weight: 600;
     letter-spacing: .07em; text-transform: uppercase;
     color: var(--text-3);
     border-bottom: 1px solid var(--border);
@@ -757,12 +820,12 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     transition: transform .5s var(--ease);
 }
 .tuile-stat:hover::after { transform: scale(1.4); }
-.tuile-stat-libelle { position: relative; font-size: .76rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
-.tuile-stat-valeur { position: relative; font-size: 2rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.tuile-stat-libelle { position: relative; font-size: .76rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+.tuile-stat-valeur { position: relative; font-size: 2rem; font-weight: 600; letter-spacing: -.03em; line-height: 1.1; }
 .tuile-stat-detail { position: relative; font-size: .8rem; color: var(--text-3); margin-top: 4px; }
 .tuile-stat-ic { position: absolute; top: var(--sp-4); right: var(--sp-4); font-size: 1.2rem; opacity: .55; z-index: 1; }
 
-.variation { display: inline-flex; align-items: center; gap: 4px; font-size: .78rem; font-weight: 700; }
+.variation { display: inline-flex; align-items: center; gap: 4px; font-size: .78rem; font-weight: 600; }
 .variation.hausse { color: var(--ok); }
 .variation.baisse { color: var(--danger); }
 
@@ -833,7 +896,7 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     position: absolute; inset: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.jauge-nombre { font-size: 2.5rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+.jauge-nombre { font-size: 2.5rem; font-weight: 600; letter-spacing: -.04em; line-height: 1; }
 .jauge-unite { font-size: .78rem; color: var(--text-3); font-weight: 600; }
 .jauge-sm { width: 96px; height: 96px; }
 .jauge-sm .jauge-piste, .jauge-sm .jauge-valeur { stroke-width: 10; }
@@ -864,7 +927,7 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
 
 .ligne-barre { display: grid; grid-template-columns: minmax(120px, 1.6fr) 3fr auto; gap: var(--sp-3); align-items: center; padding: 9px 0; }
 .ligne-barre .libelle { font-size: .86rem; font-weight: 600; }
-.ligne-barre .valeur { font-family: var(--mono); font-size: .82rem; font-weight: 700; min-width: 56px; text-align: right; }
+.ligne-barre .valeur { font-family: var(--mono); font-size: .82rem; font-weight: 600; min-width: 56px; text-align: right; }
 
 /* Anneau de répartition */
 .anneau { width: 150px; height: 150px; flex: none; }
@@ -933,7 +996,7 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     background: var(--gradient-brand);
     transition: width 1.2s var(--ease-out);
 }
-.bloom-ligne.atteint .libelle { font-weight: 700; color: var(--text); }
+.bloom-ligne.atteint .libelle { font-weight: 600; color: var(--text); }
 .bloom-ligne .libelle { color: var(--text-3); }
 
 /* ================= Parcours d'amélioration ============================= */
@@ -962,17 +1025,17 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     display: grid; place-items: center;
     border-radius: var(--r-full);
     background: var(--gradient-brand);
-    color: #fff; font-size: .78rem; font-weight: 800;
+    color: #fff; font-size: .78rem; font-weight: 600;
     box-shadow: 0 0 0 4px var(--bg);
 }
 .etape-parcours .seance {
-    font-family: var(--mono); font-size: .72rem; font-weight: 700;
+    font-family: var(--mono); font-size: .72rem; font-weight: 600;
     color: var(--brand-500);
     text-transform: uppercase; letter-spacing: .05em;
 }
 .etape-parcours .gain-maitrise {
     display: inline-flex; align-items: center; gap: 8px;
-    font-family: var(--mono); font-size: .8rem; font-weight: 700;
+    font-family: var(--mono); font-size: .8rem; font-weight: 600;
 }
 .etape-parcours .gain-maitrise .fleche { color: var(--ok); }
 
@@ -995,7 +1058,7 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     margin-top: 8px;
 }
 .exercice-niveau {
-    font-size: .68rem; font-weight: 800; letter-spacing: .07em;
+    font-size: .68rem; font-weight: 600; letter-spacing: .07em;
     text-transform: uppercase; color: var(--brand-500);
 }
 .exercice-reponse {
@@ -1016,7 +1079,7 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
 .source-entete {
     display: flex; align-items: center; gap: 9px;
     margin-bottom: var(--sp-3);
-    font-size: .74rem; font-weight: 800;
+    font-size: .74rem; font-weight: 600;
     letter-spacing: .06em; text-transform: uppercase;
 }
 .source-algo .source-entete { color: var(--brand-500); }
@@ -1031,14 +1094,14 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     margin-bottom: 8px;
     font-size: .84rem;
 }
-.convergence .lien { color: var(--ok); font-weight: 800; }
+.convergence .lien { color: var(--ok); font-weight: 600; }
 
 /* Paliers de progression */
 .palier {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 9px;
     border-radius: var(--r-full);
-    font-size: .72rem; font-weight: 700;
+    font-size: .72rem; font-weight: 600;
     background: var(--surface-3); color: var(--text-2);
 }
 .palier-decouverte { background: rgba(14,165,233,.14); color: var(--info); }
@@ -1067,13 +1130,13 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     border-radius: var(--r-full);
     background: var(--surface-3);
     color: var(--text-3);
-    font-weight: 800; font-size: .85rem;
+    font-weight: 600; font-size: .85rem;
     transition: all .4s var(--ease);
 }
 .etape-corps { flex: 1; min-width: 0; }
-.etape-nom { font-weight: 700; font-size: .93rem; }
+.etape-nom { font-weight: 600; font-size: .93rem; }
 .etape-detail { font-size: .78rem; color: var(--text-3); }
-.etape-statut { font-size: .76rem; font-weight: 700; white-space: nowrap; }
+.etape-statut { font-size: .76rem; font-weight: 600; white-space: nowrap; }
 
 .etape.en_attente { opacity: .55; }
 .etape.en_cours {
@@ -1092,7 +1155,7 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
 
 @keyframes rotation { to { transform: rotate(360deg); } }
 
-.compteur-global { font-size: 3.6rem; font-weight: 800; letter-spacing: -.05em; line-height: 1; background: var(--gradient-brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.compteur-global { font-size: 3.6rem; font-weight: 600; letter-spacing: -.05em; line-height: 1; background: var(--gradient-brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 .journal {
     max-height: 260px; overflow-y: auto;
@@ -1162,8 +1225,8 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
 /* Bandes de statistiques du héro */
 .bande-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-6); margin-top: var(--sp-6); }
 .bande-stats .item { text-align: center; }
-.bande-stats .n { font-size: 1.9rem; font-weight: 800; letter-spacing: -.03em; }
-.bande-stats .l { font-size: .78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
+.bande-stats .n { font-size: 1.9rem; font-weight: 600; letter-spacing: -.03em; }
+.bande-stats .l { font-size: .78rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; font-weight: 600; }
 
 /* Onglets */
 .onglets { display: flex; gap: 4px; padding: 5px; border-radius: var(--r-full); background: var(--surface-3); overflow-x: auto; }
@@ -1301,6 +1364,82 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
 @media (max-width: 980px) {
     .nav-mobile { display: block; }
     body { padding-bottom: 68px; }
+}
+
+/* ============ 9bis-A. COMPOSANTS PARTAGÉS (macros Jinja) =============== */
+/* Ces règles servent les macros de `_composants.html`. Elles vivent ici, et
+   nulle part ailleurs : c'est ce qui garantit qu'un état vide se ressemble
+   d'un écran à l'autre. */
+
+.vide-message { font-weight: 600; color: var(--text-2); }
+.vide-aide { margin: 6px auto 0; max-width: 46ch; }
+
+.tuile-stat-lien {
+    position: relative;
+    display: inline-block;
+    margin-top: var(--sp-2);
+    font-size: .78rem; font-weight: 600;
+    color: var(--brand-500);
+}
+.tuile-stat-lien:hover { color: var(--brand-600); }
+
+.form-destructif { display: inline-flex; }
+
+/* --- Modale de confirmation --- */
+/* `window.confirm` est brutal, non stylable, et ne rappelle pas ce qui va être
+   détruit. Cette modale nomme la cible et sépare ce qui est supprimé de ce qui
+   est conservé — l'information qui manque au moment de décider. */
+.superposition {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-5);
+    background: rgba(28, 26, 23, .48);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s var(--ease);
+}
+.superposition.ouverte { opacity: 1; pointer-events: auto; }
+
+.modale {
+    width: 100%;
+    max-width: 440px;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--sh-lg);
+    padding: var(--sp-5);
+    transform: translateY(10px) scale(.98);
+    transition: transform .2s var(--ease-out);
+}
+.superposition.ouverte .modale { transform: none; }
+
+.modale-icone {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--r-md);
+    background: var(--danger-soft);
+    font-size: 1.15rem;
+    margin-bottom: var(--sp-3);
+}
+.modale-titre { font-size: 1.05rem; font-weight: 600; margin: 0 0 6px; letter-spacing: -.02em; }
+.modale-message { font-size: .88rem; color: var(--text-2); margin: 0; }
+.modale-conserve {
+    display: flex; gap: 8px; align-items: flex-start;
+    margin-top: var(--sp-4);
+    padding: 10px 12px;
+    border-radius: var(--r-md);
+    background: var(--ok-soft);
+    font-size: .8rem; color: var(--text-2);
+}
+.modale-conserve::before { content: "✓"; color: var(--ok); font-weight: 600; }
+.modale-actions {
+    display: flex; justify-content: flex-end; gap: var(--sp-2);
+    margin-top: var(--sp-5);
 }
 
 /* ============ 9ter. MATRICE NOTIONS x DOCUMENTS (vue programme) ========= */
