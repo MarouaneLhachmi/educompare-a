@@ -13,19 +13,27 @@ PDF, des expressions regulieres et des statistiques lexicales. C'est un choix
 assume : le premier maillon de la chaine doit etre rapide, reproductible et
 independant de toute API externe.
 
-Repli OCR : si le PDF ne contient aucune couche texte (document scanne) et que
-Tesseract est installe sur la machine, l'agent bascule automatiquement sur une
-reconnaissance optique de caracteres.
+Strategie par format (plan de transition, phase 2.2) : la lecture proprement
+dite est deleguee a `services/extraction_documents`, qui sait ouvrir un PDF,
+un document Word ou une presentation, et basculer sur l'OCR quand un PDF n'a
+aucune couche texte. L'agent garde ce qui releve de sa competence propre :
+reperer la structure, compter, caracteriser.
 
-Entree : chemin d'un fichier PDF
+Structure declaree contre structure devinee : un PDF n'indique pas ou
+commencent ses chapitres — il faut les deviner par expressions regulieres. Un
+`.docx` porte ses styles de titre, un `.pptx` ses titres de diapositive.
+Quand cette structure existe, l'agent la prefere a son heuristique : une
+structure connue vaut mieux qu'une structure devinee.
+
+Entree : chemin d'un document (.pdf, .docx, .pptx)
 Sortie : dictionnaire structure (voir `process()`)
 """
 
-import os
 import re
 from collections import Counter
 
-from pypdf import PdfReader
+from app.services import extraction_documents
+from app.services.extraction_documents import DocumentIllisible
 
 # Mots vides francais et anglais (liste courte embarquee : evite une
 # dependance a un corpus externe telechargeable).
@@ -60,60 +68,29 @@ CHAPTER_PATTERNS = [
 
 MIN_TITLE_LEN = 3
 MAX_TITLE_LEN = 90
-SEUIL_TEXTE_EXPLOITABLE = 120  # caracteres en dessous desquels on tente l'OCR
 
 
 # ---------------------------------------------------------------------------
 # Lecture du document
 # ---------------------------------------------------------------------------
 
-def _extraire_texte_pdf(pdf_path: str) -> tuple[list[str], dict]:
-    """Extrait le texte page par page ainsi que les metadonnees du document."""
-    lecteur = PdfReader(pdf_path)
-    pages = []
-    for page in lecteur.pages:
-        try:
-            pages.append(page.extract_text() or "")
-        except Exception:
-            pages.append("")
-
-    meta = lecteur.metadata or {}
-    metadonnees = {
-        "titre_pdf": (meta.get("/Title") or "").strip() or None,
-        "auteur_pdf": (meta.get("/Author") or "").strip() or None,
-        "producteur": (meta.get("/Producer") or "").strip() or None,
-    }
-    return pages, metadonnees
-
-
-def _tenter_ocr(pdf_path: str) -> list[str]:
-    """
-    Reconnaissance optique de caracteres pour les PDF scannes.
-    Necessite `pdf2image` + `pytesseract` + Tesseract installe sur le systeme.
-    Retourne une liste vide si l'OCR n'est pas disponible.
-    """
-    try:
-        import pytesseract  # type: ignore
-        from pdf2image import convert_from_path  # type: ignore
-    except Exception:
-        return []
-    try:
-        images = convert_from_path(pdf_path, dpi=200)
-        return [pytesseract.image_to_string(img, lang="fra+eng") for img in images]
-    except Exception:
-        return []
-
-
 # ---------------------------------------------------------------------------
 # Analyse structurelle (regles)
 # ---------------------------------------------------------------------------
 
-def _detecter_chapitres(pages: list[str]) -> list[dict]:
+def _detecter_chapitres(pages: list[str], titres_declares: list[str] | None = None) -> list[dict]:
     """
     Detecte les titres de chapitre/lecon ligne par ligne, et associe a chaque
     titre le corps de texte qui le suit jusqu'au titre suivant, ainsi que la
     page ou il apparait.
+
+    `titres_declares` porte la structure que l'auteur a lui-meme balisee
+    (styles de titre d'un .docx, titres de diapositive d'un .pptx). Une ligne
+    qui y figure est un titre, sans avoir a correspondre a un motif : ces
+    documents nomment rarement leurs sections « Chapitre 3 », et l'heuristique
+    seule les manquerait.
     """
+    declares = {t.strip() for t in (titres_declares or []) if t and t.strip()}
     lignes: list[tuple[str, int]] = []
     for numero_page, texte in enumerate(pages, start=1):
         for ligne in texte.splitlines():
@@ -121,7 +98,13 @@ def _detecter_chapitres(pages: list[str]) -> list[dict]:
 
     reperages: list[tuple[int, str, int]] = []  # (index, titre, page)
     for index, (ligne, page) in enumerate(lignes):
-        if not ligne or len(ligne) > MAX_TITLE_LEN:
+        if not ligne:
+            continue
+        if ligne in declares:
+            if len(ligne) >= MIN_TITLE_LEN:
+                reperages.append((index, ligne, page))
+            continue
+        if len(ligne) > MAX_TITLE_LEN:
             continue
         for motif in CHAPTER_PATTERNS:
             if motif.match(ligne):
@@ -207,44 +190,39 @@ def _compter_elements_pedagogiques(texte: str) -> dict:
 # Point d'entree
 # ---------------------------------------------------------------------------
 
-def process(pdf_path: str) -> dict:
+def process(chemin_document: str) -> dict:
     """
     Execute l'Agent 1.
+
+    Accepte un PDF, un document Word ou une presentation : la lecture est
+    deleguee a `services/extraction_documents`, qui choisit la strategie
+    adaptee au format et bascule sur l'OCR si un PDF n'a pas de couche texte.
 
     Retourne :
     {
         "nb_pages", "nb_mots", "nb_caracteres", "langue_detectee",
         "methode_extraction", "ocr_utilise", "metadonnees",
+        "format_source", "pagination_fiable",
         "chapitres": [{"titre", "extrait", "contenu", "page", "nb_mots"}],
         "mots_cles": [{"mot", "occurrences", "frequence_pct"}],
         "elements_pedagogiques": {...},
         "texte_complet", "texte_brut_tronque"
     }
+
+    Leve `ValueError` avec un message affichable quand le document ne peut pas
+    etre lu — l'appelant n'a pas a connaitre le detail des formats.
     """
-    if not os.path.exists(pdf_path):
-        raise FileNotFoundError(f"Fichier introuvable : {pdf_path}")
+    try:
+        lecture = extraction_documents.lire(chemin_document)
+    except DocumentIllisible as exc:
+        # Le contrat de l'agent reste inchange : le pipeline attend une
+        # ValueError, et le message est deja redige pour l'utilisateur.
+        raise ValueError(str(exc)) from exc
 
-    pages, metadonnees = _extraire_texte_pdf(pdf_path)
+    pages = lecture["pages"]
     texte_complet = "\n".join(pages)
-    methode = "couche texte native du PDF (pypdf)"
-    ocr_utilise = False
 
-    if len(texte_complet.strip()) < SEUIL_TEXTE_EXPLOITABLE:
-        pages_ocr = _tenter_ocr(pdf_path)
-        if pages_ocr and len("".join(pages_ocr).strip()) >= SEUIL_TEXTE_EXPLOITABLE:
-            pages = pages_ocr
-            texte_complet = "\n".join(pages)
-            methode = "reconnaissance optique de caracteres (Tesseract)"
-            ocr_utilise = True
-
-    if not texte_complet.strip():
-        raise ValueError(
-            "Aucun texte n'a pu etre extrait de ce PDF. Le document est probablement "
-            "une image scannee : installez Tesseract OCR (+ pdf2image) pour activer "
-            "l'extraction par reconnaissance optique de caracteres."
-        )
-
-    chapitres = _detecter_chapitres(pages)
+    chapitres = _detecter_chapitres(pages, lecture.get("titres"))
     mots_cles = _extraire_mots_cles(texte_complet)
 
     return {
@@ -252,9 +230,14 @@ def process(pdf_path: str) -> dict:
         "nb_mots": len(texte_complet.split()),
         "nb_caracteres": len(texte_complet),
         "langue_detectee": _detecter_langue(texte_complet),
-        "methode_extraction": methode,
-        "ocr_utilise": ocr_utilise,
-        "metadonnees": metadonnees,
+        "methode_extraction": lecture["methode"],
+        "ocr_utilise": lecture["ocr_utilise"],
+        "metadonnees": lecture["metadonnees"],
+        "format_source": lecture["format"],
+        # Un .docx n'a pas de pages : le signaler evite que l'annexe
+        # d'accreditation presente un numero invente comme une localisation.
+        "pagination_fiable": lecture["pagination_fiable"],
+        "structure_declaree": bool(lecture.get("titres")),
         "chapitres": chapitres,
         "nb_chapitres": len(chapitres),
         "mots_cles": mots_cles,

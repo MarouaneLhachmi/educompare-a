@@ -34,7 +34,10 @@ class Config:
     UPLOAD_FOLDER = os.path.join(BASE_DIR, os.environ.get("UPLOAD_FOLDER", "uploads"))
     OUTPUT_FOLDER = os.path.join(BASE_DIR, os.environ.get("OUTPUT_FOLDER", "outputs"))
 
-    ALLOWED_EXTENSIONS = {"pdf"}
+    # Formats lus par `services/extraction_documents` (phase 2.2 du plan de
+    # transition). Le .docx et le .pptx sont des archives ZIP : la validation
+    # du depot verifie donc une signature par famille, pas une seule.
+    ALLOWED_EXTENSIONS = {"pdf", "docx", "pptx"}
 
     # ------------------------------------------------------------------
     # Couche intelligence (Agents)

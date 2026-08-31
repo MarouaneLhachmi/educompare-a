@@ -37,6 +37,11 @@ def _pdf_factice(taille: int = 4096) -> bytes:
     return b"%PDF-1.4\n" + b"0" * (taille - 9)
 
 
+def _zip_factice(taille: int = 4096) -> bytes:
+    """Signature d'archive ZIP : celle du .docx comme du .pptx."""
+    return b"PK\x03\x04" + b"0" * (taille - 4)
+
+
 class TestValidationDepot:
 
     def test_pdf_valide_accepte(self):
@@ -52,8 +57,23 @@ class TestValidationDepot:
 
     def test_extension_refusee(self):
         with pytest.raises(module_depot_documents.DocumentInvalide) as erreur:
+            module_depot_documents.valider(_FichierFactice("cours.txt", _pdf_factice()))
+        assert "txt" in str(erreur.value)
+
+    def test_formats_bureautiques_acceptes(self):
+        """Phase 2.2 : le .docx et le .pptx entrent dans le périmètre."""
+        for nom in ("cours.docx", "cours.pptx"):
+            module_depot_documents.valider(_FichierFactice(nom, _zip_factice()))
+
+    def test_docx_renomme_depuis_autre_chose_rejete(self):
+        """
+        La signature est verifiee par famille de format : un PDF renomme en
+        .docx n'est pas une archive ZIP, et n'a rien a faire dans le lecteur
+        Word.
+        """
+        with pytest.raises(module_depot_documents.DocumentInvalide) as erreur:
             module_depot_documents.valider(_FichierFactice("cours.docx", _pdf_factice()))
-        assert "docx" in str(erreur.value)
+        assert "DOCX" in str(erreur.value)
 
     def test_fichier_trop_petit(self):
         with pytest.raises(module_depot_documents.DocumentInvalide):

@@ -136,6 +136,38 @@
     "taille_octets": 1673
   },
   {
+    "fichier": "cours_maths.docx",
+    "titre": "Cours de Mathematiques - Derniere annee du primaire",
+    "sous_titre": "",
+    "generateur": "docx",
+    "nature": "cours_complet",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "haute"
+    },
+    "taille_octets": 37918
+  },
+  {
+    "fichier": "cours_maths.pptx",
+    "titre": "Mathematiques - Derniere annee du primaire",
+    "sous_titre": "",
+    "generateur": "pptx",
+    "nature": "cours_complet",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du primaire",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "haute"
+    },
+    "taille_octets": 40775
+  },
+  {
     "fichier": "scan_sans_texte.pdf",
     "titre": "",
     "sous_titre": "",

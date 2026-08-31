@@ -11,8 +11,8 @@ ces vérifications automatiquement au changement suivant.
 pytest
 ```
 
-105 tests — services, agents 1 à 3, règles de décision, modules, accès HTTP.
-**Environ 3 secondes**, hors ligne, sans MongoDB. Aucun test de cette suite ne
+194 tests — services, agents 1 à 3, règles de décision, modules, lecture
+multi-format, programmes, accès HTTP. **Environ 5 secondes**, hors ligne, sans MongoDB. Aucun test de cette suite ne
 charge le modèle sémantique : c'est ce qui la rend utilisable à chaque
 enregistrement de fichier.
 
@@ -20,8 +20,8 @@ enregistrement de fichier.
 pytest -m lent
 ```
 
-26 tests d'ancrage : chaîne complète des neuf agents sur les dix documents du
-corpus de référence. Environ 2 min 15 s, dominées par le pipeline lui-même.
+33 tests d'ancrage : chaîne complète des neuf agents sur les douze documents
+du corpus de référence. Environ 2 min 40 s, dominées par le pipeline lui-même.
 
 ```bash
 pytest -m "lent or not lent"
@@ -47,7 +47,7 @@ faux client auquel on dépose les réponses attendues.
 
 ## Le corpus de référence
 
-`corpus_reference/` contient dix documents **générés** par
+`corpus_reference/` contient douze documents **générés** par
 `generer_corpus.py` — donc reproductibles à l'identique sur n'importe quelle
 machine, sans question de droit d'auteur ni de donnée personnelle.
 
@@ -62,7 +62,14 @@ machine, sans question de droit d'auteur ni de donnée personnelle.
 | `hors_sujet_cv.pdf` | CV | triage documentaire |
 | `hors_sujet_facture.pdf` | facture | triage documentaire |
 | `hors_sujet_contrat.pdf` | contrat | triage documentaire |
+| `cours_maths.docx` | document Word | styles de titre, contenu des tableaux |
+| `cours_maths.pptx` | présentation | une page par diapositive, notes du présentateur |
 | `scan_sans_texte.pdf` | aucune couche texte | échec explicite de l'Agent 1, alerte au dépôt |
+
+Les deux documents bureautiques nomment leurs sections **sans le mot
+« Chapitre »** : l'heuristique du PDF les manquerait. Ils vérifient que la
+structure déclarée par l'auteur — styles de titre, titres de diapositive — est
+bien préférée à la structure devinée.
 
 Régénérer après modification :
 
@@ -148,6 +155,8 @@ un jugement humain.
 |---|---|
 | `conftest.py` | isolation (base, LLM), corpus, entrées figées, client Flask |
 | `test_services.py` | base en mémoire, référentiels, extraction JSON, MinHash, Bloom, synthèse extractive (repli lexical ; le chemin neuronal est marqué `lent`) |
+| `test_extraction_documents.py` | lecture PDF / Word / PowerPoint, orientation vers l'OCR |
+| `test_programmes.py` | agrégation d'un cursus, comparabilité, routes des programmes |
 | `test_agents.py` | agents 1 à 3 sur entrées figées ; règles de décision des agents 6 et 7 |
 | `test_modules.py` | validation des dépôts, pré-extraction, cloisonnement des analyses (unitaire **et** HTTP) |
 | `test_ancrage.py` | chaîne complète : intervalles, invariants pédagogiques, mode dégradé, restitution |

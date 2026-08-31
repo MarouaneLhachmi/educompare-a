@@ -282,6 +282,75 @@ def _ecrire_pdf_sans_texte(chemin: str) -> None:
     pdf.output(chemin)
 
 
+def _ecrire_docx(chemin: str, titre: str, sections: list[tuple[str, str]]) -> None:
+    """
+    Document Word portant ses **styles de titre**. C'est ce qui distingue ce
+    document du PDF equivalent : la structure y est declaree par l'auteur, pas
+    devinee par expression reguliere. Les intitules sont volontairement
+    depourvus du mot « Chapitre » — l'heuristique du PDF les manquerait, et
+    c'est precisement ce que le test doit montrer.
+    """
+    import docx
+
+    document = docx.Document()
+    document.add_heading(titre, level=0)
+    for entete, contenu in sections:
+        document.add_heading(entete, level=1)
+        document.add_paragraph(contenu)
+    # Un tableau : les exercices y sont souvent, et les ignorer perdrait du
+    # contenu pedagogique.
+    tableau = document.add_table(rows=2, cols=2)
+    tableau.cell(0, 0).text = "Exercice"
+    tableau.cell(0, 1).text = "Competence visee"
+    tableau.cell(1, 0).text = "Convertir 3,5 km en metres"
+    tableau.cell(1, 1).text = "Conversion des unites de longueur"
+    document.save(chemin)
+
+
+def _ecrire_pptx(chemin: str, titre: str, sections: list[tuple[str, str]]) -> None:
+    """
+    Presentation dont chaque diapositive porte un titre et un corps, plus une
+    note du presentateur — souvent le seul endroit ou le raisonnement
+    pedagogique est ecrit en toutes lettres.
+    """
+    from pptx import Presentation
+    from pptx.util import Pt
+
+    presentation = Presentation()
+    couverture = presentation.slides.add_slide(presentation.slide_layouts[0])
+    couverture.shapes.title.text = titre
+    couverture.placeholders[1].text = "Support de presentation genere pour les tests."
+
+    for entete, contenu in sections:
+        diapositive = presentation.slides.add_slide(presentation.slide_layouts[1])
+        diapositive.shapes.title.text = entete
+        cadre = diapositive.placeholders[1].text_frame
+        cadre.text = contenu[:220]
+        for phrase in contenu[220:440].split(". "):
+            if phrase.strip():
+                paragraphe = cadre.add_paragraph()
+                paragraphe.text = phrase.strip()
+                paragraphe.font.size = Pt(14)
+        diapositive.notes_slide.notes_text_frame.text = (
+            "Note du presentateur : " + contenu[:180]
+        )
+    presentation.save(chemin)
+
+
+# Intitules sans le mot « Chapitre » : l'heuristique du PDF ne les repererait
+# pas, seuls les styles de titre les revelent.
+SECTIONS_BUREAUTIQUES = [
+    ("Les grands nombres et leur ecriture",
+     COURS_MATHS_COMPLET[0][1]),
+    ("Fractions, decimaux et pourcentages",
+     COURS_MATHS_COMPLET[1][1] + " " + COURS_MATHS_COMPLET[2][1]),
+    ("Figures planes, perimetres et aires",
+     COURS_MATHS_COMPLET[4][1]),
+    ("Unites de mesure et conversions",
+     COURS_MATHS_COMPLET[5][1]),
+]
+
+
 # ---------------------------------------------------------------------------
 # Catalogue
 # ---------------------------------------------------------------------------
@@ -427,6 +496,38 @@ DOCUMENTS = [
         },
     },
     {
+        "fichier": "cours_maths.docx",
+        "titre": "Cours de Mathematiques - Derniere annee du primaire",
+        "sous_titre": "",
+        "sections": SECTIONS_BUREAUTIQUES,
+        "generateur": "docx",
+        "nature": "cours_complet",
+        "matiere": "Mathématiques",
+        "niveau": "Dernière année du primaire",
+        "langue": "fr",
+        "attendu": {
+            "extraction_reussie": True,
+            "triage_pedagogique": True,
+            "couverture_relative": "haute",
+        },
+    },
+    {
+        "fichier": "cours_maths.pptx",
+        "titre": "Mathematiques - Derniere annee du primaire",
+        "sous_titre": "",
+        "sections": SECTIONS_BUREAUTIQUES,
+        "generateur": "pptx",
+        "nature": "cours_complet",
+        "matiere": "Mathématiques",
+        "niveau": "Dernière année du primaire",
+        "langue": "fr",
+        "attendu": {
+            "extraction_reussie": True,
+            "triage_pedagogique": True,
+            "couverture_relative": "haute",
+        },
+    },
+    {
         "fichier": "scan_sans_texte.pdf",
         "titre": "",
         "sous_titre": "",
@@ -449,8 +550,13 @@ def generer() -> list[dict]:
     catalogue = []
     for document in DOCUMENTS:
         chemin = os.path.join(DOSSIER, document["fichier"])
+        generateur = document.get("generateur", "pdf")
         if document["sections"] is None:
             _ecrire_pdf_sans_texte(chemin)
+        elif generateur == "docx":
+            _ecrire_docx(chemin, document["titre"], document["sections"])
+        elif generateur == "pptx":
+            _ecrire_pptx(chemin, document["titre"], document["sections"])
         else:
             _ecrire_pdf(chemin, document["titre"], document["sections"],
                         document["sous_titre"])

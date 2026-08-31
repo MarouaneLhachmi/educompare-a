@@ -54,7 +54,7 @@ import numpy as np
 from werkzeug.utils import secure_filename
 
 from app.config import Config
-from app.services import empreintes, entrainement
+from app.services import empreintes, entrainement, extraction_documents
 
 
 class DocumentInvalide(Exception):
@@ -78,6 +78,16 @@ CONFIANCE_MATIERE_MIN = 0.45
 # Similarite de Jaccard au-dela de laquelle deux documents sont consideres
 # comme un quasi-doublon.
 SEUIL_DOUBLON = 0.55
+
+# Signature binaire attendue par format. Les formats bureautiques modernes
+# sont des archives ZIP : « PK\x03\x04 » ne distingue donc pas un .docx d'un
+# .pptx, et ce n'est pas son role — il s'agit d'ecarter un fichier dont le
+# contenu n'a rien a voir avec son extension.
+SIGNATURES = {
+    "pdf": b"%PDF",
+    "docx": b"PK\x03\x04",
+    "pptx": b"PK\x03\x04",
+}
 
 
 def _extension(nom_fichier: str) -> str:
@@ -122,12 +132,16 @@ def valider(fichier) -> None:
         limite_mo = Config.MAX_CONTENT_LENGTH // (1024 * 1024)
         raise DocumentInvalide(f"Le fichier dépasse la taille maximale autorisée ({limite_mo} Mo).")
 
-    # Signature PDF : evite qu'un fichier renomme en .pdf traverse le pipeline.
+    # Signature du fichier : evite qu'un document renomme traverse le pipeline.
+    # Un .docx comme un .pptx sont des archives ZIP, d'ou une signature
+    # commune ; c'est le lecteur du format qui tranchera ensuite.
     entete = fichier.stream.read(5)
     fichier.stream.seek(0)
-    if not entete.startswith(b"%PDF"):
+    signature_attendue = SIGNATURES.get(extension)
+    if signature_attendue and not entete.startswith(signature_attendue):
         raise DocumentInvalide(
-            "Le contenu du fichier ne correspond pas à un PDF valide (signature absente)."
+            f"Le contenu du fichier ne correspond pas à un {extension.upper()} "
+            f"valide (signature absente)."
         )
 
 
@@ -256,21 +270,21 @@ def pre_extraire(chemin: str, max_pages: int = PAGES_PRE_EXTRACTION) -> dict:
     que les modeles de triage se prononcent, en quelques dizaines de
     millisecondes.
     """
+    format_source = extraction_documents.format_de(chemin)
     try:
-        from pypdf import PdfReader
-
-        lecteur = PdfReader(chemin)
-        nb_pages = len(lecteur.pages)
-        morceaux = []
-        for page in lecteur.pages[:max_pages]:
-            try:
-                morceaux.append(page.extract_text() or "")
-            except Exception:
-                morceaux.append("")
-        texte = "\n".join(morceaux)
+        # `tenter_ocr=False` : la pre-extraction doit rester instantanee. Un
+        # PDF scanne ressort donc illisible ici, et c'est le diagnostic qui
+        # proposera l'OCR plutot que de refuser le document.
+        lecture = extraction_documents.lire(chemin, max_pages=max_pages,
+                                            tenter_ocr=False)
+        texte = "\n".join(lecture["pages"])
+        nb_pages = lecture["nb_pages_document"]
+    except extraction_documents.DocumentIllisible as exc:
+        return {"texte": "", "nb_pages": 0, "nb_mots": 0, "lisible": False,
+                "format": format_source, "erreur": str(exc)[:200]}
     except Exception as exc:
         return {"texte": "", "nb_pages": 0, "nb_mots": 0, "lisible": False,
-                "erreur": str(exc)[:160]}
+                "format": format_source, "erreur": str(exc)[:160]}
 
     mots = texte.split()
     caracteres = len(texte)
@@ -280,6 +294,7 @@ def pre_extraire(chemin: str, max_pages: int = PAGES_PRE_EXTRACTION) -> dict:
     return {
         "texte": texte,
         "nb_pages": nb_pages,
+        "format": format_source,
         "nb_mots": len(mots),
         "caracteres_par_page": round(caracteres / pages_lues, 1),
         # Un PDF scanne ou corrompu produit surtout des caracteres de
@@ -397,15 +412,47 @@ def analyser_contenu(chemin: str, matiere_declaree: str | None = None,
     }
 
     if not apercu["lisible"]:
-        diagnostic["alertes"].append({
-            "niveau": "erreur" if apercu["nb_mots"] == 0 else "alerte",
-            "message": (
-                "Aucune couche texte exploitable n'a été trouvée dans les premières pages. "
-                "Le document est probablement scanné : l'analyse échouera sans OCR."
-                if apercu["nb_mots"] == 0 else
-                f"Très peu de texte détecté ({apercu['nb_mots']} mots sur les premières pages)."
-            ),
-        })
+        # Document sans couche texte : plutot que de refuser, on dit ce qui
+        # est possible. Si l'OCR est installe, l'analyse peut aboutir — le
+        # controle au depot ne le tente pas lui-meme pour rester instantane.
+        ocr = extraction_documents.dependances()["ocr"]
+        scanne = apercu["nb_mots"] == 0 and apercu.get("format") == "pdf"
+
+        if scanne and ocr["disponible"]:
+            message = (
+                "Aucune couche texte n'a été trouvée : le document est probablement "
+                "scanné. La reconnaissance optique de caractères est installée et "
+                "sera appliquée pendant l'analyse — comptez un traitement plus long."
+            )
+            niveau = "alerte"
+        elif scanne:
+            message = (
+                "Aucune couche texte n'a été trouvée : le document est probablement "
+                "scanné, et la reconnaissance optique de caractères n'est pas "
+                "installée sur ce serveur (pytesseract, pdf2image et Tesseract). "
+                "L'analyse échouera en l'état."
+            )
+            niveau = "erreur"
+        elif apercu["nb_mots"] == 0:
+            message = (
+                f"Aucun texte n'a pu être lu dans ce document "
+                f"({extraction_documents.LIBELLES_FORMAT.get(apercu.get('format'), 'format inconnu')}). "
+                + (apercu.get("erreur") or "Le document est peut-être vide.")
+            )
+            niveau = "erreur"
+        else:
+            message = (
+                f"Très peu de texte détecté ({apercu['nb_mots']} mots sur les "
+                f"premières pages) : l'analyse risque d'être peu significative."
+            )
+            niveau = "alerte"
+
+        diagnostic["alertes"].append({"niveau": niveau, "message": message})
+        diagnostic["ocr"] = {
+            "propose": scanne,
+            "disponible": ocr["disponible"],
+            "detail": ocr,
+        }
         return diagnostic
 
     vecteurs, _ = entrainement.encoder_textes([apercu["texte"][:4000]])

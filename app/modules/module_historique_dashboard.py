@@ -21,7 +21,8 @@ from datetime import datetime, timedelta, timezone
 from app.agents import CATALOGUE
 from app.config import Config
 from app.services import (
-    database, gemini_client, model_registry, profils_analyses, referentiels,
+    database, extraction_documents, gemini_client, model_registry,
+    profils_analyses, referentiels,
 )
 from app.services.vector_store import FAISS_DISPONIBLE
 from app.modules import module_depot_documents
@@ -277,6 +278,9 @@ def tableau_de_bord_administrateur() -> dict:
         # que le seuil de bascule (~300 etiquettes de couverture) n'est pas
         # atteint.
         "retours": database.compter_retours(),
+        # Lecteurs de documents : leur absence ne casse rien, mais restreint
+        # silencieusement les formats acceptes. Mieux vaut l'afficher.
+        "lecteurs": extraction_documents.dependances(),
     }
 
 

@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Intervalles d'ancrage mesures sur le corpus de reference. Regenerer avec `python tests/mesurer_ancrages.py` apres un changement volontaire de seuil, et commiter la difference.",
-    "mesure_le": "2026-08-12T19:22:01+00:00",
+    "mesure_le": "2026-08-31T14:54:21+00:00",
     "marge_note": 8.0,
     "marge_couverture": 10.0,
     "modele_de_langage": "neutralise (mode degrade)"
@@ -349,11 +349,87 @@
         }
       }
     },
+    "cours_maths.docx": {
+      "fichier": "cours_maths.docx",
+      "nature": "cours_complet",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 69.4,
+        "couverture_pct": 73.9,
+        "nb_notions_manquantes": 4,
+        "nb_unites": 6,
+        "nb_chapitres": 5,
+        "nb_recommandations": 12,
+        "niveau_maturite": "Solide"
+      },
+      "intervalle": {
+        "note_globale": [
+          61.4,
+          77.4
+        ],
+        "couverture_pct": [
+          63.9,
+          83.9
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "cours_maths.pptx": {
+      "fichier": "cours_maths.pptx",
+      "nature": "cours_complet",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 58.1,
+        "couverture_pct": 56.5,
+        "nb_notions_manquantes": 13,
+        "nb_unites": 5,
+        "nb_chapitres": 5,
+        "nb_recommandations": 12,
+        "niveau_maturite": "À consolider"
+      },
+      "intervalle": {
+        "note_globale": [
+          50.1,
+          66.1
+        ],
+        "couverture_pct": [
+          46.5,
+          66.5
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
     "scan_sans_texte.pdf": {
       "fichier": "scan_sans_texte.pdf",
       "nature": "scan_sans_couche_texte",
       "statut": "ECHEC",
-      "erreur": "Aucun texte n'a pu etre extrait de ce PDF. Le document est probablement une image scannee : installez Tesseract OCR (+ pdf2image) pour activer l'extraction par reconnaissance optique de caracteres."
+      "erreur": "Aucun texte n'a pu être extrait de ce PDF. Le document est probablement une image scannée : installez Tesseract OCR (+ pdf2image) pour activer la reconnaissance optique de caractères."
     }
   }
 }
