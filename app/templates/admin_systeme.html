@@ -216,24 +216,23 @@
                 </div>
             </section>
 
-            <!-- Journal d'événements -->
+            <!-- Fil d'activité -->
             <section class="carte reveler">
-                <h2 class="carte-titre"><span class="ic">🧾</span> Journal d'activité</h2>
-                {% if d.evenements %}
-                <div class="chronologie" style="margin-top:var(--sp-4)">
-                    {% for e in d.evenements %}
-                    <div class="chronologie-item {{ 'ko' if 'supprim' in e.type else 'ok' if 'connexion' in e.type else '' }}">
-                        <div class="ligne" style="gap:10px">
-                            <strong class="petit">{{ e.type | replace('_', ' ') | capitalize }}</strong>
-                            <span class="chronologie-heure">{{ e.horodatage }}</span>
-                        </div>
-                        <div class="petit muet mono">{{ e.details }}</div>
+                <div class="carte-entete">
+                    <h2 class="carte-titre"><span class="ic">🧾</span> Activité récente</h2>
+                    <div class="ligne" style="gap:6px">
+                        <a class="btn btn-{{ 'primaire' if not fil_notable else 'secondaire' }} btn-sm"
+                           href="{{ url_for('admin.systeme') }}">Tout</a>
+                        <a class="btn btn-{{ 'primaire' if fil_notable else 'secondaire' }} btn-sm"
+                           href="{{ url_for('admin.systeme', fil='notable') }}">Incidents et actions</a>
                     </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <div class="vide"><div class="vide-icone">🧾</div>Aucun événement enregistré pour le moment.</div>
-                {% endif %}
+                <p class="petit muet">
+                    Journal produit par le module Authentification et Sécurité et par les
+                    actions d'administration. « Incidents et actions » masque le va-et-vient
+                    ordinaire des connexions et des analyses.
+                </p>
+                {% include "_fil_evenements.html" %}
             </section>
         </div>
     </div>

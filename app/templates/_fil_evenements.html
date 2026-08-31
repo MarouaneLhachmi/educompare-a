@@ -1,0 +1,38 @@
+{#
+    Fil d'activité — fragment partagé par la supervision technique et la
+    supervision des modèles.
+
+    Attend une variable `fil` : une liste de groupes `{jour, evenements}`
+    produite par `routes/_presentation.mettre_en_forme_evenements`.
+
+    Le regroupement par jour n'est pas décoratif : un fil plat de soixante
+    lignes ne se lit pas, et c'est la date qui donne le premier repère quand
+    on cherche « ce qui s'est passé hier ».
+#}
+{% if fil %}
+<div class="fil" style="margin-top:var(--sp-4)">
+    {% for groupe in fil %}
+    <div class="fil-jour">
+        <span class="fil-jour-etiquette">{{ groupe.jour }}</span>
+        <span class="fil-jour-trait"></span>
+        <span class="petit muet">{{ groupe.evenements | length }} événement(s)</span>
+    </div>
+
+    {% for e in groupe.evenements %}
+    <div class="fil-item fil-{{ e.ton }}">
+        <span class="fil-ic">{{ e.icone }}</span>
+        <span class="fil-corps">
+            <span class="fil-libelle">{{ e.libelle }}</span>
+            {%- if e.detail %}<span class="petit muet"> — {{ e.detail }}</span>{% endif %}
+            <span class="petit muet fil-acteur">{{ e.acteur }}</span>
+        </span>
+        <span class="fil-heure mono">{{ e.heure }}</span>
+    </div>
+    {% endfor %}
+    {% endfor %}
+</div>
+{% else %}
+{{ c.etat_vide("Aucun événement à afficher.",
+               aide="Le journal se remplit au fil des connexions et des actions d'administration.",
+               icone="🧾") }}
+{% endif %}

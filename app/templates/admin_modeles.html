@@ -25,7 +25,11 @@
                     </p>
                 </div>
                 <form method="post" action="{{ url_for('admin.reentrainer_modeles') }}"
-                      data-confirmer="Réentraîner tous les modèles de modules sur le corpus courant ?">
+                      data-modale-titre="Réentraîner tous les modèles ?"
+                      data-modale-message="Les modèles des modules seront reconstruits sur le corpus courant. Les analyses suivantes pourront donner des résultats différents des précédentes, sans qu'aucune ligne de code n'ait changé."
+                      data-modale-confirmation="Réentraîner"
+                      data-modale-conserve="Les analyses déjà produites ne sont pas recalculées."
+                      data-modale-icone="🔄">
                     <button class="btn btn-secondaire" type="submit">
                         <span class="ic">🔄</span> Tout réentraîner
                     </button>
@@ -225,6 +229,18 @@
                 </div>
                 {% endif %}
             </section>
+
+            <!-- Fil des réentraînements et incidents -->
+            {{ c.carte_debut("Réentraînements et incidents", icone="🕘",
+                             badge="hors connexions courantes", classe="",
+                             style="margin-top:var(--sp-5)") }}
+                <p class="petit muet">
+                    Un modèle réentraîné change les résultats sans qu'aucune ligne de code
+                    n'ait bougé. Ce fil garde la trace de ces bascules, aux côtés des
+                    incidents de sécurité.
+                </p>
+                {% include "_fil_evenements.html" %}
+            {{ c.carte_fin() }}
         </div>
     </div>
 </div>

@@ -1474,6 +1474,39 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     font-size: 1rem;
 }
 
+/* --- Fil d'activité --- */
+.fil { display: flex; flex-direction: column; gap: 2px; }
+.fil-jour {
+    display: flex; align-items: center; gap: var(--sp-3);
+    margin: var(--sp-4) 0 var(--sp-2);
+}
+.fil-jour:first-child { margin-top: 0; }
+.fil-jour-etiquette {
+    font-size: .74rem; font-weight: 600;
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+}
+.fil-jour-trait { flex: 1; height: 1px; background: var(--border); }
+
+.fil-item {
+    display: flex; align-items: center; gap: var(--sp-3);
+    padding: 8px 10px;
+    border-radius: var(--r-sm);
+    border-left: 2px solid transparent;
+    transition: background .15s var(--ease);
+}
+.fil-item:hover { background: var(--surface-2); }
+.fil-ic { width: 20px; flex: none; text-align: center; font-size: .85rem; }
+.fil-corps { flex: 1; min-width: 0; font-size: .82rem; }
+.fil-libelle { font-weight: 600; }
+.fil-acteur { display: block; }
+.fil-heure { flex: none; color: var(--text-3); font-size: .74rem; }
+
+.fil-alerte { border-left-color: var(--warn); }
+.fil-alerte .fil-libelle { color: var(--warn); }
+.fil-info { border-left-color: var(--info); }
+.fil-neutre { border-left-color: var(--border-strong); }
+
 /* --- Pagination --- */
 .pagination {
     display: flex; align-items: center; justify-content: center;

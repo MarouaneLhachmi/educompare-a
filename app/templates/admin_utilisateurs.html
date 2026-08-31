@@ -17,18 +17,47 @@
         <div>
             <section class="ligne-espace anim-monter" style="margin-bottom:var(--sp-5)">
                 <div>
-                    <h1 style="margin-bottom:4px">Gestion des utilisateurs</h1>
+                    <h1 style="margin-bottom:4px">Comptes de la plateforme</h1>
                     <p class="muet petit" style="margin:0">
                         <span data-compteur-lignes>{{ utilisateurs | length }}</span> compte(s) affiché(s)
+                        sur {{ total }}
                     </p>
                 </div>
-                <form method="get" class="ligne">
-                    <input class="saisie" type="search" name="q" value="{{ recherche }}"
-                           placeholder="Rechercher un nom ou un e-mail…" style="min-width:260px"
-                           data-filtre-tableau="table-utilisateurs">
-                    <button class="btn btn-secondaire btn-sm" type="submit">Rechercher</button>
-                </form>
             </section>
+
+            {# Filtrer par rôle et par état répond à la question qu'un
+               administrateur se pose réellement : « qui a les droits ? » et
+               « qui a été désactivé ? ». La recherche texte seule obligeait à
+               connaître le nom cherché d'avance. #}
+            <form method="get" class="carte reveler" style="margin-bottom:var(--sp-4)">
+                <div class="grille g-3" style="gap:var(--sp-3);align-items:end">
+                    <div class="champ" style="margin:0">
+                        <label for="q">Recherche</label>
+                        <input class="saisie" type="search" id="q" name="q" value="{{ recherche }}"
+                               placeholder="Nom ou adresse e-mail…">
+                    </div>
+                    <div class="champ" style="margin:0">
+                        <label for="role">Rôle</label>
+                        <select class="saisie" id="role" name="role" data-soumettre-au-changement>
+                            <option value="">Tous les rôles</option>
+                            <option value="administrateur" {{ 'selected' if role == 'administrateur' }}>Administrateurs</option>
+                            <option value="utilisateur" {{ 'selected' if role == 'utilisateur' }}>Enseignants</option>
+                        </select>
+                    </div>
+                    <div class="champ" style="margin:0">
+                        <label for="etat">État du compte</label>
+                        <select class="saisie" id="etat" name="etat" data-soumettre-au-changement>
+                            <option value="">Tous les états</option>
+                            <option value="actif" {{ 'selected' if etat == 'actif' }}>Actifs</option>
+                            <option value="inactif" {{ 'selected' if etat == 'inactif' }}>Désactivés</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ligne" style="margin-top:var(--sp-4)">
+                    <button class="btn btn-primaire btn-sm" type="submit">Filtrer</button>
+                    <a class="btn btn-fantome btn-sm" href="{{ request.path }}">Réinitialiser</a>
+                </div>
+            </form>
 
             <section class="carte reveler">
                 <div class="tableau-enveloppe">
@@ -56,7 +85,7 @@
                                 </td>
                                 <td class="petit muet">{{ u.fournisseur }}</td>
                                 <td>
-                                    <span class="badge {{ 'badge-marque' if u.role == 'administrateur' else 'badge-neutre' }}">{{ u.role }}</span>
+                                    {{ c.badge_role(u.role) }}
                                 </td>
                                 <td class="td-num">{{ u.nb_analyses }}</td>
                                 <td class="td-num">{{ u.nb_connexions or 0 }}</td>
@@ -66,14 +95,22 @@
                                 <td>
                                     <div class="ligne" style="gap:6px;flex-wrap:nowrap">
                                         <form method="post" action="{{ url_for('admin.changer_role', utilisateur_id=u.id) }}"
-                                              data-confirmer="Modifier le rôle de {{ u.email }} ?">
+                                              data-modale-titre="{{ 'Retirer les droits d\'administration ?' if u.role == 'administrateur' else 'Accorder les droits d\'administration ?' }}"
+                                              data-modale-message="{{ u.nom }} ({{ u.email }}) {{ 'perdra l\'accès au back-office : comptes, analyses de la plateforme et supervision technique.' if u.role == 'administrateur' else 'pourra consulter toutes les analyses de la plateforme, gérer les comptes et accéder à la supervision technique.' }}"
+                                              data-modale-confirmation="{{ 'Rétrograder' if u.role == 'administrateur' else 'Promouvoir' }}"
+                                              data-modale-conserve="Ses analyses et son historique ne sont pas modifiés."
+                                              data-modale-icone="{{ '🔻' if u.role == 'administrateur' else '🛡️' }}">
                                             <input type="hidden" name="role" value="{{ 'utilisateur' if u.role == 'administrateur' else 'administrateur' }}">
                                             <button class="btn btn-fantome btn-sm" type="submit">
                                                 {{ 'Rétrograder' if u.role == 'administrateur' else 'Promouvoir' }}
                                             </button>
                                         </form>
                                         <form method="post" action="{{ url_for('admin.changer_activation', utilisateur_id=u.id) }}"
-                                              data-confirmer="{{ 'Désactiver' if u.actif else 'Réactiver' }} le compte {{ u.email }} ?">
+                                              data-modale-titre="{{ 'Désactiver ce compte ?' if u.actif else 'Réactiver ce compte ?' }}"
+                                              data-modale-message="{{ u.nom }} ({{ u.email }}) {{ 'sera déconnecté immédiatement et ne pourra plus accéder à la plateforme.' if u.actif else 'pourra de nouveau se connecter et déposer des documents.' }}"
+                                              data-modale-confirmation="{{ 'Désactiver' if u.actif else 'Réactiver' }}"
+                                              data-modale-conserve="Aucune analyse n'est supprimée : le compte et son historique sont conservés."
+                                              data-modale-icone="{{ '🚫' if u.actif else '✅' }}">
                                             <input type="hidden" name="actif" value="{{ '0' if u.actif else '1' }}">
                                             <button class="btn {{ 'btn-danger' if u.actif else 'btn-secondaire' }} btn-sm" type="submit">
                                                 {{ 'Désactiver' if u.actif else 'Activer' }}
@@ -83,7 +120,8 @@
                                 </td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="7" class="centre muet">Aucun compte enregistré.</td></tr>
+                            <tr><td colspan="7">{{ c.etat_vide("Aucun compte ne correspond à ces critères.",
+                                    aide="Élargissez la recherche ou réinitialisez les filtres.", icone="👥") }}</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

@@ -31,13 +31,23 @@ def tableau_de_bord():
 @module_auth_securite.administrateur_requis
 def utilisateurs():
     recherche = request.args.get("q", "").strip().lower()
+    role = request.args.get("role", "").strip()
+    etat = request.args.get("etat", "").strip()
+
     comptes = database.lister_utilisateurs()
+    total = len(comptes)
     if recherche:
         comptes = [
             u for u in comptes
             if recherche in str(u.get("email", "")).lower()
             or recherche in str(u.get("nom", "")).lower()
         ]
+    if role:
+        comptes = [u for u in comptes if u.get("role") == role]
+    if etat:
+        # Un compte sans champ `actif` est actif : c'est la valeur par defaut
+        # posee a la creation, et l'absence ne doit pas se lire comme un refus.
+        comptes = [u for u in comptes if bool(u.get("actif", True)) == (etat == "actif")]
     # Nombre d'analyses par compte, affiche dans le tableau de gestion.
     analyses = database.lister_analyses()
     compteur = {}
@@ -46,7 +56,14 @@ def utilisateurs():
     for compte in comptes:
         compte["nb_analyses"] = compteur.get(compte["id"], 0)
 
-    return render_template("admin_utilisateurs.html", utilisateurs=comptes, recherche=recherche)
+    return render_template(
+        "admin_utilisateurs.html",
+        utilisateurs=comptes,
+        recherche=recherche,
+        role=role,
+        etat=etat,
+        total=total,
+    )
 
 
 @bp.route("/analyses")
@@ -79,11 +96,25 @@ def analyses():
     )
 
 
+def _fil_evenements(limite: int = 60, notables_seulement: bool = False):
+    """Journal d'activité mis en forme pour l'affichage."""
+    comptes = {u["id"]: u.get("nom") or u.get("email") for u in database.lister_utilisateurs()}
+    return _presentation.mettre_en_forme_evenements(
+        database.lister_evenements(limite), comptes, notables_seulement
+    )
+
+
 @bp.route("/systeme")
 @module_auth_securite.administrateur_requis
 def systeme():
     donnees = module_historique_dashboard.tableau_de_bord_administrateur()
-    return render_template("admin_systeme.html", d=donnees)
+    return render_template(
+        "admin_systeme.html",
+        d=donnees,
+        fil=_fil_evenements(limite=60,
+                            notables_seulement=request.args.get("fil") == "notable"),
+        fil_notable=request.args.get("fil") == "notable",
+    )
 
 
 @bp.route("/modeles")
@@ -94,6 +125,9 @@ def modeles():
         "admin_modeles.html",
         d=module_supervision_modeles.tableau_de_bord(),
         connexions=anomalies_connexion.connexions_atypiques(),
+        # Sur l'ecran des modeles, le va-et-vient des connexions n'apporte
+        # rien : seuls les reentrainements et les incidents comptent.
+        fil=_fil_evenements(limite=120, notables_seulement=True),
     )
 
 
