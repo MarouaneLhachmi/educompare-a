@@ -185,6 +185,84 @@ class TestReferentiels:
         cle = referentiels.cle_pour("Mathématiques", "Dernière année du primaire")
         assert referentiels.notions_a_plat(cle, ["ZZ"]) == []
 
+    def test_le_perimetre_couvre_les_deux_niveaux_de_mathematiques(self):
+        """
+        Recentrage du perimetre : le systeme compare des mathematiques a deux
+        niveaux, la fin du primaire et la fin du college.
+        """
+        cles = referentiels.cles_disponibles()
+        assert "Mathématiques - Dernière année du primaire" in cles
+        assert "Mathématiques - Dernière année du collège" in cles
+
+    def test_le_francais_ne_fait_plus_partie_du_perimetre(self):
+        assert not any(cle.startswith("Français") for cle in referentiels.cles_disponibles())
+        assert "Français" not in referentiels.matieres()
+
+    def test_les_deux_niveaux_couvrent_les_memes_pays(self):
+        """
+        Un niveau qui ne serait servi que par deux pays produirait une
+        comparaison bancale, sans que rien ne le signale.
+        """
+        primaire = referentiels.notions_a_plat("Mathématiques - Dernière année du primaire")
+        college = referentiels.notions_a_plat("Mathématiques - Dernière année du collège")
+        assert {n["code"] for n in college} == {n["code"] for n in primaire}
+
+    def test_le_college_a_la_meme_profondeur_que_le_primaire(self):
+        """
+        L'ajout ne doit pas etre un contenu appauvri : a pays egal, autant de
+        notions et des descriptifs de meme granularite.
+        """
+        for code in referentiels.codes_pays():
+            primaire = referentiels.notions_a_plat(
+                "Mathématiques - Dernière année du primaire", [code])
+            college = referentiels.notions_a_plat(
+                "Mathématiques - Dernière année du collège", [code])
+            assert len(college) == len(primaire), (
+                f"{code} : {len(college)} notions au collège contre "
+                f"{len(primaire)} au primaire"
+            )
+            for notion in college:
+                assert notion["descriptif"], f"{code} : notion sans descriptif"
+                assert len(notion["descriptif"].split()) >= 10, (
+                    f"{code} — « {notion['notion']} » : descriptif trop sommaire"
+                )
+
+    def test_le_socle_du_primaire_est_inchange_entre_les_versions(self):
+        """
+        Le recentrage publie une version 2.0 : il ne devait toucher NI au
+        contenu du primaire, ni donc aux resultats deja mesures. Seule
+        l'etiquette de version change.
+        """
+        cle = "Mathématiques - Dernière année du primaire"
+        anciennes = {code: "1.0-reconstitue" for code in referentiels.codes_pays()}
+        avant = referentiels.notions_a_plat(cle, versions=anciennes)
+        apres = referentiels.notions_a_plat(cle)
+
+        champs = ("code", "pays", "referentiel", "notion", "descriptif", "texte")
+        resume = lambda liste: [tuple(n[c] for c in champs) for n in liste]
+        assert resume(avant) == resume(apres)
+
+    def test_la_version_precedente_reste_chargeable(self):
+        """
+        Une analyse ancienne porte `1.0-reconstitue` : elle doit rester
+        interpretable dans les termes du socle qui l'a produite.
+        """
+        for code in referentiels.codes_pays():
+            versions = {v["version"] for v in referentiels.versions_disponibles(code)}
+            assert {"1.0-reconstitue", "2.0-reconstitue"} <= versions
+            assert referentiels.version_courante(code) == "2.0-reconstitue"
+
+        ancienne = referentiels.charger("FR", "1.0-reconstitue")
+        assert "Français - Dernière année du primaire" in ancienne["referentiels"]
+
+    def test_la_version_courante_est_declaree_reconstituee(self):
+        """Le recentrage ne transforme pas un jeu reconstitue en texte officiel."""
+        for code in referentiels.codes_pays():
+            meta = referentiels.charger(code)["_meta"]
+            assert meta["nature"] == referentiels.NATURE_RECONSTITUE
+            assert meta["avertissement"]
+        assert referentiels.statistiques()["nb_officiels"] == 0
+
     def test_statistiques_coherentes_avec_le_contenu(self):
         stats = referentiels.statistiques()
         total = sum(

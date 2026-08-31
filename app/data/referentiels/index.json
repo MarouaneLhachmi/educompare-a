@@ -7,27 +7,27 @@
     {
       "code": "CA",
       "pays": "Canada (Ontario)",
-      "version_courante": "1.0-reconstitue"
+      "version_courante": "2.0-reconstitue"
     },
     {
       "code": "FI",
       "pays": "Finlande",
-      "version_courante": "1.0-reconstitue"
+      "version_courante": "2.0-reconstitue"
     },
     {
       "code": "FR",
       "pays": "France",
-      "version_courante": "1.0-reconstitue"
+      "version_courante": "2.0-reconstitue"
     },
     {
       "code": "UK",
       "pays": "Royaume-Uni",
-      "version_courante": "1.0-reconstitue"
+      "version_courante": "2.0-reconstitue"
     },
     {
       "code": "US",
       "pays": "États-Unis",
-      "version_courante": "1.0-reconstitue"
+      "version_courante": "2.0-reconstitue"
     }
   ]
 }

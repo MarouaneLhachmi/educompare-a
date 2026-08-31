@@ -1,0 +1,154 @@
+{
+  "_meta": {
+    "code": "US",
+    "pays": "États-Unis",
+    "drapeau": "🇺🇸",
+    "version": "2.0-reconstitue",
+    "nature": "reconstitue",
+    "source_officielle": "https://www.thecorestandards.org/",
+    "url_source": null,
+    "date_releve": null,
+    "relu_par": null,
+    "avertissement": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes du programme officiel, a vocation de demonstration. Ce n'est pas le texte officiel : toute conclusion tiree de cette version est bornee par cette approximation.",
+    "nb_referentiels": 3,
+    "nb_notions": 30,
+    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques (retrait du francais) et ajout du niveau « Derniere annee du college »."
+  },
+  "referentiels": {
+    "Mathématiques - Dernière année du primaire": {
+      "referentiel": "Common Core State Standards — Grade 5 Mathematics",
+      "notions": [
+        {
+          "intitule": "Understanding the place value system",
+          "descriptif": "Recognise that a digit represents ten times what it represents to its right, read and round decimals to thousandths."
+        },
+        {
+          "intitule": "Operations with multi-digit whole numbers",
+          "descriptif": "Fluently multiply multi-digit numbers and divide with two-digit divisors using place value strategies."
+        },
+        {
+          "intitule": "Add and subtract fractions with unlike denominators",
+          "descriptif": "Use equivalent fractions to add and subtract fractions, including mixed numbers, and solve word problems."
+        },
+        {
+          "intitule": "Multiply and divide fractions",
+          "descriptif": "Interpret fractions as division, multiply a fraction by a whole number or a fraction, divide unit fractions."
+        },
+        {
+          "intitule": "Operations with decimals to hundredths",
+          "descriptif": "Add, subtract, multiply and divide decimals using concrete models and written strategies."
+        },
+        {
+          "intitule": "Numerical expressions and order of operations",
+          "descriptif": "Write and interpret numerical expressions with parentheses, brackets and braces, and evaluate them."
+        },
+        {
+          "intitule": "Patterns and relationships between two rules",
+          "descriptif": "Generate two numerical patterns, form ordered pairs and graph them on a coordinate plane."
+        },
+        {
+          "intitule": "Coordinate plane and graphing",
+          "descriptif": "Use the first quadrant of the coordinate plane to represent real-world and mathematical problems."
+        },
+        {
+          "intitule": "Volume of rectangular prisms",
+          "descriptif": "Understand volume as an attribute, count unit cubes and apply the formulas V = l x w x h and V = b x h."
+        },
+        {
+          "intitule": "Converting measurement units",
+          "descriptif": "Convert among different-sized standard measurement units within a system and use them in multi-step problems."
+        },
+        {
+          "intitule": "Classify two-dimensional figures",
+          "descriptif": "Classify shapes into hierarchies based on properties, understanding that attributes of a category are shared."
+        },
+        {
+          "intitule": "Represent and interpret data with line plots",
+          "descriptif": "Make a line plot with fractional measurement units and use operations on fractions to answer questions."
+        }
+      ]
+    },
+    "Sciences - Dernière année du primaire": {
+      "referentiel": "Next Generation Science Standards — Grade 5",
+      "notions": [
+        {
+          "intitule": "Structure and properties of matter",
+          "descriptif": "Develop models to describe that matter is made of particles too small to be seen and that mass is conserved."
+        },
+        {
+          "intitule": "Matter and energy in ecosystems",
+          "descriptif": "Model the movement of matter among plants, animals, decomposers and the environment."
+        },
+        {
+          "intitule": "Earth's systems and interactions",
+          "descriptif": "Describe interactions among the geosphere, biosphere, hydrosphere and atmosphere."
+        },
+        {
+          "intitule": "Space systems: stars and the solar system",
+          "descriptif": "Support an argument that gravity is directed down and explain daily and seasonal patterns of the sky."
+        },
+        {
+          "intitule": "Protecting Earth's resources",
+          "descriptif": "Obtain and combine information about ways communities protect Earth's resources and environment."
+        },
+        {
+          "intitule": "Engineering design practices",
+          "descriptif": "Define a problem, generate and compare multiple solutions and improve a design based on test results."
+        }
+      ]
+    },
+    "Mathématiques - Dernière année du collège": {
+      "referentiel": "Common Core State Standards — Grade 8 Mathematics",
+      "notions": [
+        {
+          "intitule": "Rational and irrational numbers",
+          "descriptif": "Know that numbers that are not rational are irrational, approximate them by rationals and locate them approximately on a number line."
+        },
+        {
+          "intitule": "Radicals and integer exponents",
+          "descriptif": "Apply the properties of integer exponents, evaluate square and cube roots, and use scientific notation to estimate and compare quantities."
+        },
+        {
+          "intitule": "Proportional relationships and slope",
+          "descriptif": "Graph proportional relationships, interpret the unit rate as the slope and compare two proportional relationships represented in different ways."
+        },
+        {
+          "intitule": "Linear equations in one variable",
+          "descriptif": "Solve linear equations with rational coefficients, including those requiring expansion, and identify equations with one, infinitely many or no solutions."
+        },
+        {
+          "intitule": "Systems of linear equations",
+          "descriptif": "Solve pairs of simultaneous linear equations algebraically and by graphing, and interpret the point of intersection in context."
+        },
+        {
+          "intitule": "Defining and comparing functions",
+          "descriptif": "Understand a function as a rule assigning exactly one output to each input, and compare functions given algebraically, graphically or in tables."
+        },
+        {
+          "intitule": "Modelling with linear functions",
+          "descriptif": "Construct a linear function to model a relationship between two quantities and interpret its rate of change and initial value in context."
+        },
+        {
+          "intitule": "Congruence and transformations",
+          "descriptif": "Verify the properties of rotations, reflections and translations and describe sequences of transformations mapping one figure onto another."
+        },
+        {
+          "intitule": "Similarity and angle relationships",
+          "descriptif": "Establish similarity through dilations and use angle sums, exterior angles and the angle-angle criterion for similar triangles."
+        },
+        {
+          "intitule": "The Pythagorean theorem",
+          "descriptif": "Explain a proof of the theorem and its converse and apply it in two and three dimensions and to find distances in the coordinate plane."
+        },
+        {
+          "intitule": "Volume of cylinders, cones and spheres",
+          "descriptif": "Know and apply the formulas for the volume of cylinders, cones and spheres to solve real-world and mathematical problems."
+        },
+        {
+          "intitule": "Bivariate data and patterns of association",
+          "descriptif": "Construct and interpret scatter plots, informally fit a straight line and use two-way tables to investigate association in categorical data."
+        }
+      ]
+    }
+  }
+}

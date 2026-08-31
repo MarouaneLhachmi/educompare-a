@@ -412,9 +412,12 @@ class TestRestitution:
             page.extract_text() for page in pypdf.PdfReader(destination).pages
         )
 
-        # Provenance : version du socle et nature declarees.
+        # Provenance : version du socle et nature declarees. La version n'est
+        # pas ecrite en dur — elle change a chaque publication d'un nouveau
+        # socle, et c'est la CORRESPONDANCE avec l'analyse qui importe.
         assert "Socle de connaissances" in texte
-        assert "1.0-reconstitue" in texte
+        for version in (analyse.get("referentiel_versions_par_pays") or {}).values():
+            assert version in texte, f"version « {version} » absente de l'annexe"
         assert "RECONSTITUE" in texte, (
             "un socle reconstitue doit etre signale comme tel, sans quoi "
             "l'annexe laisserait croire a un releve officiel"

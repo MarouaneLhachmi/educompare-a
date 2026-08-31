@@ -1,0 +1,109 @@
+{
+  "_meta": {
+    "code": "CA",
+    "pays": "Canada (Ontario)",
+    "drapeau": "🇨🇦",
+    "version": "2.0-reconstitue",
+    "nature": "reconstitue",
+    "source_officielle": "https://www.dcp.edu.gov.on.ca/en/",
+    "url_source": null,
+    "date_releve": null,
+    "relu_par": null,
+    "avertissement": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes du programme officiel, a vocation de demonstration. Ce n'est pas le texte officiel : toute conclusion tiree de cette version est bornee par cette approximation.",
+    "nb_referentiels": 2,
+    "nb_notions": 20,
+    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques (retrait du francais) et ajout du niveau « Derniere annee du college »."
+  },
+  "referentiels": {
+    "Mathématiques - Dernière année du primaire": {
+      "referentiel": "Ontario Mathematics Curriculum — Grade 6",
+      "notions": [
+        {
+          "intitule": "Nombres entiers, décimaux et fractions",
+          "descriptif": "Représenter, comparer et ordonner nombres entiers, décimaux et fractions dans divers contextes de la vie courante."
+        },
+        {
+          "intitule": "Sens des opérations et estimation",
+          "descriptif": "Choisir la ou les opérations pertinentes, estimer un résultat et évaluer la raisonnabilité d'une réponse."
+        },
+        {
+          "intitule": "Rapports, taux et pourcentages",
+          "descriptif": "Résoudre des problèmes de rapports, de taux unitaires et de pourcentages dans des situations authentiques."
+        },
+        {
+          "intitule": "Algèbre et modélisation",
+          "descriptif": "Décrire des régularités, utiliser des expressions et des équations simples pour modéliser une situation."
+        },
+        {
+          "intitule": "Codage et pensée computationnelle",
+          "descriptif": "Écrire et déboguer des programmes simples comportant des instructions séquentielles, répétitives et conditionnelles."
+        },
+        {
+          "intitule": "Géométrie et sens de l'espace",
+          "descriptif": "Décrire les propriétés des figures et des solides, effectuer des transformations et construire des dallages."
+        },
+        {
+          "intitule": "Mesure : aire, périmètre et volume",
+          "descriptif": "Établir et appliquer des formules pour l'aire des parallélogrammes et des triangles et le volume des prismes."
+        },
+        {
+          "intitule": "Traitement des données",
+          "descriptif": "Collecter, organiser et représenter des données à l'aide de diagrammes appropriés et en tirer des conclusions."
+        },
+        {
+          "intitule": "Probabilité",
+          "descriptif": "Déterminer et comparer la probabilité théorique et expérimentale d'événements simples."
+        },
+        {
+          "intitule": "Littératie financière",
+          "descriptif": "Établir un budget simple, comparer des méthodes de paiement et calculer un rabais ou une taxe."
+        }
+      ]
+    },
+    "Mathématiques - Dernière année du collège": {
+      "referentiel": "Ontario Mathematics Curriculum — Grade 9 (MTH1W, cours décloisonné)",
+      "notions": [
+        {
+          "intitule": "Habiletés transférables et processus mathématiques",
+          "descriptif": "Résoudre des problèmes, raisonner, communiquer sa démarche et réfléchir à ses stratégies dans des contextes authentiques."
+        },
+        {
+          "intitule": "Nombres rationnels et irrationnels",
+          "descriptif": "Représenter, comparer et ordonner nombres rationnels et irrationnels, utiliser les exposants entiers et la notation scientifique."
+        },
+        {
+          "intitule": "Opérations et sens du nombre",
+          "descriptif": "Effectuer les quatre opérations sur les nombres rationnels, estimer un résultat et évaluer sa vraisemblance."
+        },
+        {
+          "intitule": "Expressions algébriques et manipulation",
+          "descriptif": "Développer, factoriser et simplifier des expressions algébriques, y substituer des valeurs et interpréter le résultat obtenu."
+        },
+        {
+          "intitule": "Équations et inéquations",
+          "descriptif": "Résoudre des équations et des inéquations du premier degré, mettre une situation en équation et vérifier la solution."
+        },
+        {
+          "intitule": "Relations linéaires et non linéaires",
+          "descriptif": "Représenter une relation par une table, un graphique et une équation, distinguer relation linéaire et non linéaire, interpréter pente et ordonnée à l'origine."
+        },
+        {
+          "intitule": "Modélisation de situations réelles",
+          "descriptif": "Choisir un modèle mathématique adapté à une situation, l'ajuster à partir de données et discuter ses limites."
+        },
+        {
+          "intitule": "Géométrie analytique et mesure",
+          "descriptif": "Calculer distances, pentes et points milieux dans le plan cartésien et résoudre des problèmes de périmètre, d'aire et de volume."
+        },
+        {
+          "intitule": "Littératie financière",
+          "descriptif": "Comparer des options financières, calculer intérêt simple et composé et interpréter un budget ou un taux."
+        },
+        {
+          "intitule": "Codage et pensée computationnelle",
+          "descriptif": "Écrire, exécuter et modifier du code pour explorer une relation mathématique et automatiser un calcul répétitif."
+        }
+      ]
+    }
+  }
+}

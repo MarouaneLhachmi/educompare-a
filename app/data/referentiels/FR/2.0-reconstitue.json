@@ -1,0 +1,154 @@
+{
+  "_meta": {
+    "code": "FR",
+    "pays": "France",
+    "drapeau": "🇫🇷",
+    "version": "2.0-reconstitue",
+    "nature": "reconstitue",
+    "source_officielle": "https://eduscol.education.fr/",
+    "url_source": null,
+    "date_releve": null,
+    "relu_par": null,
+    "avertissement": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes du programme officiel, a vocation de demonstration. Ce n'est pas le texte officiel : toute conclusion tiree de cette version est bornee par cette approximation.",
+    "nb_referentiels": 3,
+    "nb_notions": 30,
+    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques (retrait du francais) et ajout du niveau « Derniere annee du college »."
+  },
+  "referentiels": {
+    "Mathématiques - Dernière année du primaire": {
+      "referentiel": "Programme de cycle 3 — CM2 (Éducation nationale)",
+      "notions": [
+        {
+          "intitule": "Nombres entiers jusqu'au milliard",
+          "descriptif": "Lire, écrire, décomposer et comparer les grands nombres entiers, comprendre la valeur positionnelle des chiffres."
+        },
+        {
+          "intitule": "Fractions simples et nombres décimaux",
+          "descriptif": "Comprendre les fractions comme partage, les placer sur une droite graduée, passer des fractions décimales aux nombres à virgule."
+        },
+        {
+          "intitule": "Opérations sur les nombres décimaux",
+          "descriptif": "Additionner, soustraire, multiplier et diviser des nombres décimaux, poser les opérations et estimer un ordre de grandeur."
+        },
+        {
+          "intitule": "Proportionnalité",
+          "descriptif": "Reconnaître une situation de proportionnalité, utiliser le coefficient, les pourcentages, les échelles et le passage à l'unité."
+        },
+        {
+          "intitule": "Figures planes usuelles",
+          "descriptif": "Décrire, construire et reconnaître carré, rectangle, losange, triangle et cercle, connaître leurs propriétés et leurs axes de symétrie."
+        },
+        {
+          "intitule": "Périmètres et aires",
+          "descriptif": "Calculer le périmètre et l'aire du carré, du rectangle et du triangle, distinguer les deux grandeurs."
+        },
+        {
+          "intitule": "Solides et volumes",
+          "descriptif": "Reconnaître cube et pavé droit, réaliser des patrons, découvrir la notion de volume et l'unité litre / centimètre cube."
+        },
+        {
+          "intitule": "Grandeurs et mesures",
+          "descriptif": "Utiliser et convertir les unités de longueur, masse, contenance, aire et durée, résoudre des problèmes de conversion."
+        },
+        {
+          "intitule": "Organisation et gestion de données",
+          "descriptif": "Lire, interpréter et construire tableaux, diagrammes en bâtons et graphiques, calculer une moyenne simple."
+        },
+        {
+          "intitule": "Résolution de problèmes à plusieurs étapes",
+          "descriptif": "Modéliser un énoncé, planifier une suite de calculs, vérifier la vraisemblance du résultat et communiquer sa démarche."
+        },
+        {
+          "intitule": "Initiation à la pensée algébrique",
+          "descriptif": "Trouver un nombre manquant dans une égalité, exprimer une règle générale à partir d'une suite de nombres."
+        },
+        {
+          "intitule": "Repérage et déplacement dans l'espace",
+          "descriptif": "Se repérer sur un quadrillage, utiliser des coordonnées, décrire un déplacement et programmer un trajet."
+        }
+      ]
+    },
+    "Sciences - Dernière année du primaire": {
+      "referentiel": "Sciences et technologie — cycle 3 (CM2)",
+      "notions": [
+        {
+          "intitule": "Matière, mouvement, énergie et information",
+          "descriptif": "Décrire les états et les changements d'état de la matière, identifier des sources et des formes d'énergie."
+        },
+        {
+          "intitule": "Le vivant, sa diversité et ses fonctions",
+          "descriptif": "Classer les êtres vivants, décrire la nutrition, la respiration et la reproduction des organismes."
+        },
+        {
+          "intitule": "Matériaux et objets techniques",
+          "descriptif": "Identifier les fonctions d'un objet technique, décrire son fonctionnement et les matériaux qui le composent."
+        },
+        {
+          "intitule": "La planète Terre et les êtres vivants",
+          "descriptif": "Situer la Terre dans le système solaire, décrire les mouvements terrestres, les saisons et les phénomènes météorologiques."
+        },
+        {
+          "intitule": "Éducation à l'environnement et développement durable",
+          "descriptif": "Identifier l'impact des activités humaines, comprendre le recyclage et la préservation des ressources."
+        },
+        {
+          "intitule": "Démarche d'investigation scientifique",
+          "descriptif": "Formuler une hypothèse, concevoir une expérience, observer, mesurer et interpréter des résultats."
+        }
+      ]
+    },
+    "Mathématiques - Dernière année du collège": {
+      "referentiel": "Programme de cycle 4 — 3e (Éducation nationale)",
+      "notions": [
+        {
+          "intitule": "Nombres relatifs et calcul littéral",
+          "descriptif": "Calculer avec des nombres relatifs, développer, factoriser et réduire une expression littérale, utiliser les identités remarquables."
+        },
+        {
+          "intitule": "Fractions, puissances et notation scientifique",
+          "descriptif": "Additionner, multiplier et diviser des fractions, utiliser les puissances de 10 et la notation scientifique pour estimer un ordre de grandeur."
+        },
+        {
+          "intitule": "Équations et inéquations du premier degré",
+          "descriptif": "Mettre un problème en équation, résoudre une équation du premier degré à une inconnue et interpréter la solution dans le contexte."
+        },
+        {
+          "intitule": "Proportionnalité, pourcentages et grandeurs composées",
+          "descriptif": "Traiter une situation de proportionnalité, calculer un taux d'évolution, une vitesse, un débit ou une masse volumique."
+        },
+        {
+          "intitule": "Notion de fonction",
+          "descriptif": "Lire et construire un tableau de valeurs et une représentation graphique, reconnaître une fonction linéaire ou affine et son coefficient."
+        },
+        {
+          "intitule": "Théorème de Pythagore",
+          "descriptif": "Calculer une longueur dans un triangle rectangle et démontrer qu'un triangle est rectangle à l'aide de la réciproque."
+        },
+        {
+          "intitule": "Théorème de Thalès, agrandissement et réduction",
+          "descriptif": "Calculer des longueurs dans une configuration de Thalès et déterminer l'effet d'un agrandissement ou d'une réduction sur les aires et les volumes."
+        },
+        {
+          "intitule": "Trigonométrie du triangle rectangle",
+          "descriptif": "Utiliser cosinus, sinus et tangente pour calculer une longueur ou la mesure d'un angle dans un triangle rectangle."
+        },
+        {
+          "intitule": "Transformations du plan",
+          "descriptif": "Construire et reconnaître l'image d'une figure par symétrie, translation, rotation et homothétie, et identifier les grandeurs conservées."
+        },
+        {
+          "intitule": "Géométrie dans l'espace",
+          "descriptif": "Calculer aires et volumes du prisme, du cylindre, de la pyramide, du cône et de la sphère, et décrire une section plane d'un solide."
+        },
+        {
+          "intitule": "Statistiques et probabilités",
+          "descriptif": "Calculer moyenne, médiane et étendue, interpréter un diagramme, et déterminer une probabilité dans une situation d'équiprobabilité."
+        },
+        {
+          "intitule": "Algorithmique et programmation",
+          "descriptif": "Écrire, exécuter et corriger un programme comportant variables, boucles et instructions conditionnelles, et décrire l'algorithme correspondant."
+        }
+      ]
+    }
+  }
+}

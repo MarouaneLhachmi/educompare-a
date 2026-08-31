@@ -1,0 +1,154 @@
+{
+  "_meta": {
+    "code": "UK",
+    "pays": "Royaume-Uni",
+    "drapeau": "🇬🇧",
+    "version": "2.0-reconstitue",
+    "nature": "reconstitue",
+    "source_officielle": "https://www.gov.uk/government/collections/national-curriculum",
+    "url_source": null,
+    "date_releve": null,
+    "relu_par": null,
+    "avertissement": "Jeu de donnees pedagogique reconstitue a partir des grandes lignes du programme officiel, a vocation de demonstration. Ce n'est pas le texte officiel : toute conclusion tiree de cette version est bornee par cette approximation.",
+    "nb_referentiels": 3,
+    "nb_notions": 30,
+    "provenance": "Publiee depuis 1.0-reconstitue : perimetre recentre sur les mathematiques (retrait du francais) et ajout du niveau « Derniere annee du college »."
+  },
+  "referentiels": {
+    "Mathématiques - Dernière année du primaire": {
+      "referentiel": "National Curriculum — Key Stage 2, Year 6",
+      "notions": [
+        {
+          "intitule": "Place value up to 10 000 000",
+          "descriptif": "Read, write, order and compare numbers up to ten million and determine the value of each digit."
+        },
+        {
+          "intitule": "Fractions, decimals and percentages",
+          "descriptif": "Convert between fractions, decimals and percentages and use them to solve problems in context."
+        },
+        {
+          "intitule": "Long multiplication and long division",
+          "descriptif": "Multiply four-digit numbers by two-digit numbers and divide using the formal long division method with remainders."
+        },
+        {
+          "intitule": "Ratio and proportion",
+          "descriptif": "Solve problems involving relative sizes, scale factors, unequal sharing and simple percentage comparison."
+        },
+        {
+          "intitule": "Algebra: simple formulae and equations",
+          "descriptif": "Use simple formulae, generate and describe linear number sequences and find pairs of numbers satisfying an equation."
+        },
+        {
+          "intitule": "Properties of 2D and 3D shapes",
+          "descriptif": "Classify shapes by their properties, build 3D shapes from nets and recognise angles in triangles and quadrilaterals."
+        },
+        {
+          "intitule": "Perimeter, area and volume",
+          "descriptif": "Calculate the area of triangles and parallelograms and the volume of cubes and cuboids using standard units."
+        },
+        {
+          "intitule": "Measurement and unit conversion",
+          "descriptif": "Convert between metric units and between miles and kilometres, and use measures in problem solving."
+        },
+        {
+          "intitule": "Statistics: pie charts and line graphs",
+          "descriptif": "Interpret and construct pie charts and line graphs, and calculate and interpret the mean as an average."
+        },
+        {
+          "intitule": "Coordinates in four quadrants",
+          "descriptif": "Describe positions on the full coordinate grid and draw or translate simple shapes on the axes."
+        },
+        {
+          "intitule": "Multi-step word problem solving",
+          "descriptif": "Solve problems requiring several operations, choose an appropriate strategy and justify the answer."
+        },
+        {
+          "intitule": "Mental arithmetic and estimation",
+          "descriptif": "Perform mental calculations with large numbers and use estimation and rounding to check answers."
+        }
+      ]
+    },
+    "Sciences - Dernière année du primaire": {
+      "referentiel": "National Curriculum Science — Key Stage 2, Year 6",
+      "notions": [
+        {
+          "intitule": "Living things and their habitats",
+          "descriptif": "Classify living things into broad groups according to observable characteristics and similarities."
+        },
+        {
+          "intitule": "Animals including humans",
+          "descriptif": "Describe the circulatory system, the impact of diet, exercise and lifestyle on the human body."
+        },
+        {
+          "intitule": "Evolution and inheritance",
+          "descriptif": "Recognise that living things produce offspring that vary and that adaptation may lead to evolution."
+        },
+        {
+          "intitule": "Light and how we see",
+          "descriptif": "Explain that light travels in straight lines and use this to explain shadows and reflection."
+        },
+        {
+          "intitule": "Electricity and simple circuits",
+          "descriptif": "Compare the brightness of lamps with the voltage of cells and use recognised circuit symbols."
+        },
+        {
+          "intitule": "Working scientifically",
+          "descriptif": "Plan enquiries, take accurate measurements, record data and report findings with conclusions and causal relationships."
+        }
+      ]
+    },
+    "Mathématiques - Dernière année du collège": {
+      "referentiel": "National Curriculum Mathematics — Key Stage 4, Year 11 (GCSE)",
+      "notions": [
+        {
+          "intitule": "Indices, surds and standard form",
+          "descriptif": "Apply the laws of indices, simplify surds and calculate with standard form to work with exact values and large or small quantities."
+        },
+        {
+          "intitule": "Algebraic manipulation and identities",
+          "descriptif": "Expand products of binomials, factorise quadratic expressions and simplify algebraic fractions."
+        },
+        {
+          "intitule": "Linear and quadratic equations",
+          "descriptif": "Solve linear equations, and quadratic equations by factorising, completing the square and using the quadratic formula."
+        },
+        {
+          "intitule": "Simultaneous equations and inequalities",
+          "descriptif": "Solve simultaneous linear equations algebraically and graphically, and represent linear inequalities on number lines and in the coordinate plane."
+        },
+        {
+          "intitule": "Sequences",
+          "descriptif": "Generate terms of a sequence, find the nth term of linear and simple quadratic sequences and recognise geometric progressions."
+        },
+        {
+          "intitule": "Graphs of functions",
+          "descriptif": "Plot and interpret linear, quadratic, cubic and reciprocal graphs, find gradients and intercepts, and use graphs to solve equations."
+        },
+        {
+          "intitule": "Ratio, proportion and rates of change",
+          "descriptif": "Solve problems involving direct and inverse proportion, compound units and repeated percentage change such as growth and depreciation."
+        },
+        {
+          "intitule": "Pythagoras' theorem and trigonometry",
+          "descriptif": "Apply Pythagoras' theorem and the trigonometric ratios to right-angled triangles, including bearings and problems in three dimensions."
+        },
+        {
+          "intitule": "Angles, congruence and similarity",
+          "descriptif": "Apply angle facts and circle theorems, and prove that triangles are congruent or similar using formal criteria."
+        },
+        {
+          "intitule": "Mensuration: area, surface area and volume",
+          "descriptif": "Calculate perimeter, area, surface area and volume of standard shapes and solids, including arcs, sectors, prisms, cylinders, cones and spheres."
+        },
+        {
+          "intitule": "Probability of combined events",
+          "descriptif": "Use tree diagrams, Venn diagrams and two-way tables to calculate probabilities of combined, independent and conditional events."
+        },
+        {
+          "intitule": "Statistics and data representation",
+          "descriptif": "Construct and interpret cumulative frequency diagrams, box plots, histograms and scatter graphs, and compare distributions."
+        }
+      ]
+    }
+  }
+}
