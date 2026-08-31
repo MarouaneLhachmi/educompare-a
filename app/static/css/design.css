@@ -1474,6 +1474,56 @@ table.tableau tbody tr:last-child td { border-bottom: 0; }
     font-size: 1rem;
 }
 
+/* --- Séparation des deux espaces dans la navigation --- */
+/* L'administration n'est pas une rubrique de plus : c'est un autre périmètre,
+   avec d'autres pouvoirs. La navigation le marque au lieu de l'aligner. */
+.nav-separateur {
+    width: 1px; height: 18px;
+    background: var(--border-strong);
+    margin: 0 var(--sp-1);
+}
+.nav-lien-admin { color: var(--text-2); }
+.nav-lien-admin .ic { font-size: .85em; margin-right: 2px; }
+.menu-deroulant-separateur {
+    padding: var(--sp-3) var(--sp-4) 4px;
+    font-size: .68rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--text-3);
+    border-top: 1px solid var(--border);
+    margin-top: var(--sp-2);
+}
+
+/* --- Pipeline présenté comme catalogue --- */
+/* Sur la page d'architecture, les neuf agents sont décrits, pas exécutés :
+   ils ne doivent porter ni couleur d'état, ni rail de progression, qui
+   feraient lire un catalogue comme une analyse achevée. */
+.pipeline-catalogue .etape { opacity: 1; }
+.pipeline-catalogue .etape-num { background: var(--brand-soft); color: var(--brand-500); }
+.pipeline-catalogue .etape:not(:last-child)::after { background: var(--border-strong); }
+.pipeline-catalogue .etape-jauge { display: none; }
+
+/* --- Page d'erreur --- */
+.page-erreur { text-align: center; padding: var(--sp-7) var(--sp-5); }
+.page-erreur-ic {
+    width: 56px; height: 56px; margin: 0 auto var(--sp-4);
+    display: grid; place-items: center;
+    border-radius: var(--r-lg);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    font-size: 1.5rem;
+}
+.page-erreur-code {
+    font-family: var(--mono);
+    font-size: .8rem; font-weight: 600;
+    letter-spacing: .16em;
+    color: var(--text-3);
+}
+.page-erreur-pistes {
+    margin: var(--sp-4) auto 0;
+    max-width: 48ch;
+    text-align: left;
+}
+
 /* --- Fil d'activité --- */
 .fil { display: flex; flex-direction: column; gap: 2px; }
 .fil-jour {

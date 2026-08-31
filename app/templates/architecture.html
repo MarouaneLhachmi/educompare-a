@@ -25,7 +25,7 @@
         <article class="carte carte-survol carte-lueur reveler">
             <div class="ligne" style="gap:10px;margin-bottom:10px">
                 <span style="font-size:1.6rem">{{ couche.ic }}</span>
-                <span class="mono muet" style="font-size:1.4rem;font-weight:800;opacity:.35">{{ couche.n }}</span>
+                <span class="mono muet" style="font-size:1.3rem;font-weight:600;opacity:.4">{{ couche.n }}</span>
             </div>
             <h3 style="margin-bottom:6px">{{ couche.nom }}</h3>
             <p class="petit muet">{{ couche.desc }}</p>
@@ -37,9 +37,9 @@
     <!-- Flux du pipeline -->
     <section class="carte reveler" style="margin-bottom:var(--sp-6)">
         <h2 class="carte-titre"><span class="ic">🔗</span> Chaîne de traitement d'une analyse</h2>
-        <div class="pipeline" style="margin-top:var(--sp-4)">
+        <div class="pipeline pipeline-catalogue" style="margin-top:var(--sp-4)">
             {% for agent in agents %}
-            <div class="etape termine">
+            <div class="etape">
                 <div class="etape-num">{{ agent.numero }}</div>
                 <div class="etape-corps">
                     <div class="etape-nom">{{ agent.icone }} {{ agent.nom }}</div>

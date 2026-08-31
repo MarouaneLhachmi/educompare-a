@@ -34,7 +34,10 @@
                 <a class="nav-lien {{ 'actif' if request.blueprint == 'programmes' }}" href="{{ url_for('programmes.liste') }}">Programmes</a>
             {% endif %}
             {% if est_administrateur %}
-                <a class="nav-lien {{ 'actif' if request.blueprint == 'admin' }}" href="{{ url_for('admin.tableau_de_bord') }}">Administration</a>
+                <span class="nav-separateur" aria-hidden="true"></span>
+                <a class="nav-lien nav-lien-admin {{ 'actif' if request.blueprint == 'admin' }}" href="{{ url_for('admin.tableau_de_bord') }}">
+                    <span class="ic">🛡️</span> Administration
+                </a>
             {% endif %}
             <a class="nav-lien {{ 'actif' if request.endpoint == 'main.architecture' }}" href="{{ url_for('main.architecture') }}">Architecture</a>
         </nav>
@@ -54,18 +57,22 @@
                 </button>
                 <div class="menu-deroulant" id="menu-compte">
                     <div class="menu-deroulant-entete">
-                        <div style="font-weight:700">{{ utilisateur_courant.nom }}</div>
+                        <div style="font-weight:600">{{ utilisateur_courant.nom }}</div>
                         <div class="petit muet">{{ utilisateur_courant.email }}</div>
-                        <span class="badge {{ 'badge-marque' if est_administrateur else 'badge-neutre' }}" style="margin-top:6px">
-                            {{ 'Administrateur' if est_administrateur else 'Utilisateur' }}
-                        </span>
+                        <div style="margin-top:6px">{{ c.badge_role(utilisateur_courant.role) }}</div>
                     </div>
                     <a href="{{ url_for('dashboard.tableau_de_bord') }}"><span class="ic">📊</span> Mon tableau de bord</a>
                     <a href="{{ url_for('dashboard.historique') }}"><span class="ic">🗂️</span> Mon historique</a>
                     <a href="{{ url_for('programmes.liste') }}"><span class="ic">🎓</span> Mes programmes</a>
                     <a href="{{ url_for('dashboard.profil') }}"><span class="ic">👤</span> Mon profil</a>
                     {% if est_administrateur %}
-                        <a href="{{ url_for('admin.tableau_de_bord') }}"><span class="ic">🛡️</span> Back-office</a>
+                    {# Le back-office n'est pas une page de plus de l'espace
+                       enseignant : c'est un autre périmètre. Le séparateur le
+                       marque, plutôt que de le noyer dans la même liste. #}
+                    <div class="menu-deroulant-separateur">Administration</div>
+                        <a href="{{ url_for('admin.tableau_de_bord') }}"><span class="ic">🛡️</span> Vue d'ensemble</a>
+                        <a href="{{ url_for('admin.utilisateurs') }}"><span class="ic">👥</span> Comptes</a>
+                        <a href="{{ url_for('admin.systeme') }}"><span class="ic">⚙️</span> Supervision technique</a>
                     {% endif %}
                     <a class="danger" href="{{ url_for('auth.deconnexion') }}"><span class="ic">↩︎</span> Se déconnecter</a>
                 </div>
@@ -124,6 +131,9 @@
         </a>
         <a class="{{ 'actif' if request.endpoint == 'dashboard.historique' }}" href="{{ url_for('dashboard.historique') }}">
             <span class="ic">🗂️</span> Historique
+        </a>
+        <a class="{{ 'actif' if request.blueprint == 'programmes' }}" href="{{ url_for('programmes.liste') }}">
+            <span class="ic">🎓</span> Cursus
         </a>
         {% else %}
         <a href="{{ url_for('auth.connexion') }}"><span class="ic">🔐</span> Connexion</a>

@@ -10,7 +10,7 @@
             {{ analyse.nom_fichier }} · {{ analyse.matiere }} · {{ analyse.niveau }} · {{ analyse.date_creation }}
         </p>
 
-        <div class="carte" style="background:var(--danger-soft);border-color:rgba(239,68,68,.32);margin-top:var(--sp-4)">
+        <div class="carte" style="background:var(--danger-soft);border-color:var(--border);margin-top:var(--sp-4);box-shadow:none">
             <strong class="petit">Cause remontée par le pipeline</strong>
             <p class="petit mono" style="margin:8px 0 0">{{ analyse.erreur or "Erreur non détaillée." }}</p>
         </div>
@@ -29,10 +29,22 @@
 
         <h3 style="margin-top:var(--sp-5)">Que faire ?</h3>
         <ul class="liste-puces petit muet">
-            <li>Vérifiez que le PDF contient du <strong>texte sélectionnable</strong> (un document scanné nécessite l'OCR Tesseract).</li>
+            <li>Vérifiez que le document contient du <strong>texte sélectionnable</strong>.
+                Un cours photocopié puis scanné n'en contient pas : sa lecture demande
+                l'OCR, dont l'état est indiqué dans la supervision technique.</li>
+            <li>Les formats acceptés sont le <strong>PDF</strong>, le <strong>.docx</strong>
+                et le <strong>.pptx</strong>. Un document exporté depuis un traitement de
+                texte passe généralement mieux qu'un PDF issu d'un scanner.</li>
             <li>Assurez-vous que le fichier n'est ni protégé par mot de passe, ni corrompu.</li>
-            <li>Si le problème persiste, essayez avec un extrait plus court du document.</li>
+            <li>Si l'incident persiste sur ce document précis, essayez avec un extrait
+                plus court : cela permet de distinguer un problème de contenu d'un
+                problème de volume.</li>
         </ul>
+
+        <p class="aide">
+            Une analyse interrompue ne laisse rien derrière elle : aucun résultat partiel
+            n'est conservé, et redéposer le document repart d'une chaîne propre.
+        </p>
 
         <div class="ligne" style="margin-top:var(--sp-5)">
             <a class="btn btn-primaire" href="{{ url_for('main.accueil') }}">Déposer un autre document</a>

@@ -1,16 +1,62 @@
 {% extends "base.html" %}
 {% block titre %}{{ code }} — {{ titre }}{% endblock %}
 
+{#
+    Page d'erreur.
+
+    Une page d'erreur qui se contente d'un code et d'un titre laisse
+    l'utilisateur devant une impasse : il sait que quelque chose a échoué, pas
+    ce qu'il peut faire. Chaque code reçoit donc une piste concrète et des
+    sorties adaptées à ce qu'il est en droit de faire — un visiteur non
+    connecté ne se voit pas proposer son tableau de bord.
+#}
+
+{% set pistes = {
+    403: [
+        'Cet espace est réservé aux administrateurs de la plateforme.',
+        'Si vous consultez le rapport de quelqu\'un d\'autre, sachez que chaque analyse
+         n\'est visible que par son auteur — c\'est une règle de cloisonnement, pas un
+         incident.',
+    ],
+    404: [
+        'Le lien est peut-être ancien, ou l\'analyse a été supprimée depuis.',
+        'Vos analyses conservées restent accessibles depuis votre historique.',
+    ],
+    413: [
+        'Réduisez le poids du document, ou déposez-en un extrait.',
+        'Un PDF exporté en « taille réduite » depuis un traitement de texte passe
+         généralement sans difficulté.',
+    ],
+    500: [
+        'L\'incident a été enregistré côté serveur.',
+        'Si vous étiez en train de déposer un document, réessayez : le traitement
+         reprend depuis le début, rien n\'a été conservé à moitié.',
+    ],
+} %}
+
+{% set icones = {403: '🔒', 404: '🧭', 413: '📦', 500: '⚠'} %}
+
 {% block contenu %}
-<div class="conteneur" style="max-width:640px">
-    <section class="carte centre anim-monter" style="padding:var(--sp-8) var(--sp-5)">
-        <div class="compteur-global">{{ code }}</div>
-        <h1 style="margin-top:var(--sp-4)">{{ titre }}</h1>
-        <p class="muet">{{ message }}</p>
-        <div class="ligne" style="justify-content:center;margin-top:var(--sp-5)">
+<div class="conteneur" style="max-width:620px">
+    <section class="carte anim-monter page-erreur">
+        <div class="page-erreur-ic">{{ icones.get(code, '⚠') }}</div>
+
+        <div class="page-erreur-code">{{ code }}</div>
+        <h1 style="margin:var(--sp-2) 0 var(--sp-3)">{{ titre }}</h1>
+        <p class="muet" style="margin:0">{{ message }}</p>
+
+        {% if pistes.get(code) %}
+        <ul class="liste-puces petit muet page-erreur-pistes">
+            {% for piste in pistes[code] %}<li>{{ piste }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="ligne" style="justify-content:center;margin-top:var(--sp-5);flex-wrap:wrap">
             <a class="btn btn-primaire" href="{{ url_for('main.accueil') }}">Retour à l'accueil</a>
             {% if utilisateur_courant %}
-            <a class="btn btn-secondaire" href="{{ url_for('dashboard.tableau_de_bord') }}">Mon tableau de bord</a>
+            <a class="btn btn-secondaire" href="{{ url_for('dashboard.historique') }}">Mon historique</a>
+            {% else %}
+            <a class="btn btn-secondaire" href="{{ url_for('auth.connexion') }}">Se connecter</a>
             {% endif %}
         </div>
     </section>
