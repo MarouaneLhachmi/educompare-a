@@ -57,7 +57,7 @@ machine, sans question de droit d'auteur ni de donnée personnelle.
 | `cours_maths_partiel.pdf` | 2 chapitres sur 7 | la couverture doit chuter |
 | `cours_maths_doublon.pdf` | quasi-doublon du complet | détection MinHash/LSH, stabilité du diagnostic |
 | `plan_de_cours.pdf` | intitulés sans contenu enseigné | notions *évoquées* mais non *enseignées* |
-| `cours_sciences.pdf` | autre matière | le pipeline ne suppose pas les mathématiques |
+| `cours_sciences.pdf` | cours hors périmètre | un vrai support pédagogique que le système ne sait plus comparer — depuis le recentrage sur les mathématiques, sa couverture doit s'effondrer sans que rien ne plante |
 | `cours_maths_anglais.pdf` | cours en anglais | comparaison multilingue (dégradée par le repli LSA) |
 | `hors_sujet_cv.pdf` | CV | triage documentaire |
 | `hors_sujet_facture.pdf` | facture | triage documentaire |

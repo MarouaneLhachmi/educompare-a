@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Intervalles d'ancrage mesures sur le corpus de reference. Regenerer avec `python tests/mesurer_ancrages.py` apres un changement volontaire de seuil, et commiter la difference.",
-    "mesure_le": "2026-08-31T14:54:21+00:00",
+    "mesure_le": "2026-08-31T22:05:34+00:00",
     "marge_note": 8.0,
     "marge_couverture": 10.0,
     "modele_de_langage": "neutralise (mode degrade)"
@@ -161,25 +161,25 @@
     },
     "cours_sciences.pdf": {
       "fichier": "cours_sciences.pdf",
-      "nature": "cours_complet",
+      "nature": "hors_perimetre",
       "statut": "TERMINEE",
       "mesure": {
-        "note_globale": 48.0,
-        "couverture_pct": 52.8,
-        "nb_notions_manquantes": 4,
+        "note_globale": 33.0,
+        "couverture_pct": 14.3,
+        "nb_notions_manquantes": 39,
         "nb_unites": 4,
         "nb_chapitres": 4,
         "nb_recommandations": 12,
-        "niveau_maturite": "À renforcer"
+        "niveau_maturite": "À refondre"
       },
       "intervalle": {
         "note_globale": [
-          40.0,
-          56.0
+          25.0,
+          41.0
         ],
         "couverture_pct": [
-          42.8,
-          62.8
+          4.3,
+          24.3
         ]
       },
       "environnement": {

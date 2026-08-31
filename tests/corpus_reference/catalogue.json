@@ -64,14 +64,14 @@
     "fichier": "cours_sciences.pdf",
     "titre": "Cours de Sciences - Derniere annee du primaire",
     "sous_titre": "Support de cours complet, quatre chapitres.",
-    "nature": "cours_complet",
+    "nature": "hors_perimetre",
     "matiere": "Sciences",
     "niveau": "Dernière année du primaire",
     "langue": "fr",
     "attendu": {
       "extraction_reussie": true,
       "triage_pedagogique": true,
-      "couverture_relative": "haute"
+      "couverture_relative": "basse"
     },
     "taille_octets": 2142
   },

@@ -425,14 +425,19 @@ DOCUMENTS = [
         "titre": "Cours de Sciences - Derniere annee du primaire",
         "sous_titre": "Support de cours complet, quatre chapitres.",
         "sections": COURS_SCIENCES,
-        "nature": "cours_complet",
+        # Depuis le recentrage du perimetre sur les seules mathematiques, ce
+        # document n'est plus « un cours d'une autre matiere » : c'est un cours
+        # HORS PERIMETRE. Le cas est plus interessant qu'un CV — un vrai
+        # support pedagogique, bien redige, mais que le systeme ne sait pas
+        # comparer. Sa couverture doit s'effondrer sans que rien ne plante.
+        "nature": "hors_perimetre",
         "matiere": "Sciences",
         "niveau": "Dernière année du primaire",
         "langue": "fr",
         "attendu": {
             "extraction_reussie": True,
             "triage_pedagogique": True,
-            "couverture_relative": "haute",
+            "couverture_relative": "basse",
         },
     },
     {
