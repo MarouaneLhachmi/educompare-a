@@ -20,8 +20,8 @@ enregistrement de fichier.
 pytest -m lent
 ```
 
-33 tests d'ancrage : chaîne complète des neuf agents sur les douze documents
-du corpus de référence. Environ 2 min 40 s, dominées par le pipeline lui-même.
+36 tests d'ancrage : chaîne complète des neuf agents sur les quinze documents
+du corpus de référence. Environ 3 min 15 s, dominées par le pipeline lui-même.
 
 ```bash
 pytest -m "lent or not lent"
@@ -47,7 +47,7 @@ faux client auquel on dépose les réponses attendues.
 
 ## Le corpus de référence
 
-`corpus_reference/` contient douze documents **générés** par
+`corpus_reference/` contient quinze documents — douze **générés** par
 `generer_corpus.py` — donc reproductibles à l'identique sur n'importe quelle
 machine, sans question de droit d'auteur ni de donnée personnelle.
 
@@ -64,7 +64,20 @@ machine, sans question de droit d'auteur ni de donnée personnelle.
 | `hors_sujet_contrat.pdf` | contrat | triage documentaire |
 | `cours_maths.docx` | document Word | styles de titre, contenu des tableaux |
 | `cours_maths.pptx` | présentation | une page par diapositive, notes du présentateur |
+| `cours_maths_college_complet.pdf` | **fourni** — cours réel, 1ʳᵉ année de collège | traitement d'un vrai PDF : en-têtes répétés, 12 pages, 33 unités |
+| `fiche_pedagogique_college_1.pdf` | **fourni** — fiche de préparation réelle | un document d'organisation qui contient malgré tout de la substance |
+| `fiche_pedagogique_college_2.pdf` | **fourni** — fiche de cours réelle | idem, plus succincte |
 | `scan_sans_texte.pdf` | aucune couche texte | échec explicite de l'Agent 1, alerte au dépôt |
+
+Trois documents sont **fournis** et non générés : ce sont de vrais supports.
+`generer_corpus.py` les catalogue sans jamais les réécrire — un document réel
+vaut précisément parce qu'il n'est pas synthétique. S'il manque, le script le
+signale au lieu de fabriquer un substitut.
+
+Ils sont rattachés au niveau « Dernière année du collège », seul niveau collège
+du référentiel, alors que leur contenu relève de la **première** année. Cet
+écart est assumé et documenté : il explique à lui seul l'essentiel de la
+couverture mesurée, et sert de cas de test pour un décalage de niveau réel.
 
 Les deux documents bureautiques nomment leurs sections **sans le mot
 « Chapitre »** : l'heuristique du PDF les manquerait. Ils vérifient que la

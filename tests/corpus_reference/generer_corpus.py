@@ -16,6 +16,14 @@ Ces documents sont **generes** plutot que collectes, pour trois raisons :
   quasi-doublon differe du cours complet par quelques mots seulement, le plan
   de cours reprend les memes titres sans aucune substance).
 
+Documents fournis
+-----------------
+Quelques documents ne sont PAS generes : ce sont de vrais supports deposes
+dans le dossier, marques `fourni: True` dans le catalogue. Le script les
+declare pour qu'ils figurent au catalogue, mais ne les reecrit jamais — un
+document reel vaut precisement parce qu'il n'est pas synthetique, et
+l'ecraser par un PDF fabrique reviendrait a perdre ce qu'il apporte.
+
 Usage :
     python tests/corpus_reference/generer_corpus.py
 
@@ -532,6 +540,60 @@ DOCUMENTS = [
             "couverture_relative": "haute",
         },
     },
+    # --- Documents fournis (non generes) ---------------------------------
+    # Supports reels de premiere annee de college. Ils sont rattaches au
+    # niveau « Derniere annee du college », seul niveau college du
+    # referentiel : l'ecart de niveau entre le contenu (1AC) et la base de
+    # comparaison (fin de college) est assume et documente ici, car il
+    # explique a lui seul une partie de la couverture mesuree.
+    {
+        "fichier": "cours_maths_college_complet.pdf",
+        "titre": "Cours complet — Opérations sur les entiers et les décimaux (1AC)",
+        "sous_titre": "",
+        "sections": None,
+        "fourni": True,
+        "nature": "cours_complet",
+        "matiere": "Mathématiques",
+        "niveau": "Dernière année du collège",
+        "langue": "fr",
+        "attendu": {
+            "extraction_reussie": True,
+            "triage_pedagogique": True,
+            "couverture_relative": "haute",
+        },
+    },
+    {
+        "fichier": "fiche_pedagogique_college_1.pdf",
+        "titre": "Fiche de préparation — Chapitre 1 (1AC)",
+        "sous_titre": "",
+        "sections": None,
+        "fourni": True,
+        "nature": "plan_de_cours",
+        "matiere": "Mathématiques",
+        "niveau": "Dernière année du collège",
+        "langue": "fr",
+        "attendu": {
+            "extraction_reussie": True,
+            "triage_pedagogique": True,
+            "couverture_relative": "basse",
+        },
+    },
+    {
+        "fichier": "fiche_pedagogique_college_2.pdf",
+        "titre": "Fiche de cours — Opérations sur les entiers et décimaux (1AC)",
+        "sous_titre": "",
+        "sections": None,
+        "fourni": True,
+        "nature": "plan_de_cours",
+        "matiere": "Mathématiques",
+        "niveau": "Dernière année du collège",
+        "langue": "fr",
+        "attendu": {
+            "extraction_reussie": True,
+            "triage_pedagogique": True,
+            "couverture_relative": "basse",
+        },
+    },
     {
         "fichier": "scan_sans_texte.pdf",
         "titre": "",
@@ -556,7 +618,15 @@ def generer() -> list[dict]:
     for document in DOCUMENTS:
         chemin = os.path.join(DOSSIER, document["fichier"])
         generateur = document.get("generateur", "pdf")
-        if document["sections"] is None:
+
+        if document.get("fourni"):
+            # Document reel : on le catalogue sans jamais le reecrire. S'il
+            # manque, on le signale plutot que de fabriquer un substitut qui
+            # donnerait l'illusion d'un corpus complet.
+            if not os.path.exists(chemin):
+                print(f"  ATTENTION : document fourni absent — {document['fichier']}")
+                continue
+        elif document["sections"] is None:
             _ecrire_pdf_sans_texte(chemin)
         elif generateur == "docx":
             _ecrire_docx(chemin, document["titre"], document["sections"])

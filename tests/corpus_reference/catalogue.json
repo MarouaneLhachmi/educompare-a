@@ -168,6 +168,54 @@
     "taille_octets": 40775
   },
   {
+    "fichier": "cours_maths_college_complet.pdf",
+    "titre": "Cours complet — Opérations sur les entiers et les décimaux (1AC)",
+    "sous_titre": "",
+    "fourni": true,
+    "nature": "cours_complet",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du collège",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "haute"
+    },
+    "taille_octets": 327897
+  },
+  {
+    "fichier": "fiche_pedagogique_college_1.pdf",
+    "titre": "Fiche de préparation — Chapitre 1 (1AC)",
+    "sous_titre": "",
+    "fourni": true,
+    "nature": "plan_de_cours",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du collège",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "basse"
+    },
+    "taille_octets": 482192
+  },
+  {
+    "fichier": "fiche_pedagogique_college_2.pdf",
+    "titre": "Fiche de cours — Opérations sur les entiers et décimaux (1AC)",
+    "sous_titre": "",
+    "fourni": true,
+    "nature": "plan_de_cours",
+    "matiere": "Mathématiques",
+    "niveau": "Dernière année du collège",
+    "langue": "fr",
+    "attendu": {
+      "extraction_reussie": true,
+      "triage_pedagogique": true,
+      "couverture_relative": "basse"
+    },
+    "taille_octets": 941853
+  },
+  {
     "fichier": "scan_sans_texte.pdf",
     "titre": "",
     "sous_titre": "",

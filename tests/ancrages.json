@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Intervalles d'ancrage mesures sur le corpus de reference. Regenerer avec `python tests/mesurer_ancrages.py` apres un changement volontaire de seuil, et commiter la difference.",
-    "mesure_le": "2026-08-31T22:05:34+00:00",
+    "mesure_le": "2026-09-02T16:53:37+00:00",
     "marge_note": 8.0,
     "marge_couverture": 10.0,
     "modele_de_langage": "neutralise (mode degrade)"
@@ -408,6 +408,120 @@
         "couverture_pct": [
           46.5,
           66.5
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "cours_maths_college_complet.pdf": {
+      "fichier": "cours_maths_college_complet.pdf",
+      "nature": "cours_complet",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 70.4,
+        "couverture_pct": 50.1,
+        "nb_notions_manquantes": 22,
+        "nb_unites": 33,
+        "nb_chapitres": 22,
+        "nb_recommandations": 12,
+        "niveau_maturite": "Solide"
+      },
+      "intervalle": {
+        "note_globale": [
+          62.4,
+          78.4
+        ],
+        "couverture_pct": [
+          40.1,
+          60.1
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "fiche_pedagogique_college_1.pdf": {
+      "fichier": "fiche_pedagogique_college_1.pdf",
+      "nature": "plan_de_cours",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 78.2,
+        "couverture_pct": 72.3,
+        "nb_notions_manquantes": 8,
+        "nb_unites": 20,
+        "nb_chapitres": 3,
+        "nb_recommandations": 12,
+        "niveau_maturite": "Solide"
+      },
+      "intervalle": {
+        "note_globale": [
+          70.2,
+          86.2
+        ],
+        "couverture_pct": [
+          62.3,
+          82.3
+        ]
+      },
+      "environnement": {
+        "moteur_vectorisation": "sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2",
+        "type_moteur": "deep-learning",
+        "repli_vectorisation_actif": false,
+        "dimension": 384,
+        "moteur_index": "FAISS (IndexFlatIP)",
+        "cross_encodeur_demande": true,
+        "cross_encodeur_applique": true,
+        "source_decision": "fusion_logistique_cross_encodeur",
+        "seuils": {
+          "couverte": 0.62,
+          "partielle": 0.38
+        }
+      }
+    },
+    "fiche_pedagogique_college_2.pdf": {
+      "fichier": "fiche_pedagogique_college_2.pdf",
+      "nature": "plan_de_cours",
+      "statut": "TERMINEE",
+      "mesure": {
+        "note_globale": 68.5,
+        "couverture_pct": 54.1,
+        "nb_notions_manquantes": 20,
+        "nb_unites": 14,
+        "nb_chapitres": 6,
+        "nb_recommandations": 12,
+        "niveau_maturite": "Solide"
+      },
+      "intervalle": {
+        "note_globale": [
+          60.5,
+          76.5
+        ],
+        "couverture_pct": [
+          44.1,
+          64.1
         ]
       },
       "environnement": {
