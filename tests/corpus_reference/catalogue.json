@@ -195,7 +195,7 @@
     "attendu": {
       "extraction_reussie": true,
       "triage_pedagogique": true,
-      "couverture_relative": "basse"
+      "couverture_relative": "haute"
     },
     "taille_octets": 482192
   },
@@ -211,7 +211,7 @@
     "attendu": {
       "extraction_reussie": true,
       "triage_pedagogique": true,
-      "couverture_relative": "basse"
+      "couverture_relative": "haute"
     },
     "taille_octets": 941853
   },

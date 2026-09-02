@@ -365,6 +365,20 @@ SECTIONS_BUREAUTIQUES = [
 # `nature` decrit ce que le document EST ; `attendu` decrit ce que le systeme
 # doit en dire. Les tests s'appuient sur ces deux champs, jamais sur le nom
 # de fichier.
+#
+# `couverture_relative` merite une precision, parce que son ambiguite a deja
+# produit une erreur d'etiquetage. Il decrit **la couverture attendue d'un
+# systeme qui fonctionne correctement**, ce qui recouvre deux cas :
+#
+# - le cas normal : l'etiquette correspond a la mesure, et un ecart signale
+#   que l'etiquette est fausse ;
+# - le cas d'un defaut connu : l'etiquette dit ce qui DEVRAIT arriver, la
+#   mesure dit ce qui arrive, et l'ecart est la trace du defaut. C'est le cas
+#   de `cours_maths_partiel.pdf`, etiquete « basse » alors qu'il mesure 95 % :
+#   corriger l'etiquette effacerait le defaut documente en xfail.
+#
+# Autrement dit, une etiquette contredite se corrige quand elle decrivait mal
+# le DOCUMENT, jamais quand elle decrit bien le comportement ATTENDU.
 
 DOCUMENTS = [
     {
@@ -572,10 +586,16 @@ DOCUMENTS = [
         "matiere": "Mathématiques",
         "niveau": "Dernière année du collège",
         "langue": "fr",
+        # Etiquetee « basse » a l'origine par analogie avec
+        # `plan_de_cours.pdf`. L'analogie ne tient pas : ce dernier fait
+        # 121 mots de simples intitules, cette fiche en fait 2801, avec
+        # capacites, prerequis, activites et exercices. Elle mesure 72,3 %,
+        # la deuxieme couverture du corpus. C'est le DOCUMENT qui etait mal
+        # decrit, pas le systeme qui se trompe.
         "attendu": {
             "extraction_reussie": True,
             "triage_pedagogique": True,
-            "couverture_relative": "basse",
+            "couverture_relative": "haute",
         },
     },
     {
@@ -588,10 +608,15 @@ DOCUMENTS = [
         "matiere": "Mathématiques",
         "niveau": "Dernière année du collège",
         "langue": "fr",
+        # Meme correction que la fiche 1, sur les memes bases : 1460 mots de
+        # contenu enseigne, et une couverture de 54,1 % qui la place entre le
+        # support PowerPoint (56,5 %) et le cours de college (50,1 %), tous
+        # deux etiquetes « haute ». Elle est tres loin de la bande reellement
+        # basse du corpus, qui va de 0 a 14 %.
         "attendu": {
             "extraction_reussie": True,
             "triage_pedagogique": True,
-            "couverture_relative": "basse",
+            "couverture_relative": "haute",
         },
     },
     {

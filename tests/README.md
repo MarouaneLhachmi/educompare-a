@@ -79,6 +79,41 @@ du référentiel, alors que leur contenu relève de la **première** année. Cet
 écart est assumé et documenté : il explique à lui seul l'essentiel de la
 couverture mesurée, et sert de cas de test pour un décalage de niveau réel.
 
+### Ce que ces documents valident — et ce qu'ils ne valident pas
+
+Ils valident la **fiabilité et la profondeur du traitement** du niveau collège
+par le pipeline : les neuf agents produisent, aucun incident, onze indicateurs
+mesurés, deux parcours de douze étapes, même confiance déclarée qu'au primaire.
+Sur l'extraction, le collège est même mieux servi — 12 pages et 33 unités de
+sens contre 2 pages et 7 unités pour le cours de primaire.
+
+Ils **ne valident pas** la couverture d'un cours de collège face à son
+programme. Le document est un cours de 1ʳᵉ année comparé à un référentiel de
+3ᵉ : les notions les moins couvertes sont Pythagore (14 %), la trigonométrie
+(10 %) et les transformations du plan (10 %) — toutes réellement absentes d'un
+cours de 1AC. Les 27 contenus excédentaires, contre 1 au primaire, sont la
+signature de ce décalage.
+
+Un vrai test de couverture du niveau collège demanderait soit un cours de 3ᵉ,
+soit un référentiel « 1ʳᵉ année de collège » distinct. Ni le référentiel ni le
+document n'ont été ajustés pour améliorer le score : la mesure est correcte,
+c'est la question posée qui n'est pas celle de la couverture.
+
+### Limite d'extraction révélée par ces documents
+
+Un vrai PDF porte des en-têtes de page. Celui du cours de collège répète
+« Chapitre 1 — Opérations sur les entiers et les décimaux (1AC) » à chaque
+page, et `_detecter_chapitres` la compte comme un titre : **22 chapitres
+détectés pour un document qui n'en contient qu'un**. Le corpus synthétique
+n'exposait pas ce cas, aucun de ses documents n'ayant d'en-tête répété.
+
+L'impact mesuré reste faible — le découpage produit 33 unités cohérentes et la
+couverture n'en est pas notablement affectée — mais la limite est réelle et
+touchera tout document issu d'un traitement de texte. Sa correction relève de
+l'Agent 1 (repérage des lignes répétées d'une page à l'autre, avant détection
+des titres) et n'a pas été faite ici : elle sort du périmètre de l'ajout du
+corpus. Voir « Limites connues » dans le README à la racine.
+
 Les deux documents bureautiques nomment leurs sections **sans le mot
 « Chapitre »** : l'heuristique du PDF les manquerait. Ils vérifient que la
 structure déclarée par l'auteur — styles de titre, titres de diapositive — est
