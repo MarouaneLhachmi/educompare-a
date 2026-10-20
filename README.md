@@ -231,6 +231,7 @@ educompare_prototype/
 │   ├── templates/       20 gabarits Jinja2 + _composants.html (macros partagées)
 │   └── static/          design.css · app.js
 └── tests/               8 fichiers de test + corpus de référence + ancrages
+```
 
 ---
 
